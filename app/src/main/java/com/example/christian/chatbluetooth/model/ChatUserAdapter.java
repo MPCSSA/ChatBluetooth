@@ -10,6 +10,8 @@ import android.widget.ArrayAdapter;
  */
 public class ChatUserAdapter extends ArrayAdapter<ChatUser> {
 
+    //TODO: private ChatUserArray
+
     public ChatUserAdapter(Context context, int resource) {
         super(context, resource);
     }
@@ -22,5 +24,7 @@ public class ChatUserAdapter extends ArrayAdapter<ChatUser> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         return super.getView(position, convertView, parent);
+
+        //TODO: define ChatUser layout with ImageView, Large TextView, Small TextView and hidden notification ImageView
     }
 }
