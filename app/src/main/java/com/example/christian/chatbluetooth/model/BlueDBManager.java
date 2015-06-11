@@ -4,9 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
-/**
- * Created by stefano on 10/06/15.
- */
+
 public class BlueDBManager {
 
     private Context context;

@@ -3,9 +3,7 @@ package com.example.christian.chatbluetooth.model;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 
-/**
- * Created by stefano on 11/06/15.
- */
+
 public class ChatUserRecycler extends RecyclerView.Adapter {
 
     @Override

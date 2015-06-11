@@ -1,10 +1,5 @@
 package com.example.christian.chatbluetooth.controller;
 
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-
-import java.io.IOException;
-
 public class BlueCtrl {
 
     private static final byte GRT_HEADER = (byte) 0; //header for Greetings Message
