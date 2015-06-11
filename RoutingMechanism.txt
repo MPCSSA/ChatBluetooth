@@ -10,10 +10,7 @@ MECCANISMO DI ROUTING BLUETOOTH
   inoltrare quegli oggetti ChatUser che hanno come mac_next_node il nodo in questione). Il processo di invio dei msg termina quando la rete diventa 
   stabile e nessun nuovo collegamento rimpiazza il precedente.
 
-. Problema: update della rete al logout di un dispositivo.
-  Soluzione: implementare un meccanismo di Drop&Replace e di Update per restaurare i contatti nella rete.
+. Problema: riparazione della rete al logout di un dispositivo.
+  Soluzione: implementare un meccanismo di Drop&Repair per restaurare i contatti nella rete.
   Ogni volta che un dispositivo si disconnette dalla rete, i nodi vicini procedono col cancellare ogni istanza di ChatUser associata a quel nodo, per 
-  poi mandare ad ogni nodo vicino un Drop&Replace msg: questo messaggio è simile all'update msg, ma costringe il dispositivo contattato ad eliminare 
-  i precedenti collegamenti memorizzati e rimpiazzarli con i nuovi. Questo aggiornamento forzato provoca una cascata di update msg nei dispositivi che 
-  non erano direttamente collegati al dispositivo in uscita, che porta quindi alla generazione di nuove route per il collegamento ai nodi rimasti 
-  nella rete.
+  poi mandare ad ogni nodo vicino una Drop request: una lista di nodi destinazione da eliminare se e solo se la route presente bella lista del nodo contattato passa attraveeso il nodo contattante. Nel caso sia disponibile una route alternativa, questa viene subito segnalata al nodo contattante (repair message), che innesca una update cascade che dovrebbe riparare l'intera rete. La rete torna stabile quando le drop request non vengono più inoltrate e la repair cascade è terminata o quando si generano m sottoreti da quella di partenza.
