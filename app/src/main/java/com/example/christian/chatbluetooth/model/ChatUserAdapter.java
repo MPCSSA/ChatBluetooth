@@ -8,9 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-/**
- * Created by stefano on 10/06/15.
- */
+
 public class ChatUserAdapter extends ArrayAdapter<ChatUser> {
 
     public ChatUserAdapter(Context context, int resource) {
