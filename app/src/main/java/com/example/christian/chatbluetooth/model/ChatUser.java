@@ -10,7 +10,8 @@ public class ChatUser {
     private String name; //user name
     private int status; //user status
     private String mac; //device chain next node MAC address
-    private int chain; //number of chained devices before actual user
+    private String nextNode;
+    private int bounces; //number of chained devices before actual user
     //private Bitmap profilePic;
 
     public String getName() {
@@ -21,24 +22,39 @@ public class ChatUser {
     }
 
     public int getStatus(){
+
         return status;
     }
     public void setStatus(int status) {
+
         this.status = status;
     }
 
     public String getMac() {
+
         return mac;
     }
     public void setMac(String mac) {
+
         this.mac = mac;
     }
 
-    public int getChain(){
-        return chain;
+    public String getNextNode() {
+
+        return nextNode;
     }
-    public void setChain(int chain) {
-        this.chain = chain;
+    public void setNextNode(String nextNode) {
+
+        this.nextNode = nextNode;
+    }
+
+    public int getBounces(){
+
+        return bounces;
+    }
+    public void setChain(int bounces) {
+
+        this.bounces = bounces;
     }
 
 }
