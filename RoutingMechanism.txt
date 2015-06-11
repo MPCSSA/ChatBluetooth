@@ -1,0 +1,19 @@
+MECCANISMO DI ROUTING BLUETOOTH
+
+. Problema: notificare ad altri dispositivi il collegamento di un nuovo dispositivo alla rete.
+  Soluzione: implementare un meccanismo di update. Il dispositivo appena connesso fa una discovery e trova altri dispositivi, mandando un greetings
+  msg ai dipositivi con cui è connesso per segnalare la sua esistenza. I dispositivi contattati procedono inoltrando ai loro contatti diretti un update
+  msg contenente le informazioni del nuovo nodo connesso, che viene fatto rimbalzare fino a che tutta la rete di dispositivi è stata aggiornata.
+  Contemporaneamente, i dispositivi direttamente connessi al nuovo nodo mandano un update msg contenente tutti i nodi raggiungibili attraverso di essi,
+  e le omonimie vengono gestite attraverso una comparazione dell'attributo bounces della classe ChatUser. Terminata l'update, il nuovo dispositivo
+  inoltra infine ad ogni nodo direttamente connesso un update msg contenente quei dispositivi nella rete raggiungibili attraverso di esso (senza
+  inoltrare quegli oggetti ChatUser che hanno come mac_next_node il nodo in questione). Il processo di invio dei msg termina quando la rete diventa 
+  stabile e nessun nuovo collegamento rimpiazza il precedente.
+
+. Problema: update della rete al logout di un dispositivo.
+  Soluzione: implementare un meccanismo di Drop&Replace e di Update per restaurare i contatti nella rete.
+  Ogni volta che un dispositivo si disconnette dalla rete, i nodi vicini procedono col cancellare ogni istanza di ChatUser associata a quel nodo, per 
+  poi mandare ad ogni nodo vicino un Drop&Replace msg: questo messaggio è simile all'update msg, ma costringe il dispositivo contattato ad eliminare 
+  i precedenti collegamenti memorizzati e rimpiazzarli con i nuovi. Questo aggiornamento forzato provoca una cascata di update msg nei dispositivi che 
+  non erano direttamente collegati al dispositivo in uscita, che porta quindi alla generazione di nuove route per il collegamento ai nodi rimasti 
+  nella rete.
