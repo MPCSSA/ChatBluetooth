@@ -7,11 +7,11 @@ import java.io.IOException;
 
 public class BlueCtrl {
 
-    private static final byte GRT_HEADER = (byte) 0; //header for Greetings Message
-    private static final byte UPD_HEADER = (byte) 1; //header for Update Message
-    private static final byte MSG_HEADER = (byte) 2; //header for Chat Message
-    private static final byte DRP_HEADER = (byte) 3; //header for Drop Request
-    private static final String UUID = "BlueRoom";
+    public static final byte GRT_HEADER = (byte) 0; //header for Greetings Message
+    public static final byte UPD_HEADER = (byte) 1; //header for Update Message
+    public static final byte MSG_HEADER = (byte) 2; //header for Chat Message
+    public static final byte DRP_HEADER = (byte) 3; //header for Drop Request
+    public static final String UUID = "BlueRoom";
 
 
     public static void sendMsg(String msg, String address, BluetoothDevice device) {
@@ -37,7 +37,7 @@ public class BlueCtrl {
         try{
 
             sckt = device.createInsecureRfcommSocketToServiceRecord(java.util.UUID.fromString(UUID));
-            (new ConnectThread(sckt, pckt)).start();
+            (new MessageThread(sckt, pckt)).start();
 
         }
         catch (IOException ignore) {}
@@ -53,6 +53,12 @@ public class BlueCtrl {
     public static void retrieveHistory(String username) {
 
         //TODO: fetch msg history via DBManager
+
+    }
+
+    public static void buildMsg(String msg) {
+
+        //TODO: TextView building mechanism to show message in chat
 
     }
 

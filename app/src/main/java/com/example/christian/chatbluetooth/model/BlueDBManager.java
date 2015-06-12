@@ -11,9 +11,25 @@ public class BlueDBManager {
     private SQLiteDatabase db;
     private final String[] tables = {"user", "msg", "history"};
 
-    public BlueDBManager(Context context, SQLiteDatabase db) {
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
         this.context = context;
+    }
+
+    public SQLiteDatabase getDb() {
+        return db;
+    }
+
+    public void setDb(SQLiteDatabase db) {
         this.db = db;
+    }
+
+    public BlueDBManager(Context context, SQLiteDatabase db) {
+        setContext(context);
+        setDb(db);
     }
 
     private ContentValues createCV(String msg) {
