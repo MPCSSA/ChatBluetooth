@@ -1,14 +1,16 @@
 package com.example.christian.chatbluetooth.model;
 
 
+import android.bluetooth.BluetoothDevice;
+
 public class ChatUser {
 
     //TODO: observer mechanism
 
+    private String mac; //target MAC address
     private String name; //user name
     private int status; //user status
-    private String mac; //device chain next node MAC address
-    private String nextNode;
+    private BluetoothDevice nextNode; //next device on the route to the actual device
     private int bounces; //number of chained devices before actual user
     //private Bitmap profilePic;
 
@@ -37,11 +39,11 @@ public class ChatUser {
         this.mac = mac;
     }
 
-    public String getNextNode() {
+    public BluetoothDevice getNextNode() {
 
         return nextNode;
     }
-    public void setNextNode(String nextNode) {
+    public void setNextNode(BluetoothDevice nextNode) {
 
         this.nextNode = nextNode;
     }

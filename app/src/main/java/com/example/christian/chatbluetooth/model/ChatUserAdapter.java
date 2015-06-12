@@ -1,5 +1,6 @@
 package com.example.christian.chatbluetooth.model;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
