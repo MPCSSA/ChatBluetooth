@@ -48,28 +48,17 @@ public class ReceiverThread extends Thread {
                 }
 
                 case BlueCtrl.MSG_HEADER: {
-                    //TODO Manage incoming Chat Message
-                    int i, j;
-                    char c = 0;
-                    StringBuilder strBld = new StringBuilder();
+
+                    int i;
+                    String msg = "";
 
                     do {
 
                         i = in.read(bytes);
-                        j = 0;
-
-                        for (byte b : bytes) {
-                            if (j%2 == 0) c = (char) ((char) b << 8);
-                            else {
-                                c += (char) b;
-                                strBld.append(c);
-                            }
-                            ++j;
-                        }
+                        msg.concat(new String(bytes));
 
                     } while (i == 1024);
 
-                    String msg = strBld.toString();
                     BlueCtrl.buildMsg(msg);
                     break;
                 }
