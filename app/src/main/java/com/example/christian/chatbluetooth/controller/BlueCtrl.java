@@ -3,6 +3,7 @@ package com.example.christian.chatbluetooth.controller;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
+import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.model.ChatUserAdapter;
 
@@ -15,8 +16,17 @@ public class BlueCtrl {
     public static final byte MSG_HEADER = (byte) 2; //header for Chat Message
     public static final byte DRP_HEADER = (byte) 3; //header for Drop Request
     public static final String UUID = "BlueRoom";   //custom UUID
-    public static ChatUserAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
 
+    private static ChatUserAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
+    private static BlueDBManager dbManager;          //User and Messages DB Manager
+
+    public static void setUserAdapt(ChatUserAdapter userAdapt) {
+        BlueCtrl.userAdapt = userAdapt;
+    }
+
+    public static void setDbManager(BlueDBManager dbManager) {
+        BlueCtrl.dbManager = dbManager;
+    }
 
     public static void sendMsg(String target, String sender, String msg) {
         //Use this method to prepare the packet to forward to a Bluetooth device.
@@ -107,7 +117,7 @@ public class BlueCtrl {
 
     public static void addChatUser(String address, String next, int bounces, String name, int status) {
 
-        //TODO: create new ChatUser object and add it to ChatUserAdapter
+        //TODO: create new ChatUser object and add it to ChatUser Adapter
 
     }
 }

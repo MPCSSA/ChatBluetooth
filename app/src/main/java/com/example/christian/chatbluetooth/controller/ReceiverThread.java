@@ -39,7 +39,8 @@ public class ReceiverThread extends Thread {
             incoming message flag;
             0: Greetings Message; a newly connected device is sending informations about itself.
             1: Update Message; a device is transmitting informations about remote devices that are accessible through itself.
-            2: Chat Message; a device is
+            2: Chat Message; if this device is the target, show message in chat; else, forward the message on the route
+            3: Drop Request; a list of devices no longer reachable due to one device disconnection
             */
             byte[] bytes = new byte[128]; //buffer
 
