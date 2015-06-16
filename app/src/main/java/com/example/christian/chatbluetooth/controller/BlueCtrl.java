@@ -1,7 +1,9 @@
 package com.example.christian.chatbluetooth.controller;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.database.Cursor;
 
 import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatUser;
@@ -13,8 +15,10 @@ public class BlueCtrl {
 
     public static final byte GRT_HEADER = (byte) 0; //header for Greetings Message
     public static final byte UPD_HEADER = (byte) 1; //header for Update Message
-    public static final byte MSG_HEADER = (byte) 2; //header for Chat Message
-    public static final byte DRP_HEADER = (byte) 3; //header for Drop Request
+    public static final byte RQS_HEADER = (byte) 2; //header for Info Request
+    public static final byte CRD_HEADER = (byte) 3; //header for Card Message
+    public static final byte MSG_HEADER = (byte) 4; //header for Chat Message
+    public static final byte DRP_HEADER = (byte) 5; //header for Drop Request
     public static final String UUID = "BlueRoom";   //custom UUID
 
     private static ChatUserAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
@@ -28,36 +32,31 @@ public class BlueCtrl {
         BlueCtrl.dbManager = dbManager;
     }
 
-    public static void sendMsg(String target, String sender, String msg) {
+    public static void sendMsg(byte[] target, byte[] sender, byte[] msg) {
         //Use this method to prepare the packet to forward to a Bluetooth device.
         //Target param is the MAC address of target device, NOT the Bluetooth device receiving the packet from
         //this device. Sender param is the sender's MAC address.
 
-        byte[] bMsg = msg.getBytes(); //Message in bytes
-        byte[] bTarget = target.getBytes();
-        byte[] bSender = sender.getBytes();
-        byte[] pckt = new byte[3 + bTarget.length + bSender.length + bMsg.length]; //actual bytes packet that has to be sent
+        int length = msg.length; //must prevent more than 255 characters long messages
+        byte[] pckt = new byte[14 + length]; //actual bytes packet that has to be sent
         pckt[0] = MSG_HEADER; //packet header
+
         int i = 1;
-
-        for(byte b : bTarget) {
+        for(byte b : target) {
             pckt[i] = b; //Target field
             ++i;
         }
 
-        bTarget[i] = (byte) 0;
-        ++i;
-
-        for(byte b : bSender) {
+        for(byte b : sender) {
             pckt[i] = b; //Target field
             ++i;
         }
 
-        bTarget[i] = (byte) 0;
+        pckt[i] = (byte) length;
         ++i;
 
-        for(byte b : bMsg) {
-            pckt[i] = b; //message field
+        for(byte b : msg) {
+            pckt[i] = b;
             ++i;
         }
 
@@ -75,19 +74,13 @@ public class BlueCtrl {
 
     }
 
-    private static BluetoothDevice scanUsers(String address) {
+    public static void sendMsg(byte[] target, byte[] msg) {
 
-        ChatUser user;
+    }
 
-        for (int i = 0; i < userAdapt.getCount(); ++i) {
-            //get ChatUser objects sequentially and search for a match
+    private static BluetoothDevice scanUsers(byte[] address) {
 
-            user = userAdapt.getItem(i);
-            if (user.getMac().equals(address)) {
-                //next node found and returned
-                return user.getNextNode();
-            }
-        }
+        //TODO: access ChatUserAdapter and retrieve ChatUser with address == MAC
 
         return null;
     }
@@ -110,14 +103,88 @@ public class BlueCtrl {
 
     }
 
-    public static void manageDropRequest(String address, String[] macs) {
+    public static void manageDropRequest(String address, String macs) {
 
         //TODO: Drop Request management
     }
 
-    public static void addChatUser(String address, String next, int bounces, String name, int status) {
+    public static void addChatUser(byte[] mac, BluetoothDevice next, int bounces, String name, byte status) {
 
         //TODO: create new ChatUser object and add it to ChatUser Adapter
 
+    }
+
+    public static void awakeUser(byte[] mac, String address, byte status, int bounces) {
+
+        //TODO: fetch user information from DB and initialize ChatUser object
+
+    }
+
+
+    //TODO: DB Operations
+
+    public static boolean validateUser(String address, long timestamp) {
+
+        //TODO: if there is a match into Users table return true
+
+        return false;
+    }
+
+    public static Cursor fetchPersistentInfo(String address) {
+
+        //TODO: fetch persistent user informations
+
+        return null;
+    }
+
+    //TODO: Utils
+
+    public static byte[] macToBytes(String address) {
+
+        if (BluetoothAdapter.checkBluetoothAddress(address)) {
+
+            byte[] mac = new byte[6];
+            String[] digits = address.toLowerCase().split(":");
+            byte b, counter = 0;
+
+            for(String d : digits) {
+                b = (byte) Integer.parseInt(d);
+                mac[counter] = b;
+                ++counter;
+            }
+
+            return mac;
+        }
+
+        return null;
+    }
+
+    public static String bytesToMAC(byte[] mac) {
+
+        if (mac.length == 6) {
+
+            String address = "";
+            int i;
+            boolean bool = false;
+
+            for(byte b : mac) {
+
+                i = (b < 0) ? (b + 256) : (int) b;
+
+                if (bool) address += ':';
+                else bool = !bool;
+
+                address += Integer.toHexString(i).toUpperCase();
+
+            }
+
+            return address;
+        }
+
+        return null;
+    }
+
+    public static long rebuildTimestamp(byte[] bytes) {
+        return 0;
     }
 }

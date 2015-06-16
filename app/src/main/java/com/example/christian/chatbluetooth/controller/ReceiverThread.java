@@ -1,7 +1,9 @@
-package com.example.christian.chatbluetooth.controller;
+    package com.example.christian.chatbluetooth.controller;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.database.Cursor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +12,7 @@ public class ReceiverThread extends Thread {
 
     private BluetoothSocket sckt; //socket for Bluetooth communication
     private InputStream in;       //InputStream object from which reading incoming messages
-    private String rmtDvc;        //MAC address of communicating Bluetooth device
+    private BluetoothDevice rmtDvc;        //MAC address of communicating Bluetooth device
 
     public void setSckt(BluetoothSocket sckt) {
         this.sckt = sckt;
@@ -27,7 +29,7 @@ public class ReceiverThread extends Thread {
 
         in = tmp;
 
-        rmtDvc = sckt.getRemoteDevice().getAddress();
+        rmtDvc = sckt.getRemoteDevice();
     }
 
     public void run() {
@@ -35,72 +37,150 @@ public class ReceiverThread extends Thread {
         try {
 
             byte flag = (byte) in.read();
+
             /*
             incoming message flag;
             0: Greetings Message; a newly connected device is sending informations about itself.
             1: Update Message; a device is transmitting informations about remote devices that are accessible through itself.
-            2: Chat Message; if this device is the target, show message in chat; else, forward the message on the route
-            3: Drop Request; a list of devices no longer reachable due to one device disconnection
+            2: Info Request; a device has got inconsistent or no information about a target device and it requests an heavy update.
+            3: Card Message; an heavy response to an Info Request; it contains persistent user information.
+            4: Chat Message; if this device is the target, show message in chat; else, forward the message on the route.
+            5: Drop Request; a list of devices no longer reachable due to one device disconnection.
             */
-            byte[] bytes = new byte[128]; //buffer
-
-            int i;
-            String msg = null;
-
-            do {
-                //extract message
-
-                i = in.read(bytes);
-                if (msg == null) msg = new String(bytes);
-                else msg = msg.concat(new String(bytes));
-
-            } while (i == 128);
-
-            String[] fields = msg.split("\0");
-            //split fields in the message; every kind of message has its fields, as described below
 
             switch (flag) {
                 case BlueCtrl.GRT_HEADER: {
                     /*
-                    A Greetings message contains username and user status informations separated by NUL character
-                    [0][name]'\0'[status]
+                    A Greetings message contains user status and last update field; MAC address is implicit,
+                    and status and last update field have fixed length (1 byte and 8 byte long),
+                    therefore no divider is needed.
+                    [0][status][name]
                     */
 
-                    if (fields.length == 2)  {
-                        BlueCtrl.addChatUser(rmtDvc, null, 0, fields[0], Integer.parseInt(fields[1]));
-                        //a new ChatUser instance is created; connection with remote device is direct,
-                        //so no Man in the Middle is needed for delivery and bounces are 0
-                    }
-                    else {
-                        System.out.println("Greetings failed");
+                    byte status = (byte) in.read();
+                    byte[] bytes = new byte[8];
+                    if (in.read(bytes) != 8) {
+                        System.out.println("Read Error");
                         //TODO: optional Greetings misunderstanding recovery
                     }
+
+                    long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
+
+                    if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
+                        BlueCtrl.awakeUser(BlueCtrl.macToBytes(rmtDvc.getAddress()), rmtDvc.getAddress(), status, 0);
+                        //a new ChatUser object is created from pre-existing information in addition
+                        //to volatile fields
+                    }
+                    else {
+                        System.out.println("Instant Reply");
+                        //TODO: Instant reply Info Request
+                    }
+
+                    //TODO: maintain connection to send Update Msg
+
                     break;
                 }
 
                 case BlueCtrl.UPD_HEADER: {
 
-                    String[] infos;
                     /*
-                    An Update message can contain information about multiple users; user informations
-                    include target MAC, bounces, username and user status. User fields are
-                    divided by NUL character, whilst user informations are separated by commas.
-                    [1][MAC];[bounces];[name];[status]'\0'{user}'\0'{user}...
+                    An Update message contain key and/or volatile informations about multiple users;
+                    target MAC, bounces, user status and last update fields are included. These fields
+                    have fixed length, therefore no divider is needed. To be precise, MAC addresses
+                    are 6 bytes long, both bounces and user status can be represented by a single byte,
+                    and last update field is a long int value (8 bytes), for a total of 16 bytes per
+                    user. These are all vital or non persistent information, and they are engineered to
+                    take up as little space as they can.
+                    [1][MAC][bounces][status][last update]{user}{user}...
+                       |            16 bytes             | 16B | 16B |
                     */
 
-                    for (String info : fields) {
-                        infos = info.split(";"); //separate informations
-                        BlueCtrl.addChatUser(infos[0], rmtDvc, Integer.parseInt(infos[1]) + 1,
-                                             infos[2], Integer.parseInt(infos[3]));
-                        /*
-                        add a new ChatUser object to the adapter; target MAC, username and status
-                        are passed unadulterated to the builder, while bounce field is increased by 1
-                        because the remote device represents an additional node to bounce on
-                         */
+                    byte[] buffer = new byte[6], lastUpd = new byte[8];
+                    byte b, status;
+                    int i, bounces;
 
+                    do {
+
+                        i = in.read(buffer) + 2;
+                        b = (byte) in.read();
+                        bounces = (b < 0) ? b + 256 : (int) b;
+                        status = (byte) in.read();
+                        i += in.read(lastUpd);
+
+                        String address = BlueCtrl.bytesToMAC(buffer);
+
+                        if(BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
+
+                            BlueCtrl.awakeUser(buffer, address, status, bounces + 1);
+                        /*
+                        add a new ChatUser object to the adapter, building it from memorized information;
+                        bounce field is increased by 1 because the remote device represents an additional
+                        node to bounce on
+                         */
+                        }
+                        else {
+                            System.out.println("Instant Reply");
+                            //TODO: Instant Reply Info Request
+                        }
+
+                    } while (i == 16);
+
+                    break;
+                }
+
+                case BlueCtrl.RQS_HEADER: {
+
+                    /*
+                    An Info Request is a special request sent by a node which received a reachable MAC
+                    address through an Update Msg, but no results were found in the Users table. It
+                    contains MAC addresses of all devices not recognized. A Card Msg follows, containing
+                    persistent user information about them.
+                    No divider is needed, because every MAC address is made up of exactly 6 bytes.
+                    [2][MAC][MAC][MAC]...
+                     */
+
+                    String address;
+                    int i;
+                    byte[] buffer = new byte[6];
+
+                    if (in.read(buffer) != 6) {
+                        System.out.println("Read Error");
+                        //TODO: optional read exception
+                    }
+                    do {
+                        //extract MAC addresses
+
+                        address = BlueCtrl.bytesToMAC(buffer);
+
+                        Cursor infos = BlueCtrl.fetchPersistentInfo(address);
+
+                        //TODO: get infos bytes and send them as a Card Msg
+
+                        i = in.read(buffer);
+                    } while (i == 6);
+
+                    if (i != -1) {
+                        System.out.println("Read Error");
+                        //TODO: optional error recovery
                     }
 
                     break;
+                }
+
+                case BlueCtrl.CRD_HEADER: {
+                    /*
+                    A Card message is a heavy message containing persistent size-variable fields of a
+                    ChatUser; it allows for profile customization and is only sent to create a new
+                    Users table entry or update an existing one when DB contains out-of-date information.
+                    Every field after header and MAC address are preceded by a length byte, indicating
+                    the field length in bytes and allowing for streamer consistent reading.
+                    [3][MAC][length][username]...
+                     */
+
+                    //TODO: Card Msg case
+
+                    break;
+
                 }
 
                 case BlueCtrl.MSG_HEADER: {
@@ -109,26 +189,61 @@ public class ReceiverThread extends Thread {
                     It wraps up a message from the sender in a packet consisting of a header, a target MAC address,
                     a sender MAC address and a message field. Target MAC address is the  of the actual recipient of
                     the message MAC address, whilst the sender MAC address is the original sender device MAC address.
-                    NUL character divides every field of the message.
-                    [2][Target MAC]'\0'[Sender MAC]'\0'[Message field]
+                    Although Message field has variable length, no divider is needed because Target and Sender
+                    fields have fixed length instead. A length byte precedes the Message field, indicating
+                    the message length in bytes; if message exceeds the 256 byte cap length, the pair
+                    length-msg is reiterated.
+                    [4][Target MAC][Sender MAC][Msg length][  Message field  ]
+                       | 6 bytes  |  6 bytes  |   1 byte  | Msg length bytes |
                      */
-                    if (fields.length == 3) {
+                    byte[] buffer = new byte[6];
+                    byte[] length = new byte[1];
+                    if (in.read(buffer) != 6) {
+                        System.out.println("Read Error");
+                        //TODO: optional read exception
+                    }
 
-                        if (fields[0].equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
-                            BlueCtrl.buildMsg(fields[1], fields[2]);
-                            //show message on screen
-                        } else {
-                            BlueCtrl.sendMsg(fields[0], fields[1], fields[2]);
+                    if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
+
+                        if (in.read(buffer) != 6) {
+                            System.out.println("Read Error");
+                            //TODO: optional read exception
+                        }
+                        if (in.read(length) != 1) {
+                            System.out.println("Read Error");
+                            //TODO: optional read exception
+                        }
+
+                        if (length[0] < 0) length[0] += 256;
+
+                        byte[] msgBuffer = new byte[length[0]];
+                        if (in.read(msgBuffer) != length[0]) {
+                            System.out.println("Read Error");
+                            //TODO: Message misunderstanding handler
+                        }
+
+                        BlueCtrl.buildMsg(BlueCtrl.bytesToMAC(buffer), new String(msgBuffer));
+                    }
+                    else {
+
+                        byte[] sender = new byte[6];
+                        if (in.read(sender) != 6) {
+                            System.out.println("Read Error");
+                            //TODO: optional read exception
+                        }
+                        if (in.read(length) != 1) {
+                            System.out.println("Instant Reply");
+                            //TODO: optional read exception
+                        }
+                        byte[] msg = new byte[length[0]];
+
+                        BlueCtrl.sendMsg(buffer, sender, msg);
                         /*
                         if this device is not the target device, message has to be forwarded to the next node
                         on the route leading to the target; it is wrapped again in a packet and sent as a
                          */
-                        }
                     }
-                    else {
-                        System.out.println("Message failed");
-                        //TODO: optional Message misunderstanding handler
-                    }
+
                     break;
                 }
 
@@ -136,12 +251,25 @@ public class ReceiverThread extends Thread {
                     /*
                     A Drop Request is sent when a device closes its connection and is no longer reachable.
                     It contains a list of MACs of devices no longer reachable by this device due to
-                    the fact that their routes passed through the exiting node. NUL character divides
-                    every MAC address.
-                    [3][MAC]'\0'[MAC]'\0'...
+                    the fact that their routes passed through the exiting node. No divider is needed because
+                    every MAC address is made up of 6 bytes.
+                    [5][MAC][MAC]...
                     */
+                    byte[] buffer = new byte[6];
+                    int i;
 
-                    BlueCtrl.manageDropRequest(rmtDvc, fields);
+                    if (in.read(buffer) != 6) {
+                        System.out.println("Read Error");
+                        //TODO: optional read exception
+                    }
+                    do {
+
+                        BlueCtrl.manageDropRequest(rmtDvc.getAddress(), BlueCtrl.bytesToMAC(buffer));
+
+                        //TODO: Instant Reply Update Msg
+                        i = in.read(buffer);
+                    } while (i == 6);
+
                     break;
                 }
             }

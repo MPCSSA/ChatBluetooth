@@ -3,14 +3,23 @@ package com.example.christian.chatbluetooth.model;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
 
 public class ChatUserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    public static RecyclerView.ViewHolder holder;
     private ArrayList<ChatUser> userList;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public TextView LargeTV;
+        public TextView smallTV;
+        public ViewHolder(TextView v1, TextView v2) {
+            super(v1);
+            LargeTV = v1;
+            smallTV = v2;
+        }
+    }
 
     public ArrayList<ChatUser> getUserList() {
         return this.userList;
