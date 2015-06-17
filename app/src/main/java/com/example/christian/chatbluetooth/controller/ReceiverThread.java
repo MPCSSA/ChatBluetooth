@@ -47,6 +47,8 @@ public class ReceiverThread extends Thread {
             4: Chat Message; if this device is the target, show message in chat; else, forward the message on the route.
             5: Drop Request; a list of devices no longer reachable due to one device disconnection.
             */
+            int i, j;
+            boolean breakFree;
 
             switch (flag) {
                 case BlueCtrl.GRT_HEADER: {
@@ -54,19 +56,27 @@ public class ReceiverThread extends Thread {
                     A Greetings message contains user status and last update field; MAC address is implicit,
                     and status and last update field have fixed length (1 byte and 8 byte long),
                     therefore no divider is needed.
-                    [0][status][name]
+                    [0][status][last update]
+                       |1 byte|   8 byte  |
                     */
 
                     byte status = (byte) in.read();
                     byte[] bytes = new byte[8];
-                    if (in.read(bytes) != 8) {
-                        System.out.println("Read Error");
-                        //TODO: optional Greetings misunderstanding recovery
-                    }
+                    i = 0;
+
+                    do {
+                        j = in.read(bytes, i, 8 - i);
+                        if (j < 0) {
+                            System.out.println("Premature EOF, message misunderstanding");
+                            //TODO: throw something
+                        }
+                        i += j;
+                    } while (i < 8);
 
                     long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
 
                     if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
+
                         BlueCtrl.awakeUser(BlueCtrl.macToBytes(rmtDvc.getAddress()), rmtDvc.getAddress(), status, 0);
                         //a new ChatUser object is created from pre-existing information in addition
                         //to volatile fields
@@ -76,7 +86,7 @@ public class ReceiverThread extends Thread {
                         //TODO: Instant reply Info Request
                     }
 
-                    //TODO: maintain connection to send Update Msg
+                        //TODO: maintain connection to send Update Msg
 
                     break;
                 }
@@ -97,33 +107,58 @@ public class ReceiverThread extends Thread {
 
                     byte[] buffer = new byte[6], lastUpd = new byte[8];
                     byte b, status;
-                    int i, bounces;
+                    int bounces;
+                    breakFree = true;
 
-                    do {
+                    while (breakFree) {
 
-                        i = in.read(buffer) + 2;
+                        i = 0;
+                        do {
+                            j = in.read(buffer, i, 6 - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < 6);
+
                         b = (byte) in.read();
                         bounces = (b < 0) ? b + 256 : (int) b;
                         status = (byte) in.read();
-                        i += in.read(lastUpd);
+
+                        i = 0;
+                        do {
+                            j = in.read(lastUpd, i, 8 - i);
+                            if (j < 0) {
+                                switch (i) {
+                                    case 0:
+                                        breakFree = false; //EOF reached
+                                        break;
+                                    default:
+                                        System.out.println("Premature EOF, message misunderstanding");
+                                        //TODO: throw something
+                                }
+
+                                break;
+                            }
+                            i += j;
+                        } while (i < 8);
 
                         String address = BlueCtrl.bytesToMAC(buffer);
-
-                        if(BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
+                        if (BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
 
                             BlueCtrl.awakeUser(buffer, address, status, bounces + 1);
-                        /*
-                        add a new ChatUser object to the adapter, building it from memorized information;
-                        bounce field is increased by 1 because the remote device represents an additional
-                        node to bounce on
-                         */
+                            /*
+                            add a new ChatUser object to the adapter, building it from memorized information;
+                            bounce field is increased by 1 because the remote device represents an additional
+                            node to bounce on
+                            */
                         }
                         else {
                             System.out.println("Instant Reply");
                             //TODO: Instant Reply Info Request
                         }
-
-                    } while (i == 16);
+                    }
 
                     break;
                 }
@@ -140,28 +175,34 @@ public class ReceiverThread extends Thread {
                      */
 
                     String address;
-                    int i;
                     byte[] buffer = new byte[6];
+                    breakFree = true;
 
-                    if (in.read(buffer) != 6) {
-                        System.out.println("Read Error");
-                        //TODO: optional read exception
-                    }
-                    do {
-                        //extract MAC addresses
+                    while (breakFree) {
+                        i = 0;
+
+                        do {
+                            j = in.read(buffer, i, 6 - i);
+                            if (j < 0) {
+                                switch (i) {
+                                    case 0:
+                                        breakFree = false; //EOF reached
+                                        break;
+                                    default:
+                                        System.out.println("Premature EOF, message misunderstanding");
+                                        //TODO: throw something
+                                }
+
+                                break;
+                            }
+                            i += j;
+                        } while (i < 6);
 
                         address = BlueCtrl.bytesToMAC(buffer);
 
                         Cursor infos = BlueCtrl.fetchPersistentInfo(address);
 
                         //TODO: get infos bytes and send them as a Card Msg
-
-                        i = in.read(buffer);
-                    } while (i == 6);
-
-                    if (i != -1) {
-                        System.out.println("Read Error");
-                        //TODO: optional error recovery
                     }
 
                     break;
@@ -191,53 +232,57 @@ public class ReceiverThread extends Thread {
                     the message MAC address, whilst the sender MAC address is the original sender device MAC address.
                     Although Message field has variable length, no divider is needed because Target and Sender
                     fields have fixed length instead. A length byte precedes the Message field, indicating
-                    the message length in bytes; if message exceeds the 256 byte cap length, the pair
-                    length-msg is reiterated.
+                    the message length in bytes; a message cannot exceed 255 characters in length, therefore
+                    1 byte is enough to represent the length field.
                     [4][Target MAC][Sender MAC][Msg length][  Message field  ]
                        | 6 bytes  |  6 bytes  |   1 byte  | Msg length bytes |
                      */
-                    byte[] buffer = new byte[6];
-                    byte[] length = new byte[1];
-                    if (in.read(buffer) != 6) {
+                    byte[] buffer = new byte[6], sender = new byte[6];
+                    int length;
+                    i = 0;
+
+                    do {
+                        j = in.read(buffer, i, 6 - i);
+                        if (j < 0) {
+                            System.out.println("Premature EOF, message misunderstanding");
+                            //TODO: throw something
+                        }
+                        i += j;
+                    } while (i < 6);
+
+                    i = 0;
+                    do {
+                        j = in.read(buffer, i, 6 - i);
+                        if (j < 0) {
+                            System.out.println("Premature EOF, message misunderstanding");
+                            //TODO: throw something
+                        }
+                        i += j;
+                    } while (i < 6);
+
+                    if ((length = in.read()) < 0) {
                         System.out.println("Read Error");
                         //TODO: optional read exception
                     }
 
+                    byte[] msgBuffer = new byte[length];
+                    i = 0;
+                    do {
+                        j = in.read(msgBuffer, i, length - i);
+                        if (j < 0) {
+                            System.out.println("Premature EOF, message misunderstanding");
+                            //TODO: throw something
+                        }
+                        i += j;
+                    } while (i < length);
+
                     if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
-
-                        if (in.read(buffer) != 6) {
-                            System.out.println("Read Error");
-                            //TODO: optional read exception
-                        }
-                        if (in.read(length) != 1) {
-                            System.out.println("Read Error");
-                            //TODO: optional read exception
-                        }
-
-                        if (length[0] < 0) length[0] += 256;
-
-                        byte[] msgBuffer = new byte[length[0]];
-                        if (in.read(msgBuffer) != length[0]) {
-                            System.out.println("Read Error");
-                            //TODO: Message misunderstanding handler
-                        }
 
                         BlueCtrl.buildMsg(BlueCtrl.bytesToMAC(buffer), new String(msgBuffer));
                     }
                     else {
 
-                        byte[] sender = new byte[6];
-                        if (in.read(sender) != 6) {
-                            System.out.println("Read Error");
-                            //TODO: optional read exception
-                        }
-                        if (in.read(length) != 1) {
-                            System.out.println("Instant Reply");
-                            //TODO: optional read exception
-                        }
-                        byte[] msg = new byte[length[0]];
-
-                        BlueCtrl.sendMsg(buffer, sender, msg);
+                        BlueCtrl.sendMsg(buffer, sender, msgBuffer);
                         /*
                         if this device is not the target device, message has to be forwarded to the next node
                         on the route leading to the target; it is wrapped again in a packet and sent as a
@@ -256,19 +301,31 @@ public class ReceiverThread extends Thread {
                     [5][MAC][MAC]...
                     */
                     byte[] buffer = new byte[6];
-                    int i;
+                    breakFree = true;
 
-                    if (in.read(buffer) != 6) {
-                        System.out.println("Read Error");
-                        //TODO: optional read exception
-                    }
-                    do {
+                    while(breakFree) {
+
+                        i = 0;
+                        do {
+                            j = in.read(buffer, i, 6 - i);
+                            if (j < 0) {
+                                switch (i) {
+                                    case 0:
+                                        breakFree = false; //EOF reached
+                                        break;
+                                    default:
+                                        System.out.println("Premature EOF, message misunderstanding");
+                                        //TODO: throw something
+                                }
+
+                                break;
+                            }
+                            i += j;
+                        } while (i < 6);
 
                         BlueCtrl.manageDropRequest(rmtDvc.getAddress(), BlueCtrl.bytesToMAC(buffer));
-
                         //TODO: Instant Reply Update Msg
-                        i = in.read(buffer);
-                    } while (i == 6);
+                    }
 
                     break;
                 }

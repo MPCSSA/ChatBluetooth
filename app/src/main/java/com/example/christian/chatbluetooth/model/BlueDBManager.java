@@ -9,7 +9,7 @@ public class BlueDBManager {
 
     private Context context;
     private SQLiteDatabase db;
-    private final String[] tables = {"user", "msg", "history"};
+    private final String[] tables = {"user", "history"};
 
     public Context getContext() {
         return context;

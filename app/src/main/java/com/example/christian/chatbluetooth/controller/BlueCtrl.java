@@ -184,7 +184,28 @@ public class BlueCtrl {
         return null;
     }
 
+    public static byte[] longToBytes(long l) {
+
+        byte[] bytes = new byte[8]; //Java representation of a long int is made up of 64 bits
+
+        for(int i = 7; i >= 0; --i) {
+            bytes[i] = (byte) (l % 256);
+            l /= 256;
+        }
+
+        return bytes;
+    }
+
     public static long rebuildTimestamp(byte[] bytes) {
-        return 0;
+
+        long l = 0;
+        int i = 7;
+
+        for (byte b : bytes) {
+            l += (b < 0) ? (long) (b + 256) << 8 * i : (long) b << 8 * i;
+            --i;
+        }
+
+        return l;
     }
 }
