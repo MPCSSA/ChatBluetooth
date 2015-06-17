@@ -252,7 +252,7 @@ public class ReceiverThread extends Thread {
 
                     i = 0;
                     do {
-                        j = in.read(buffer, i, 6 - i);
+                        j = in.read(sender, i, 6 - i);
                         if (j < 0) {
                             System.out.println("Premature EOF, message misunderstanding");
                             //TODO: throw something
@@ -278,7 +278,7 @@ public class ReceiverThread extends Thread {
 
                     if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
-                        BlueCtrl.buildMsg(BlueCtrl.bytesToMAC(buffer), new String(msgBuffer));
+                        BlueCtrl.buildMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer));
                     }
                     else {
 
