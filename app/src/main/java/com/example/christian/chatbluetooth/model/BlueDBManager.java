@@ -9,11 +9,27 @@ public class BlueDBManager {
 
     private Context context;
     private SQLiteDatabase db;
-    private final String[] tables = {"user", "msg", "history"};
+    private final String[] tables = {"user", "history"};
+
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
+    public SQLiteDatabase getDb() {
+        return db;
+    }
+
+    public void setDb(SQLiteDatabase db) {
+        this.db = db;
+    }
 
     public BlueDBManager(Context context, SQLiteDatabase db) {
-        this.context = context;
-        this.db = db;
+        setContext(context);
+        setDb(db);
     }
 
     private ContentValues createCV(String msg) {
