@@ -215,7 +215,8 @@ public class ReceiverThread extends Thread {
                     Users table entry or update an existing one when DB contains out-of-date information.
                     Every field after header and MAC address are preceded by a length byte, indicating
                     the field length in bytes and allowing for streamer consistent reading.
-                    [3][MAC][length][username]...
+                    [3][   MAC   ][last update][length][  username  ][ age ][gender][length][nationality][length][profile pic]
+                       | 6 bytes |   8 bytes  |1 byte |length bytes |1 byte|1 byte |1 byte |length bytes|1 byte |length bytes|
                      */
 
                     //TODO: Card Msg case
