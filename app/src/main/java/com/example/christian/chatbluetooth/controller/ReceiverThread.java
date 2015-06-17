@@ -1,4 +1,4 @@
-    package com.example.christian.chatbluetooth.controller;
+package com.example.christian.chatbluetooth.controller;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
