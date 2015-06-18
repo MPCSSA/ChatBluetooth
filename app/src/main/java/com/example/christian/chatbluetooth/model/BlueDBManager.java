@@ -15,6 +15,8 @@ public class BlueDBManager {
     private Context context;
     private SQLiteDatabase db;
     private final String[] tables = {"user", "history"};
+    private final String[] userTable = {"mac","username","last_upd","isFav","profile_pic","nationality","gender","age"}; //field User Table
+    private final String[] historyTalble ={"msg","date","user","sent_by"}; //field Hystory Table
 
     public Context getContext() { return context; }
 
@@ -39,16 +41,17 @@ public class BlueDBManager {
         String query = "SELECT name FROM sqlite_master WHERE type = \'table\' AND name = \'" + tables[0] + "\'";
         if (!db.rawQuery(query, null).moveToFirst()) {
             query = "CREATE TABLE " + tables[0] + "(integer _id primary key autoincrement, " +
-                            "text mac not null, text username not null, text profile_pic, boolean isFav not null, " +
-                            "text nationality, integer gender, integer age, integer last_upd not null, " +
-                            "UNIQUE  (mac) ON CONFLICT REPLACE)";
+                            "text " + userTable[0]+ " not null, "+ "text " + userTable[1] + " not null, " +  ", integer " + userTable[2] + " not null" +
+                            ", boolean " + userTable[3] + " not null, " + "text " + userTable[4] + " not null, " + "text " + userTable[5] +
+                            ", integer " + userTable[6] + ", integer " + userTable[7] + "UNIQUE  (mac) ON CONFLICT REPLACE)";
             db.execSQL(query);
         }
 
         query = "SELECT name FROM sqlite_master WHERE type = \'table\' AND name = \'" + tables[1] + "\'";
         if (!db.rawQuery(query, null).moveToFirst()) {
             query = "CREATE TABLE " + tables[1] + "(integer _id primary key autoincrement, " +
-                    "text msg not null, integer date not null, text user not null, boolean sent_by not null)";
+                    "text " + historyTalble[0] + " not null, integer " + historyTalble[1] + " not null, " +
+                    "text " + historyTalble[2] + " not null, boolean " + historyTalble[3] + " not null)";
             db.execSQL(query);
         }
 
@@ -59,14 +62,14 @@ public class BlueDBManager {
 
         ContentValues values = new ContentValues();
 
-        values.put("mac", address);
-        values.put("username", username);
-        values.put("last_upd", timestamp);
-        values.put("isFav", isFav);
-        values.put("profile_pic", profile_pic);
-        values.put("nationality", nation);
-        values.put("gender", gender);
-        values.put("age", age);
+        values.put(userTable[0], address);
+        values.put(userTable[1], username);
+        values.put(userTable[2], timestamp);
+        values.put(userTable[3], isFav);
+        values.put(userTable[4], profile_pic);
+        values.put(userTable[5], nation);
+        values.put(userTable[6], gender);
+        values.put(userTable[7], age);
 
         return values;
     }
@@ -75,10 +78,10 @@ public class BlueDBManager {
 
         ContentValues values = new ContentValues();
 
-        values.put("msg", msg);
-        values.put("user", user);
-        values.put("date", timestamp);
-        values.put("sent_by", sent_by);
+        values.put(historyTalble[0], msg);
+        values.put(historyTalble[1], user);
+        values.put(historyTalble[2], timestamp);
+        values.put(historyTalble[3], sent_by);
 
         return values;
     }
@@ -112,25 +115,26 @@ public class BlueDBManager {
     //TODO: fetchMethods
     private Cursor fetchListedUser(String address) {
 
-        return db.query(tables[0], new String[]{"username", "profile_pic", "isFav"}, "mac = " + address, null, null, null, null, "1");
+        return db.query(tables[0], new String[]{userTable[0], userTable[4], userTable[3]}, userTable[0] + " = " + address, null, null, null, null, "1");
 
     }
 
     private Cursor fetchUserInfo(String address) {
 
-        return db.query(tables[0], null, "mac = " + address, null, null, null, null, "1");
+        return db.query(tables[0], null, userTable[0] + " = " + address, null, null, null, null, "1");
 
     }
 
     private Cursor fetchMsgHistory(String address) {
 
-        return db.query(tables[1], new String [] {"msg", "date", "sent_by"}, "mac = " + address, null, null, null, "date", "25");
+        return db.query(tables[1], new String [] {historyTalble[0], historyTalble[1], historyTalble[3]}, userTable[0] + " = " + address, null, null, null
+                        , historyTalble[3], "25");
 
     }
 
     private Cursor fetchTimestamp(String address) {
 
-        return db.query(tables[0], new String[] {"last_upd"}, "mac = " + address, null, null, null, null, "1");
+        return db.query(tables[0], new String[] {userTable[2]}, userTable[0] + " = " + address, null, null, null, null, "1");
 
     }
 
@@ -139,22 +143,23 @@ public class BlueDBManager {
     private long updateUserInfo(String address, String username, String profile_pic, String nation, int gender, int age, long timestamp) {
 
         ContentValues values = new ContentValues();
-        values.put("username", username);
-        values.put("profile_pic", profile_pic);
-        values.put("nationality", nation);
-        values.put("gender", gender);
-        values.put("age", age);
-        values.put("last_upd", timestamp);
+        values.put(userTable[1], username);
+        values.put(userTable[2], timestamp);
+        values.put(userTable[4], profile_pic);
+        values.put(userTable[5], nation);
+        values.put(userTable[6], gender);
+        values.put(userTable[7], age);
 
-        return db.update(tables[0], values, "mac = " + address, null);
+
+        return db.update(tables[0], values, userTable[0] + " = " + address, null);
     }
 
     private long updateFavourites(String address, boolean isFav) {
 
         ContentValues values = new ContentValues();
 
-        values.put("isFav", isFav);
+        values.put(userTable[3], isFav);
 
-        return db.update(tables[0], values, "mac = " + address, null);
+        return db.update(tables[0], values, userTable[0] + " = " + address, null);
     }
 }
