@@ -113,26 +113,26 @@ public class BlueDBManager {
 
 
     //TODO: fetchMethods
-    private Cursor fetchListedUser(String address) {
+    public Cursor fetchListedUser(String address) {
 
         return db.query(tables[0], new String[]{userTable[0], userTable[4], userTable[3]}, userTable[0] + " = " + address, null, null, null, null, "1");
 
     }
 
-    private Cursor fetchUserInfo(String address) {
+    public Cursor fetchUserInfo(String address) {
 
         return db.query(tables[0], null, userTable[0] + " = " + address, null, null, null, null, "1");
 
     }
 
-    private Cursor fetchMsgHistory(String address) {
+    public Cursor fetchMsgHistory(String address) {
 
         return db.query(tables[1], new String [] {historyTalble[0], historyTalble[1], historyTalble[3]}, userTable[0] + " = " + address, null, null, null
                         , historyTalble[3], "25");
 
     }
 
-    private Cursor fetchTimestamp(String address) {
+    public Cursor fetchTimestamp(String address) {
 
         return db.query(tables[0], new String[] {userTable[2]}, userTable[0] + " = " + address, null, null, null, null, "1");
 
@@ -140,7 +140,7 @@ public class BlueDBManager {
 
     //TODO: Update methods
 
-    private long updateUserInfo(String address, String username, String profile_pic, String nation, int gender, int age, long timestamp) {
+    public long updateUserInfo(String address, String username, String profile_pic, String nation, int gender, int age, long timestamp) {
 
         ContentValues values = new ContentValues();
         values.put(userTable[1], username);
@@ -154,7 +154,7 @@ public class BlueDBManager {
         return db.update(tables[0], values, userTable[0] + " = " + address, null);
     }
 
-    private long updateFavourites(String address, boolean isFav) {
+    public long updateFavourites(String address, boolean isFav) {
 
         ContentValues values = new ContentValues();
 

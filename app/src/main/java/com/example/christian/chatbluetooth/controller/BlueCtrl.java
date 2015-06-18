@@ -20,7 +20,8 @@ public class BlueCtrl {
     public static final byte CRD_HEADER = (byte) 3; //header for Card Message
     public static final byte MSG_HEADER = (byte) 4; //header for Chat Message
     public static final byte DRP_HEADER = (byte) 5; //header for Drop Request
-    public static final String UUID = "BlueRoom";   //custom UUID
+    public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
+    public static final String     UUID = "BlueRoom"; //custom UUID
 
     private static ChatUserAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
     private static BlueDBManager dbManager;          //User and Messages DB Manager
@@ -133,9 +134,13 @@ public class BlueCtrl {
 
     public static boolean validateUser(String address, long timestamp) {
 
-        //TODO: if there is a match into Users table return true
+        Cursor cursor = dbManager.fetchTimestamp(address);
 
-        return false;
+        if (!cursor.moveToFirst() || cursor.getLong(0) != timestamp) {
+            return false;
+        }
+
+        return true;
     }
 
     public static Cursor fetchPersistentInfo(String address) {
