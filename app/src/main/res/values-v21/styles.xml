@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="android:Theme.Material.Light">
+    <style name="AppTheme" parent="android:Theme.Material">
+        <item name="android:colorPrimary">@color/primary</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="android:editTextColor">@color/text</item>
+        <item name="android:textColorHint">@color/text</item>
+        <item name="android:colorControlHighlight">@color/ripple</item>
     </style>
+
+    <style name="MyButton"
+        parent="android:Widget.Material.Button">
+        <item name="android:background">
+            @drawable/ripple_button
+        </item>
+    </style>
+
 </resources>
