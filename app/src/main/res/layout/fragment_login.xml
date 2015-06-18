@@ -21,7 +21,7 @@
             android:id="@+id/regName"
             android:singleLine="false"
             android:backgroundTint="@color/text"
-            android:hint="Name"
+            android:hint="@string/username"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true" />
 
@@ -31,7 +31,7 @@
             android:inputType="textPassword"
             android:ems="10"
             android:id="@+id/regPass"
-            android:hint="Password"
+            android:hint="@string/password"
             android:backgroundTint="@color/text"
             android:layout_below="@+id/regName"
             android:layout_alignParentStart="true" />
@@ -39,7 +39,7 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Login"
+            android:text="@string/login_btn"
             android:id="@+id/loginButton"
             android:background="@drawable/ripple_button"
             android:elevation="@dimen/elevation_low"
@@ -48,6 +48,20 @@
             android:paddingRight="20dp"
             android:layout_centerVertical="true"
             android:layout_alignParentStart="true" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/reg_btn"
+            android:id="@+id/reg_btn"
+            android:background="@drawable/ripple_button"
+            android:elevation="@dimen/elevation_low"
+            android:stateListAnimator="@anim/button_elevation"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:layout_below="@+id/loginButton"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="56dp" />
 
     </RelativeLayout>
 </FrameLayout>

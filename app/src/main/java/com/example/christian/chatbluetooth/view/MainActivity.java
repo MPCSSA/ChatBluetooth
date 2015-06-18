@@ -1,14 +1,17 @@
 package com.example.christian.chatbluetooth.view;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.example.christian.chatbluetooth.R;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements View.OnClickListener{
 
     //TODO: encapsulate ChatFragment and UsersFragment
 
@@ -16,6 +19,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        LoginFragment login = new LoginFragment();
+        getFragmentManager().beginTransaction().add(R.id.fragLogin, login).commit();
+
     }
 
 
@@ -39,5 +46,16 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        if (v.getId() == R.id.reg_btn) {
+
+            RegistrationFragment register = new RegistrationFragment();
+            getFragmentManager().beginTransaction().replace(R.id.fragLogin, register).commit();
+
+        }
     }
 }

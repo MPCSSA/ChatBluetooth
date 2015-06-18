@@ -16,13 +16,9 @@ public class BlueDBManager {
     private SQLiteDatabase db;
     private final String[] tables = {"user", "history"};
 
-    public Context getContext() {
-        return context;
-    }
+    public Context getContext() { return context; }
 
-    public void setContext(Context context) {
-        this.context = context;
-    }
+    public void setContext(Context context) { this.context = context; }
 
     public SQLiteDatabase getDb() {
         return db;
@@ -37,8 +33,9 @@ public class BlueDBManager {
     }
 
     public BlueDBManager(Context context, SQLiteDatabase db) {
-        setContext(context);
+        setContext(context); //bound to activity
 
+        //create User and History tables if this is first opening of DB
         String query = "SELECT name FROM sqlite_master WHERE type = \'table\' AND name = \'" + tables[0] + "\'";
         if (!db.rawQuery(query, null).moveToFirst()) {
             query = "CREATE TABLE " + tables[0] + "(integer _id primary key autoincrement, " +

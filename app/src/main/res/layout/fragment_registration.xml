@@ -22,7 +22,7 @@
             android:singleLine="false"
             android:backgroundTint="@color/text"
             android:layout_alignParentStart="true"
-            android:hint="Nome"/>
+            android:hint="@string/username"/>
 
         <EditText
             android:layout_width="match_parent"
@@ -32,7 +32,7 @@
             android:id="@+id/regPass"
             android:layout_below="@+id/regName"
             android:layout_centerHorizontal="true"
-            android:hint="Password"
+            android:hint="@string/password"
             android:backgroundTint="@color/text"/>
 
         <EditText
@@ -41,7 +41,7 @@
             android:inputType="textPassword"
             android:ems="10"
             android:id="@+id/regConfirmPass"
-            android:hint="Conferma Password"
+            android:hint="@string/confirm"
             android:backgroundTint="@color/text"
             android:layout_below="@+id/regPass"
             android:layout_alignStart="@+id/regPass" />
@@ -49,7 +49,7 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Registrati"
+            android:text="@string/signup_btn"
             android:id="@+id/regButton"
             android:background="@drawable/ripple_button"
             android:elevation="@dimen/elevation_low"
@@ -68,7 +68,7 @@
             android:layout_below="@+id/regConfirmPass"
             android:backgroundTint="@color/text"
             android:layout_alignParentStart="true"
-            android:hint="Data" />
+            android:hint="@string/birth" />
 
         <RadioGroup
             android:layout_width="match_parent"
@@ -80,7 +80,7 @@
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Maschio"
+                android:text="@string/male"
                 android:textColor="@color/text"
                 android:buttonTint="@color/primary"
                 android:id="@+id/radioButton"
@@ -89,7 +89,7 @@
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Femmina"
+                android:text="@string/female"
                 android:textColor="@color/text"
                 android:buttonTint="@color/primary"
                 android:id="@+id/radioButton2" />
