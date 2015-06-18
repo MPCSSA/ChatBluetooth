@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ChatBluetooth</string>
+    <string name="action_settings">Impostazioni</string>
+    <string name="birth">Data di nascita</string>
+    <string name="confirm">Conferma password</string>
+    <string name="login_greeting">Benvenuto,&#160;</string>
+    <string name="login_btn">Entra</string>
+    <string name="register_btn">Oppure Registrati</string>
+    <string name="registration_btn">Registrati</string>
+</resources>

@@ -21,7 +21,7 @@
             android:id="@+id/logName"
             android:singleLine="false"
             android:backgroundTint="@color/text"
-            android:hint="Nome"
+            android:hint="@string/username"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true" />
 
@@ -31,7 +31,7 @@
             android:inputType="textPassword"
             android:ems="10"
             android:id="@+id/logPass"
-            android:hint="Password"
+            android:hint="@string/password"
             android:backgroundTint="@color/text"
             android:layout_below="@+id/logName"
             android:layout_alignParentStart="true" />
@@ -39,7 +39,7 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Login"
+            android:text="@string/login_btn"
             android:id="@+id/loginButton"
             android:background="@drawable/ripple_button"
             android:elevation="@dimen/elevation_low"
@@ -52,7 +52,7 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Registrati"
+            android:text="@string/signup_btn"
             android:id="@+id/logRegButton"
             android:background="@drawable/ripple_button"
             android:elevation="@dimen/elevation_low"
