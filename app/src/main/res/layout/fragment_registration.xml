@@ -57,7 +57,8 @@
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentStart="true" />
+            android:layout_alignParentStart="true"
+            android:layout_marginBottom="20dp" />
 
         <EditText
             android:layout_width="match_parent"
@@ -73,9 +74,9 @@
         <RadioGroup
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/regDate"
-            android:layout_alignParentStart="true"
-            android:id="@+id/radioGroup">
+            android:id="@+id/radioGroup"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true">
 
             <RadioButton
                 android:layout_width="wrap_content"
@@ -100,9 +101,10 @@
             android:layout_height="wrap_content"
             android:id="@+id/spinner"
             android:entries="@array/nation"
-            android:layout_below="@+id/radioGroup"
             android:backgroundTint="@color/primary"
-            android:layout_alignParentStart="true" />
+            android:layout_below="@+id/radioGroup"
+            android:layout_alignParentStart="true"
+            android:spinnerMode="dialog" />
 
     </RelativeLayout>
 </FrameLayout>
