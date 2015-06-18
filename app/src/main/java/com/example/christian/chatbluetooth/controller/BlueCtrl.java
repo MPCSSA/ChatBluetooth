@@ -3,6 +3,7 @@ package com.example.christian.chatbluetooth.controller;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.database.Cursor;
 
 import com.example.christian.chatbluetooth.model.BlueDBManager;
@@ -23,6 +24,7 @@ public class BlueCtrl {
 
     private static ChatUserAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
     private static BlueDBManager dbManager;          //User and Messages DB Manager
+    private static final String dbname = "bluedb"; //DB name
 
     public static void setUserAdapt(ChatUserAdapter userAdapt) {
         BlueCtrl.userAdapt = userAdapt;
@@ -122,6 +124,12 @@ public class BlueCtrl {
 
 
     //TODO: DB Operations
+
+    public static void openDatabase(Context context) {
+
+        dbManager = new BlueDBManager(context, dbname);
+
+    }
 
     public static boolean validateUser(String address, long timestamp) {
 

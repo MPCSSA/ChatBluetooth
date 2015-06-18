@@ -1,4 +1,4 @@
-    package com.example.christian.chatbluetooth.controller;
+package com.example.christian.chatbluetooth.controller;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -215,7 +215,8 @@ public class ReceiverThread extends Thread {
                     Users table entry or update an existing one when DB contains out-of-date information.
                     Every field after header and MAC address are preceded by a length byte, indicating
                     the field length in bytes and allowing for streamer consistent reading.
-                    [3][MAC][length][username]...
+                    [3][   MAC   ][last update][length][  username  ][ age ][gender][length][nationality][length][profile pic]
+                       | 6 bytes |   8 bytes  |1 byte |length bytes |1 byte|1 byte |1 byte |length bytes|1 byte |length bytes|
                      */
 
                     //TODO: Card Msg case
@@ -252,7 +253,7 @@ public class ReceiverThread extends Thread {
 
                     i = 0;
                     do {
-                        j = in.read(buffer, i, 6 - i);
+                        j = in.read(sender, i, 6 - i);
                         if (j < 0) {
                             System.out.println("Premature EOF, message misunderstanding");
                             //TODO: throw something
@@ -278,7 +279,7 @@ public class ReceiverThread extends Thread {
 
                     if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
-                        BlueCtrl.buildMsg(BlueCtrl.bytesToMAC(buffer), new String(msgBuffer));
+                        BlueCtrl.buildMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer));
                     }
                     else {
 
