@@ -5,19 +5,22 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener,
-        RegistrationFragment.OnFragmentInteractionListener{
+        RegistrationFragment.OnFragmentInteractionListener, View.OnClickListener{
 
     //TODO: encapsulate ChatFragment and UsersFragment
 
@@ -71,5 +74,25 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        switch(v.getId()) {
+            case R.id.regButton:
+                //TODO: password confirmation and null fields control
+                SharedPreferences preferences = getSharedPreferences(BlueCtrl.UUID, MODE_PRIVATE);
+                preferences.edit().putString("username", ((EditText)findViewById(R.id.regName)).getText().toString());
+                preferences.edit().putString("password", ((EditText)findViewById(R.id.regPass)).getText().toString());
+                preferences.edit().putLong("birth", 0);
+                preferences.edit().putString("gender", "none");
+                preferences.edit().putString("nationality", "chinese");
+                break;
+
+            case R.id.loginButton:
+                //TODO: username/password check
+                //TODO: set remember user
+        }
     }
 }
