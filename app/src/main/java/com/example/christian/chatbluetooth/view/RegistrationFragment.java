@@ -2,6 +2,8 @@ package com.example.christian.chatbluetooth.view;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.content.Context;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,10 +17,12 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
@@ -51,7 +55,7 @@ public class RegistrationFragment extends Fragment {
     private EditText name;
     private EditText passw;
     private EditText confirmPassw;
-    private EditText date;
+    private TextView date;
     private RadioGroup gender;
     private RadioButton male;
     private RadioButton female;
@@ -140,7 +144,7 @@ public class RegistrationFragment extends Fragment {
         name = (EditText) getActivity().findViewById(R.id.regName);
         passw = (EditText) getActivity().findViewById(R.id.regPass);
         confirmPassw = (EditText) getActivity().findViewById(R.id.regConfirmPass);
-        date = (EditText) getActivity().findViewById(R.id.regDate);
+        date = (TextView) getActivity().findViewById(R.id.regDate);
         male = (RadioButton) getActivity().findViewById(R.id.radioButton);
         female = (RadioButton) getActivity().findViewById(R.id.radioButton2);
         registration = (Button) getActivity().findViewById(R.id.regButton);
@@ -148,7 +152,6 @@ public class RegistrationFragment extends Fragment {
         name.setTypeface(type);
         passw.setTypeface(type);
         confirmPassw.setTypeface(type);
-        date.setTypeface(type);
         male.setTypeface(type);
         female.setTypeface(type);
         registration.setTypeface(type);
@@ -167,8 +170,52 @@ public class RegistrationFragment extends Fragment {
         list.add("Spagna");
         ArrayAdapter<String> dataAdapter= new ArrayAdapter<String>(getActivity(), R.layout.spinner_item, list);
         nations.setAdapter(dataAdapter);
+
+        /*
+        PRENDERE GIORNO,MESE , ANNO :
+        //    gg / mm / aaaa
+        //    01 2 34 5 6789
+        String Data = data.getText().toString();
+        int Giorno = Integer.parseInt(Data.substring(0,2));
+        int Mese = Integer.parseInt(Data.substring(3,5));
+        String Anno = Data.substring(6);
+
+        */
+
+        date.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DateDialog();
+            }
+        });
+
     }
 
+    public void DateDialog(){
+
+        DatePickerDialog.OnDateSetListener listener=new DatePickerDialog.OnDateSetListener() {
+
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear,int dayOfMonth)
+            {
+                //prima di mandare il tutto alla textview aggiusto i parametri in modo da essere uniformi a gg/mm/aaaa
+                String Toset = "";
+                if(dayOfMonth < 10)
+                    Toset="0";
+                Toset = Toset + dayOfMonth + "/";
+                if(monthOfYear < 10)
+                    Toset = Toset + "0";
+                Toset = Toset + (monthOfYear+1) + "/" + year;
+
+                date.setText(Toset);
+                date.setTextColor(getResources().getColor(R.color.text));
+                date.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf"));
+
+            }};
+        DatePickerDialog dpDialog=new DatePickerDialog(getActivity(),listener, 1980, 1,1);
+        dpDialog.show();//mostra la dialog
+
+    }
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
