@@ -4,10 +4,13 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.annotation.ColorRes;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.view.LayoutInflater;
@@ -17,6 +20,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CalendarView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -212,7 +216,7 @@ public class RegistrationFragment extends Fragment {
                 date.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf"));
 
             }};
-        DatePickerDialog dpDialog=new DatePickerDialog(getActivity(),listener, 1980, 1,1);
+        DatePickerDialog dpDialog=new DatePickerDialog(getActivity(), R.style.DialogTheme,listener, 1980, 1,1);
         dpDialog.show();//mostra la dialog
 
     }

@@ -44,7 +44,8 @@
             android:hint="@string/confirm"
             android:layout_below="@+id/regPass"
             android:layout_alignStart="@+id/regPass"
-            android:color="@color/text"/>
+            android:color="@color/text"
+            android:backgroundTint="@color/text" />
 
         <Button
             android:layout_width="match_parent"
@@ -70,15 +71,17 @@
             android:layout_alignParentStart="true"
             android:hint="@string/birth"
             android:layout_marginLeft="4dp"
-        />
+            android:layout_marginRight="4dp"
+            android:textSize="18sp" />
 
         <View
             android:layout_width="fill_parent"
             android:layout_height="1dp"
-            android:background="#ffffff"
-            android:layout_below="@+id/regDate"
+            android:background="@color/text"
             android:backgroundTint="@color/text"
-            android:layout_marginLeft="4dp"/>
+            android:layout_below="@+id/regDate"
+            android:layout_alignEnd="@+id/regDate"
+            android:layout_marginLeft="4dp" />
 
         <RadioGroup
             android:layout_width="match_parent"
@@ -94,7 +97,8 @@
                 android:textColor="@color/text"
                 android:buttonTint="@color/primary"
                 android:id="@+id/radioButton"
-                android:checked="true" />
+                android:checked="true"
+                android:textSize="18dp" />
 
             <RadioButton
                 android:layout_width="wrap_content"
@@ -102,7 +106,8 @@
                 android:text="@string/female"
                 android:textColor="@color/text"
                 android:buttonTint="@color/primary"
-                android:id="@+id/radioButton2" />
+                android:id="@+id/radioButton2"
+                android:textSize="18dp" />
         </RadioGroup>
 
         <Spinner

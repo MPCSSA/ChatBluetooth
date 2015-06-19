@@ -4,5 +4,6 @@
     android:gravity="left"
     android:textColor="@color/text"
     android:fontFamily="Roboto-Regular.ttf"
+    android:textSize="18dp"
     android:padding="5dip">
 </TextView>

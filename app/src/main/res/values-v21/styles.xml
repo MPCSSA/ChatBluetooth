@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="AppTheme" parent="android:Theme.Material">
         <item name="android:colorPrimary">@color/primary</item>
         <item name="android:colorPrimaryDark">@color/primary_dark</item>
@@ -14,6 +15,11 @@
         <item name="android:background">
             @drawable/ripple_button
         </item>
+    </style>
+
+    <style name="DialogTheme" parent="android:Theme.Material.Dialog">
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark</item>
     </style>
 
 </resources>
