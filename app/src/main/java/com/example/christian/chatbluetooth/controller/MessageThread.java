@@ -1,5 +1,6 @@
 package com.example.christian.chatbluetooth.controller;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.io.OutputStream;
 public class MessageThread extends Thread {
 
     private BluetoothSocket sckt;
+    private byte type;
     private byte[] msg;
     private OutputStream out;
 
@@ -17,6 +19,10 @@ public class MessageThread extends Thread {
 
     public void setSckt(BluetoothSocket sckt) {
         this.sckt = sckt;
+    }
+
+    public void setType(byte type) {
+        this.type = type;
     }
 
     public byte[] getMsg() {
@@ -38,6 +44,7 @@ public class MessageThread extends Thread {
     public MessageThread(BluetoothSocket sckt, byte[] msg) {
         setSckt(sckt);
         setMsg(msg);
+        setType(msg[0]);
 
         OutputStream out = null;
         try {
@@ -55,7 +62,23 @@ public class MessageThread extends Thread {
         try {
 
             sckt.connect();
-            out.write(msg);
+
+            switch (type) {
+
+                case BlueCtrl.CRD_HEADER:
+                    BlueCtrl.lockDiscoverySuspension();
+                    out.write(msg);
+                    BlueCtrl.unlockDiscoverySuspension();
+                    break;
+                case BlueCtrl.MSG_HEADER:
+                    BlueCtrl.lockDiscoverySuspension();
+                    out.write(msg);
+                    BlueCtrl.unlockDiscoverySuspension();
+                    break;
+                default:
+                    out.write(msg);
+            }
+
 
         }
         catch(IOException e) {

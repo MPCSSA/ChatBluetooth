@@ -23,6 +23,9 @@ public class BlueCtrl {
     public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
     public static final String     UUID = "BlueRoom"; //custom UUID
 
+    public static boolean DISCOVERY_SUSPENDED = false;
+    public static int DISCOVERY_LOCK = 0; //l'ultimo che esce chiude la porta
+
     private static ChatUserAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
     private static BlueDBManager dbManager;          //User and Messages DB Manager
     private static final String dbname = "bluedb"; //DB name
@@ -220,5 +223,25 @@ public class BlueCtrl {
         }
 
         return l;
+    }
+
+    public static void lockDiscoverySuspension() {
+
+        ++DISCOVERY_LOCK; //thread eneters the room
+        if (DISCOVERY_SUSPENDED) return; //the door was already opened
+
+        DISCOVERY_SUSPENDED = true; //thread opened the door
+
+        BluetoothAdapter.getDefaultAdapter().cancelDiscovery(); //and turned on lights
+    }
+
+    public static void unlockDiscoverySuspension() {
+        if ((--DISCOVERY_LOCK) < 1) { //thread left the room
+
+            DISCOVERY_SUSPENDED = false; //if thread was the last one in the room, turns off lights
+
+            if (!BluetoothAdapter.getDefaultAdapter().isDiscovering())
+                BluetoothAdapter.getDefaultAdapter().startDiscovery(); //and closes the door
+        }
     }
 }
