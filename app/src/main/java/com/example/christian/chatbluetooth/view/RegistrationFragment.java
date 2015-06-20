@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -30,6 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -144,14 +146,14 @@ public class RegistrationFragment extends Fragment {
         ActionBar actionBar = getActivity().getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        Typeface type = Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf");
-        name = (EditText) getActivity().findViewById(R.id.regName);
-        passw = (EditText) getActivity().findViewById(R.id.regPass);
-        confirmPassw = (EditText) getActivity().findViewById(R.id.regConfirmPass);
-        date = (TextView) getActivity().findViewById(R.id.regDate);
-        male = (RadioButton) getActivity().findViewById(R.id.maleButton);
-        female = (RadioButton) getActivity().findViewById(R.id.femaleButton);
-        registration = (Button) getActivity().findViewById(R.id.regButton);
+        Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
+        name = (EditText) getActivity().findViewById(R.id.et_reg_username);
+        passw = (EditText) getActivity().findViewById(R.id.et_reg_password);
+        confirmPassw = (EditText) getActivity().findViewById(R.id.et_confirm);
+        date = (TextView) getActivity().findViewById(R.id.tv_birth);
+        male = (RadioButton) getActivity().findViewById(R.id.rbtn_male);
+        female = (RadioButton) getActivity().findViewById(R.id.rbtn_fem);
+        registration = (Button) getActivity().findViewById(R.id.btn_signup);
 
         name.setTypeface(type);
         passw.setTypeface(type);
@@ -160,11 +162,14 @@ public class RegistrationFragment extends Fragment {
         female.setTypeface(type);
         registration.setTypeface(type);
 
+        passw.addTextChangedListener(new PasswordWatcher(getActivity()));
+        confirmPassw.addTextChangedListener(new ConfirmationWatcher(getActivity()));
+
         SpannableString title = new SpannableString("Registrazione");
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         actionBar.setTitle(title);
 
-        this.nations = (Spinner) getActivity().findViewById(R.id.spinner);
+        this.nations = (Spinner) getActivity().findViewById(R.id.spin_nations);
         List<String> list = new ArrayList<String>();
         list.add("Nazione di nascita");
         list.add("Francia");
@@ -184,12 +189,38 @@ public class RegistrationFragment extends Fragment {
         int Mese = Integer.parseInt(Data.substring(3,5));
         String Anno = Data.substring(6);
 
+        NNNOPE
+        Gli oggetti Date vengono istanziati tramite long int; è meglio prendere la data come somma di long int
+
         */
 
         date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DateDialog();
+            }
+        });
+
+        registration.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (name.getText().toString() != null && ((MainActivity)getActivity()).getOkPass()) {
+
+                    if (((MainActivity)getActivity()).getOkConf()) {
+
+                        SharedPreferences preferences = getActivity().getSharedPreferences(BlueCtrl.UUID, getActivity().MODE_PRIVATE);
+                        preferences.edit().putString("username", name.getText().toString());
+                        preferences.edit().putString("password", passw.getText().toString());
+                        preferences.edit().putLong("birth", 0);
+                        if ((getActivity().findViewById(R.id.radioGroup_reg)).isPressed())
+                            preferences.edit().putString("gender", getActivity().findViewById(((RadioGroup)(getActivity().findViewById(R.id.radioGroup_reg))).getCheckedRadioButtonId()).getTag().toString());
+                        preferences.edit().putString("nationality", ((Spinner)getActivity().findViewById(R.id.spin_nations)).getSelectedItem().toString());
+                    }
+                    else Toast.makeText(getActivity(), "Confirm password!", Toast.LENGTH_SHORT).show();
+                }
+
+                else Toast.makeText(getActivity(), "Check username and password fields!", Toast.LENGTH_SHORT).show();
             }
         });
 

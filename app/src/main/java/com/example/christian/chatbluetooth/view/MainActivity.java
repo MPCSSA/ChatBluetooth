@@ -8,21 +8,43 @@ import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener,
-        RegistrationFragment.OnFragmentInteractionListener, View.OnClickListener{
+        RegistrationFragment.OnFragmentInteractionListener, View.OnClickListener {
 
     //TODO: encapsulate ChatFragment and UsersFragment
 
     private LoginFragment loginFragment;
+    private boolean okPass = false, okConf = false;
+
+
+    public boolean getOkPass() {
+        return okPass;
+    }
+    public void setOkPass(boolean bool) {
+        okPass = bool;
+    }
+
+    public boolean getOkConf() {
+        return okConf;
+    }
+    public void setOkConf(boolean bool) {
+        okConf = bool;
+    }
 
 
     @Override
@@ -35,6 +57,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(R.id.container, loginFragment);
         fragmentTransaction.commit();
+
     }
 
     @Override
@@ -79,15 +102,25 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
     public void onClick(View v) {
 
         switch(v.getId()) {
-            case R.id.regButton:
-                //TODO: password confirmation and null fields control
-                SharedPreferences preferences = getSharedPreferences(BlueCtrl.UUID, MODE_PRIVATE);
-                preferences.edit().putString("username", ((EditText)findViewById(R.id.regName)).getText().toString());
-                preferences.edit().putString("password", ((EditText)findViewById(R.id.regPass)).getText().toString());
-                preferences.edit().putLong("birth", 0);
-                preferences.edit().putString("gender", "none");
-                preferences.edit().putString("nationality", "chinese");
-                break;
+            case R.id.btn_signup:
+
+                if (((EditText)findViewById(R.id.et_reg_username)).getText().toString() != null && okPass) {
+
+                    if (okConf) {
+
+                        SharedPreferences preferences = getSharedPreferences(BlueCtrl.UUID, MODE_PRIVATE);
+                        preferences.edit().putString("username", ((EditText) findViewById(R.id.et_reg_username)).getText().toString());
+                        preferences.edit().putString("password", ((EditText) findViewById(R.id.et_reg_password)).getText().toString());
+                        preferences.edit().putLong("birth", 0);
+                        if ((findViewById(R.id.radioGroup_reg)).isPressed())
+                            preferences.edit().putString("gender", findViewById((((RadioGroup) findViewById(R.id.radioGroup_reg)).getCheckedRadioButtonId())).getTag().toString());
+                        preferences.edit().putString("nationality", ((Spinner)findViewById(R.id.spin_nations)).getSelectedItem().toString());
+                        break;
+                    }
+                    else Toast.makeText(this, "Confirm password!", Toast.LENGTH_SHORT).show();
+                }
+
+                else Toast.makeText(this, "Check username and password fields!", Toast.LENGTH_SHORT).show();
 
             case R.id.loginButton:
                 //TODO: username/password check

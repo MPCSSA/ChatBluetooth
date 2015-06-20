@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ChatBluetooth</string>
-    <string name="title_activity_user">ChatBluetooth</string>
+    <string name="title_activity_user" translatable="false">ChatBluetooth</string>
     <string name="action_settings">Settings</string>
 
     <!-- HINTS -->
@@ -14,10 +14,11 @@
     <!-- BUTTONS -->
     <string name="login_btn">Login</string>
     <string name="signup_btn">Or Sign Up</string>
-    <string name="register_btn">Sign Up</string>
+    <string name="register_btn">Or Sign Up</string>
 
     <!-- TOASTS -->
     <string name="login_greeting">Welcome,&#160;</string>
+    <string name="registration_btn">Sign Up</string>
 
 
 </resources>

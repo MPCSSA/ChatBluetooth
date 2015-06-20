@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:inputType="textPersonName"
             android:ems="10"
-            android:id="@+id/regName"
+            android:id="@+id/et_reg_username"
             android:singleLine="false"
             android:cursorVisible="true"
             android:backgroundTint="@color/secondary"
@@ -32,24 +32,33 @@
             android:layout_height="wrap_content"
             android:inputType="textPassword"
             android:ems="10"
-            android:id="@+id/regPass"
+            android:id="@+id/et_reg_password"
             android:cursorVisible="true"
-            android:layout_below="@+id/regName"
+            android:layout_below="@+id/et_reg_username"
             android:layout_centerHorizontal="true"
             android:hint="@string/password"
             android:backgroundTint="@color/secondary"
             android:textCursorDrawable="@drawable/edit_cursor" />
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:id="@+id/iv_confirm"
+            android:layout_alignTop="@+id/et_confirm"
+            android:layout_marginTop="8dp"
+            android:layout_alignRight="@+id/et_confirm"
+            android:layout_marginRight="16dp"/>
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
             android:ems="10"
-            android:id="@+id/regConfirmPass"
+            android:id="@+id/et_confirm"
             android:hint="@string/confirm"
             android:cursorVisible="true"
-            android:layout_below="@+id/regPass"
-            android:layout_alignStart="@+id/regPass"
+            android:layout_below="@+id/et_reg_password"
+            android:layout_alignStart="@+id/et_reg_password"
             android:color="@color/text"
             android:backgroundTint="@color/secondary"
             android:textCursorDrawable="@drawable/edit_cursor" />
@@ -57,8 +66,8 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/register_btn"
-            android:id="@+id/regButton"
+            android:text="@string/signup_btn"
+            android:id="@+id/btn_signup"
             android:background="@drawable/ripple_button"
             android:elevation="@dimen/elevation_low"
             android:stateListAnimator="@anim/button_elevation"
@@ -72,8 +81,8 @@
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:ems="10"
-            android:id="@+id/regDate"
-            android:layout_below="@+id/regConfirmPass"
+            android:id="@+id/tv_birth"
+            android:layout_below="@+id/et_confirm"
             android:layout_alignParentStart="true"
             android:hint="@string/birth"
             android:layout_marginLeft="4dp"
@@ -86,14 +95,14 @@
             android:layout_height="1dp"
             android:background="@color/text"
             android:backgroundTint="@color/secondary"
-            android:layout_below="@+id/regDate"
-            android:layout_alignEnd="@+id/regDate"
+            android:layout_below="@+id/tv_birth"
+            android:layout_alignEnd="@+id/tv_birth"
             android:layout_marginLeft="4dp" />
 
         <RadioGroup
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/radioGroup"
+            android:id="@+id/radioGroup_reg"
             android:layout_centerVertical="true"
             android:layout_alignParentStart="true">
 
@@ -103,10 +112,11 @@
                 android:text="@string/male"
                 android:textColor="@color/text"
                 android:buttonTint="@color/secondary"
-                android:id="@+id/maleButton"
+                android:id="@+id/rbtn_male"
                 android:checked="true"
                 android:textSize="18dp"
-                android:elevation="8dp" />
+                android:elevation="8dp"
+                android:tag="@string/male"/>
 
             <RadioButton
                 android:layout_width="wrap_content"
@@ -114,18 +124,19 @@
                 android:text="@string/female"
                 android:textColor="@color/text"
                 android:buttonTint="@color/secondary"
-                android:id="@+id/femaleButton"
+                android:id="@+id/rbtn_fem"
                 android:textSize="18dp"
-                android:elevation="8dp" />
+                android:elevation="8dp"
+                android:tag="@string/female"/>
         </RadioGroup>
 
         <Spinner
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/spinner"
+            android:id="@+id/spin_nations"
             android:entries="@array/nation"
             android:backgroundTint="@color/primary"
-            android:layout_below="@+id/radioGroup"
+            android:layout_below="@+id/radioGroup_reg"
             android:layout_alignParentStart="true"
             android:spinnerMode="dialog" />
 

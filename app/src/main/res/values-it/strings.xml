@@ -8,4 +8,5 @@
     <string name="login_btn">Entra</string>
     <string name="register_btn">Oppure Registrati</string>
     <string name="registration_btn">Registrati</string>
+    <string name="signup_btn">Oppure Registrati</string>
 </resources>
