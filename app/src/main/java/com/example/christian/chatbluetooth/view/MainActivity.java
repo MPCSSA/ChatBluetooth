@@ -24,7 +24,7 @@ import com.example.christian.chatbluetooth.controller.BlueCtrl;
 
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener,
-        RegistrationFragment.OnFragmentInteractionListener, View.OnClickListener {
+        RegistrationFragment.OnFragmentInteractionListener {
 
     //TODO: encapsulate ChatFragment and UsersFragment
 
@@ -96,35 +96,5 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
     @Override
     public void onFragmentInteraction(Uri uri) {
 
-    }
-
-    @Override
-    public void onClick(View v) {
-
-        switch(v.getId()) {
-            case R.id.btn_signup:
-
-                if (((EditText)findViewById(R.id.et_reg_username)).getText().toString() != null && okPass) {
-
-                    if (okConf) {
-
-                        SharedPreferences preferences = getSharedPreferences(BlueCtrl.UUID, MODE_PRIVATE);
-                        preferences.edit().putString("username", ((EditText) findViewById(R.id.et_reg_username)).getText().toString());
-                        preferences.edit().putString("password", ((EditText) findViewById(R.id.et_reg_password)).getText().toString());
-                        preferences.edit().putLong("birth", 0);
-                        if ((findViewById(R.id.radioGroup_reg)).isPressed())
-                            preferences.edit().putString("gender", findViewById((((RadioGroup) findViewById(R.id.radioGroup_reg)).getCheckedRadioButtonId())).getTag().toString());
-                        preferences.edit().putString("nationality", ((Spinner)findViewById(R.id.spin_nations)).getSelectedItem().toString());
-                        break;
-                    }
-                    else Toast.makeText(this, "Confirm password!", Toast.LENGTH_SHORT).show();
-                }
-
-                else Toast.makeText(this, "Check username and password fields!", Toast.LENGTH_SHORT).show();
-
-            case R.id.loginButton:
-                //TODO: username/password check
-                //TODO: set remember user
-        }
     }
 }
