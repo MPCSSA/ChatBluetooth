@@ -20,9 +20,12 @@
             android:ems="10"
             android:id="@+id/regName"
             android:singleLine="false"
-            android:backgroundTint="@color/text"
+            android:cursorVisible="true"
+            android:backgroundTint="@color/secondary"
             android:layout_alignParentStart="true"
-            android:hint="@string/username"/>
+            android:hint="@string/username"
+            android:clickable="false"
+            android:textCursorDrawable="@drawable/edit_cursor" />
 
         <EditText
             android:layout_width="match_parent"
@@ -30,10 +33,12 @@
             android:inputType="textPassword"
             android:ems="10"
             android:id="@+id/regPass"
+            android:cursorVisible="true"
             android:layout_below="@+id/regName"
             android:layout_centerHorizontal="true"
             android:hint="@string/password"
-            android:backgroundTint="@color/text"/>
+            android:backgroundTint="@color/secondary"
+            android:textCursorDrawable="@drawable/edit_cursor" />
 
         <EditText
             android:layout_width="match_parent"
@@ -42,10 +47,12 @@
             android:ems="10"
             android:id="@+id/regConfirmPass"
             android:hint="@string/confirm"
+            android:cursorVisible="true"
             android:layout_below="@+id/regPass"
             android:layout_alignStart="@+id/regPass"
             android:color="@color/text"
-            android:backgroundTint="@color/text" />
+            android:backgroundTint="@color/secondary"
+            android:textCursorDrawable="@drawable/edit_cursor" />
 
         <Button
             android:layout_width="match_parent"
@@ -67,18 +74,18 @@
             android:ems="10"
             android:id="@+id/regDate"
             android:layout_below="@+id/regConfirmPass"
-            android:backgroundTint="@color/text"
             android:layout_alignParentStart="true"
             android:hint="@string/birth"
             android:layout_marginLeft="4dp"
             android:layout_marginRight="4dp"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:textCursorDrawable="@drawable/edit_cursor" />
 
         <View
             android:layout_width="fill_parent"
             android:layout_height="1dp"
             android:background="@color/text"
-            android:backgroundTint="@color/text"
+            android:backgroundTint="@color/secondary"
             android:layout_below="@+id/regDate"
             android:layout_alignEnd="@+id/regDate"
             android:layout_marginLeft="4dp" />
@@ -95,19 +102,21 @@
                 android:layout_height="wrap_content"
                 android:text="@string/male"
                 android:textColor="@color/text"
-                android:buttonTint="@color/primary"
-                android:id="@+id/radioButton"
+                android:buttonTint="@color/secondary"
+                android:id="@+id/maleButton"
                 android:checked="true"
-                android:textSize="18dp" />
+                android:textSize="18dp"
+                android:elevation="8dp" />
 
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/female"
                 android:textColor="@color/text"
-                android:buttonTint="@color/primary"
-                android:id="@+id/radioButton2"
-                android:textSize="18dp" />
+                android:buttonTint="@color/secondary"
+                android:id="@+id/femaleButton"
+                android:textSize="18dp"
+                android:elevation="8dp" />
         </RadioGroup>
 
         <Spinner

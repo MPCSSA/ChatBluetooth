@@ -6,13 +6,11 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.christian.chatbluetooth.R;
@@ -61,6 +59,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         if (id == android.R.id.home){
             FragmentManager fragmentManager = getFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
             fragmentTransaction.replace(R.id.container, loginFragment);
             fragmentTransaction.commit();
             ActionBar actionBar = this.getActionBar();

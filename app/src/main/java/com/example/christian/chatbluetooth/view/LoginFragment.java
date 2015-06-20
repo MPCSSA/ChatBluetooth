@@ -144,6 +144,7 @@ public class LoginFragment extends Fragment {
                 RegistrationFragment registrationFragment = new RegistrationFragment();
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
                 fragmentTransaction.replace(R.id.container, registrationFragment);
                 fragmentTransaction.commit();
             }

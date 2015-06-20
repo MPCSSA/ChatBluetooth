@@ -149,8 +149,8 @@ public class RegistrationFragment extends Fragment {
         passw = (EditText) getActivity().findViewById(R.id.regPass);
         confirmPassw = (EditText) getActivity().findViewById(R.id.regConfirmPass);
         date = (TextView) getActivity().findViewById(R.id.regDate);
-        male = (RadioButton) getActivity().findViewById(R.id.radioButton);
-        female = (RadioButton) getActivity().findViewById(R.id.radioButton2);
+        male = (RadioButton) getActivity().findViewById(R.id.maleButton);
+        female = (RadioButton) getActivity().findViewById(R.id.femaleButton);
         registration = (Button) getActivity().findViewById(R.id.regButton);
 
         name.setTypeface(type);
