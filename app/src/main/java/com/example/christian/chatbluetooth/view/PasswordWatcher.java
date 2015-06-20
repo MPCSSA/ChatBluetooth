@@ -23,7 +23,13 @@ public class PasswordWatcher implements TextWatcher {
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
 
-        boolean bool = s.length() < 4;
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+
+        boolean bool = s.toString().length() < 4;
         if (bool) {
             ((Activity)context).findViewById(R.id.et_confirm).setEnabled(false);
             ((Activity)context).findViewById(R.id.et_confirm).setAlpha(0.5f);
@@ -35,11 +41,5 @@ public class PasswordWatcher implements TextWatcher {
         }
 
         ((MainActivity)context).setOkPass(bool);
-
-    }
-
-    @Override
-    public void afterTextChanged(Editable s) {
-
     }
 }

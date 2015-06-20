@@ -11,7 +11,6 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.support.annotation.ColorRes;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.view.LayoutInflater;
@@ -204,23 +203,37 @@ public class RegistrationFragment extends Fragment {
         registration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                SharedPreferences preferences = getActivity().getSharedPreferences(BlueCtrl.UUID, getActivity().MODE_PRIVATE);
 
-                if (name.getText().toString() != null && ((MainActivity)getActivity()).getOkPass()) {
+                String User = preferences.getString("username", null); // null is a default value if they don't exist
+                String Pass = preferences.getString("password", null); // null is a default value if they don't exist
 
-                    if (((MainActivity)getActivity()).getOkConf()) {
+                if (User == null && Pass == null) {
 
-                        SharedPreferences preferences = getActivity().getSharedPreferences(BlueCtrl.UUID, getActivity().MODE_PRIVATE);
-                        preferences.edit().putString("username", name.getText().toString());
-                        preferences.edit().putString("password", passw.getText().toString());
-                        preferences.edit().putLong("birth", 0);
-                        if ((getActivity().findViewById(R.id.radioGroup_reg)).isPressed())
-                            preferences.edit().putString("gender", getActivity().findViewById(((RadioGroup)(getActivity().findViewById(R.id.radioGroup_reg))).getCheckedRadioButtonId()).getTag().toString());
-                        preferences.edit().putString("nationality", ((Spinner)getActivity().findViewById(R.id.spin_nations)).getSelectedItem().toString());
-                    }
-                    else Toast.makeText(getActivity(), "Confirm password!", Toast.LENGTH_SHORT).show();
+                    if (name.getText().toString() != null && !((MainActivity) getActivity()).getOkPass()) {
+
+                        if (((MainActivity) getActivity()).getOkConf()) {
+
+
+                            preferences.edit().putString("username", name.getText().toString()).commit();
+                            preferences.edit().putString("password", passw.getText().toString()).commit();
+                            preferences.edit().putLong("birth", 0).commit();
+                            if ((getActivity().findViewById(R.id.radioGroup_reg)).isPressed())
+                                preferences.edit().putString("gender", getActivity().findViewById(((RadioGroup) (getActivity().findViewById(R.id.radioGroup_reg))).getCheckedRadioButtonId()).getTag().toString()).commit();
+                            preferences.edit().putString("nationality", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItem().toString()).commit();
+
+                            //TODO: do login
+
+                        } else
+                            Toast.makeText(getActivity(), "Confirm password!", Toast.LENGTH_SHORT).show();
+                    } else
+                        Toast.makeText(getActivity(), "Check username and password fields!", Toast.LENGTH_SHORT).show();
                 }
-
-                else Toast.makeText(getActivity(), "Check username and password fields!", Toast.LENGTH_SHORT).show();
+                else
+                {
+                    Toast.makeText(getActivity(), "You are already registered", Toast.LENGTH_SHORT).show();
+                    //TODO: Cancel the registration or not?
+                }
             }
         });
 

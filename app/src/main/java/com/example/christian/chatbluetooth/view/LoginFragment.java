@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,8 +16,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -42,6 +45,7 @@ public class LoginFragment extends Fragment {
     private EditText passw;
     private Button login;
     private Button registration;
+
 
     /**
      * Use this factory method to create a new instance of
@@ -147,6 +151,32 @@ public class LoginFragment extends Fragment {
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
                 fragmentTransaction.replace(R.id.container, registrationFragment);
                 fragmentTransaction.commit();
+            }
+        });
+
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences preferences = getActivity().getSharedPreferences(BlueCtrl.UUID, getActivity().MODE_PRIVATE);
+
+                String User = preferences.getString("username",null); // null is a default value if they don't exist
+                String Pass = preferences.getString("password",null); // null is a default value if they don't exist
+
+                if(User != null && Pass != null){
+                    if(name.getText().toString().equals(User) && passw.getText().toString().equals(Pass))
+                    {
+                        //TODO: do login
+                        Toast.makeText(getActivity(), "Login", Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        // Wrong user or pass
+                        Toast.makeText(getActivity(), "Wrong username or password", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else{
+                    //Not registered
+                    Toast.makeText(getActivity(), "You must first register", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
