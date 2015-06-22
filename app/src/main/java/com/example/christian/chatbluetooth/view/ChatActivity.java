@@ -7,8 +7,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
 
+import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.model.ChatUser;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChatActivity extends Activity {
 
@@ -37,8 +46,38 @@ public class ChatActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_chat);
 
+        RecyclerView recList = (RecyclerView) findViewById(R.id.cardList);
+        recList.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recList.setLayoutManager(llm);
+        recList.setItemAnimator(new DefaultItemAnimator());
 
+        RecycleAdapter cardadapt = new RecycleAdapter(createList(10));
+        recList.setAdapter(cardadapt);
+    }
+
+    private List createList(int size) {
+
+        List result = new ArrayList();
+        for (int i=1; i <= size; i++) {
+            ChatUser card = new ChatUser();
+            result.add(card);
+
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_chat, menu);
+        // TODO: user button must be in the left side of actionBar
+
+        return true;
     }
 
     @Override

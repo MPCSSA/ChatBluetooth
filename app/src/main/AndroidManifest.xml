@@ -9,7 +9,8 @@
         android:theme="@style/AppTheme" >
 
         <!-- android:name=".view.MainActivity" -->
-        <activity android:name=".view.MainActivity"
+        <activity
+            android:name=".view.MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,8 +21,15 @@
 
         <activity
             android:name=".view.UserActivity"
-            android:label="@string/title_activity_user" >
+            android:label="@string/title_activity_user"
+            android:screenOrientation="portrait">
         </activity>
+
+        <activity
+            android:name=".view.ChatActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
     </application>
 
 </manifest>

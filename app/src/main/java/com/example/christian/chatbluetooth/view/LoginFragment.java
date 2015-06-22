@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -177,6 +178,11 @@ public class LoginFragment extends Fragment {
                     //Not registered
                     Toast.makeText(getActivity(), "You must first register", Toast.LENGTH_SHORT).show();
                 }
+                Intent intent = new Intent(
+                        getActivity().getApplicationContext(),
+                        ChatActivity.class
+                );
+                startActivity(intent);
             }
         });
     }
