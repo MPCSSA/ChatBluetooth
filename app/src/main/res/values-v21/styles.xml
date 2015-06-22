@@ -4,10 +4,10 @@
     <style name="AppTheme" parent="android:Theme.Material">
         <item name="android:colorPrimary">@color/primary</item>
         <item name="android:colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:editTextColor">@color/primary_text</item>
+        <item name="android:textColorHint">@color/secondary_text</item>
+        <item name="android:colorControlHighlight">@color/light_primary</item>
         <item name="android:colorBackground">@color/background</item>
-        <item name="android:editTextColor">@color/text</item>
-        <item name="android:textColorHint">@color/text</item>
-        <item name="android:colorControlHighlight">@color/ripple</item>
     </style>
 
     <style name="MyButton"
@@ -18,7 +18,7 @@
     </style>
 
     <style name="DialogTheme" parent="android:Theme.Material.Dialog">
-        <item name="android:colorAccent">@color/secondary</item>
+        <item name="android:colorAccent">@color/calendar</item>
         <item name="android:elevation">8dp</item>
     </style>
 

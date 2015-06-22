@@ -21,7 +21,8 @@
             android:id="@+id/logName"
             android:singleLine="false"
             android:cursorVisible="true"
-            android:backgroundTint="@color/secondary"
+            android:backgroundTint="@color/accent"
+
             android:hint="@string/username"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true"
@@ -35,7 +36,7 @@
             android:id="@+id/logPass"
             android:cursorVisible="true"
             android:hint="@string/password"
-            android:backgroundTint="@color/secondary"
+            android:backgroundTint="@color/accent"
             android:layout_below="@+id/logName"
             android:layout_alignParentStart="true"
             android:textCursorDrawable="@drawable/edit_cursor" />

@@ -19,7 +19,8 @@ import com.example.christian.chatbluetooth.model.ChatUser;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatActivity extends Activity {
+public class ChatActivity extends Activity{
+
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
         @Override

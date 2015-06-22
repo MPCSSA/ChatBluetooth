@@ -21,7 +21,7 @@
             android:id="@+id/et_reg_username"
             android:singleLine="false"
             android:cursorVisible="true"
-            android:backgroundTint="@color/secondary"
+            android:backgroundTint="@color/accent"
             android:layout_alignParentStart="true"
             android:hint="@string/username"
             android:clickable="false"
@@ -37,7 +37,7 @@
             android:layout_below="@+id/et_reg_username"
             android:layout_centerHorizontal="true"
             android:hint="@string/password"
-            android:backgroundTint="@color/secondary"
+            android:backgroundTint="@color/accent"
             android:textCursorDrawable="@drawable/edit_cursor" />
 
         <ImageView
@@ -59,8 +59,7 @@
             android:cursorVisible="true"
             android:layout_below="@+id/et_reg_password"
             android:layout_alignStart="@+id/et_reg_password"
-            android:color="@color/text"
-            android:backgroundTint="@color/secondary"
+            android:backgroundTint="@color/accent"
             android:textCursorDrawable="@drawable/edit_cursor" />
 
         <Button
@@ -94,7 +93,7 @@
             android:layout_width="fill_parent"
             android:layout_height="1dp"
             android:background="@color/text"
-            android:backgroundTint="@color/secondary"
+            android:backgroundTint="@color/accent"
             android:layout_below="@+id/tv_birth"
             android:layout_alignEnd="@+id/tv_birth"
             android:layout_marginLeft="4dp" />
@@ -110,8 +109,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/male"
-                android:textColor="@color/text"
-                android:buttonTint="@color/secondary"
+                android:textColor="@color/primary_text"
+                android:buttonTint="@color/accent"
                 android:id="@+id/rbtn_male"
                 android:checked="true"
                 android:textSize="18dp"
@@ -122,8 +121,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/female"
-                android:textColor="@color/text"
-                android:buttonTint="@color/secondary"
+                android:textColor="@color/primary_text"
+                android:buttonTint="@color/accent"
                 android:id="@+id/rbtn_fem"
                 android:textSize="18dp"
                 android:elevation="8dp"
@@ -135,7 +134,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/spin_nations"
             android:entries="@array/nation"
-            android:backgroundTint="@color/primary"
+            android:backgroundTint="@color/accent"
             android:layout_below="@+id/radioGroup_reg"
             android:layout_alignParentStart="true"
             android:spinnerMode="dialog" />

@@ -7,7 +7,7 @@
     <string name="confirm">Conferma password</string>
     <string name="login_greeting">Benvenuto,&#160;</string>
     <string name="login_btn">Entra</string>
-    <string name="register_btn">Oppure Registrati</string>
+    <string name="register_btn">Registrati</string>
     <string name="registration_btn">Registrati</string>
-    <string name="signup_btn">Oppure Registrati</string>
+    <string name="signup_btn">Registrati</string>
 </resources>

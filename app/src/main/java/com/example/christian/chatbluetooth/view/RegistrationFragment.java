@@ -256,7 +256,7 @@ public class RegistrationFragment extends Fragment {
                 Toset = Toset + (monthOfYear+1) + "/" + year;
 
                 date.setText(Toset);
-                date.setTextColor(getResources().getColor(R.color.text));
+                date.setTextColor(getResources().getColor(R.color.primary_text));
                 date.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf"));
 
             }};
