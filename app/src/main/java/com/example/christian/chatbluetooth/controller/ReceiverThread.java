@@ -5,13 +5,17 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.database.Cursor;
 
+import com.example.christian.chatbluetooth.model.ChatUser;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class ReceiverThread extends Thread {
 
     private BluetoothSocket sckt; //socket for Bluetooth communication
     private InputStream in;       //InputStream object from which reading incoming messages
+    private OutputStream out;     //OutputStream object from which reading ACK messages
     private BluetoothDevice rmtDvc;        //MAC address of communicating Bluetooth device
 
     public void setSckt(BluetoothSocket sckt) {
@@ -36,8 +40,12 @@ public class ReceiverThread extends Thread {
 
         try {
 
-            byte flag = (byte) in.read();
+            int i, j;
+            boolean connected = true;
 
+            do {
+
+                byte flag = (byte) in.read();
             /*
             incoming message flag;
             0: Greetings Message; a newly connected device is sending informations about itself.
@@ -47,11 +55,8 @@ public class ReceiverThread extends Thread {
             4: Chat Message; if this device is the target, show message in chat; else, forward the message on the route.
             5: Drop Request; a list of devices no longer reachable due to one device disconnection.
             */
-            int i, j;
-            boolean breakFree;
-
-            switch (flag) {
-                case BlueCtrl.GRT_HEADER: {
+                switch (flag) {
+                    case BlueCtrl.GRT_HEADER: {
                     /*
                     A Greetings message contains user status and last update field; MAC address is implicit,
                     and status and last update field have fixed length (1 byte and 8 byte long),
@@ -60,57 +65,52 @@ public class ReceiverThread extends Thread {
                        |1 byte|   8 byte  |
                     */
 
-                    byte status = (byte) in.read();
-                    byte[] bytes = new byte[8];
-                    i = 0;
+                        byte status = (byte) in.read();
+                        byte[] bytes = new byte[8];
+                        i = 0;
 
-                    do {
-                        j = in.read(bytes, i, 8 - i);
-                        if (j < 0) {
-                            System.out.println("Premature EOF, message misunderstanding");
-                            //TODO: throw something
+                        do {
+                            j = in.read(bytes, i, 8 - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < 8);
+
+                        long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
+
+                        if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
+
+                            BlueCtrl.awakeUser(BlueCtrl.macToBytes(rmtDvc.getAddress()), rmtDvc.getAddress(), status, 0);
+                            //a new ChatUser object is created from pre-existing information in addition
+                            //to volatile fields
+                            out.write(BlueCtrl.ACK);
+                        } else {
+                            out.write(BlueCtrl.RQS_HEADER);
+                            out.write(BlueCtrl.macToBytes(rmtDvc.getAddress()));
                         }
-                        i += j;
-                    } while (i < 8);
 
-                    long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
-
-                    if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
-
-                        BlueCtrl.awakeUser(BlueCtrl.macToBytes(rmtDvc.getAddress()), rmtDvc.getAddress(), status, 0);
-                        //a new ChatUser object is created from pre-existing information in addition
-                        //to volatile fields
-                    }
-                    else {
-                        System.out.println("Instant Reply");
-                        //TODO: Instant reply Info Request
+                        break;
                     }
 
-                        //TODO: maintain connection to send Update Msg
-
-                    break;
-                }
-
-                case BlueCtrl.UPD_HEADER: {
+                    case BlueCtrl.UPD_HEADER: {
 
                     /*
-                    An Update message contain key and/or volatile informations about multiple users;
+                    An Update message contain key and/or volatile information about a user;
                     target MAC, bounces, user status and last update fields are included. These fields
                     have fixed length, therefore no divider is needed. To be precise, MAC addresses
                     are 6 bytes long, both bounces and user status can be represented by a single byte,
                     and last update field is a long int value (8 bytes), for a total of 16 bytes per
                     user. These are all vital or non persistent information, and they are engineered to
                     take up as little space as they can.
-                    [1][MAC][bounces][status][last update]{user}{user}...
-                       |            16 bytes             | 16B | 16B |
+                    [1][MAC][last update][bounces][status]
+                       |            16 bytes             |
                     */
 
-                    byte[] buffer = new byte[6], lastUpd = new byte[8];
-                    byte b, status;
-                    int bounces;
-                    breakFree = true;
-
-                    while (breakFree) {
+                        byte[] buffer = new byte[6], lastUpd = new byte[8];
+                        byte b, status;
+                        int bounces;
 
                         i = 0;
                         do {
@@ -130,16 +130,8 @@ public class ReceiverThread extends Thread {
                         do {
                             j = in.read(lastUpd, i, 8 - i);
                             if (j < 0) {
-                                switch (i) {
-                                    case 0:
-                                        breakFree = false; //EOF reached
-                                        break;
-                                    default:
-                                        System.out.println("Premature EOF, message misunderstanding");
-                                        //TODO: throw something
-                                }
-
-                                break;
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
                             }
                             i += j;
                         } while (i < 8);
@@ -153,79 +145,101 @@ public class ReceiverThread extends Thread {
                             bounce field is increased by 1 because the remote device represents an additional
                             node to bounce on
                             */
+                            out.write(BlueCtrl.ACK); //ACKed
+
                         }
                         else {
-                            System.out.println("Instant Reply");
-                            //TODO: Instant Reply Info Request
+                            out.write(BlueCtrl.RQS_HEADER); //Info Request
+                            out.write(buffer);
                         }
+
+                        break;
                     }
 
-                    break;
-                }
+                    case BlueCtrl.RQS_HEADER: {
 
-                case BlueCtrl.RQS_HEADER: {
-
-                    /*
-                    An Info Request is a special request sent by a node which received a reachable MAC
-                    address through an Update Msg, but no results were found in the Users table. It
-                    contains MAC addresses of all devices not recognized. A Card Msg follows, containing
-                    persistent user information about them.
-                    No divider is needed, because every MAC address is made up of exactly 6 bytes.
-                    [2][MAC][MAC][MAC]...
-                     */
-
-                    String address;
-                    byte[] buffer = new byte[6];
-                    breakFree = true;
-
-                    while (breakFree) {
-                        i = 0;
-
-                        do {
-                            j = in.read(buffer, i, 6 - i);
-                            if (j < 0) {
-                                switch (i) {
-                                    case 0:
-                                        breakFree = false; //EOF reached
-                                        break;
-                                    default:
-                                        System.out.println("Premature EOF, message misunderstanding");
-                                        //TODO: throw something
-                                }
-
-                                break;
-                            }
-                            i += j;
-                        } while (i < 6);
-
-                        address = BlueCtrl.bytesToMAC(buffer);
-
-                        Cursor infos = BlueCtrl.fetchPersistentInfo(address);
-
-                        //TODO: get infos bytes and send them as a Card Msg
+                        System.out.println("This message should not be captured here");
+                        //TODO: Misunderstanding management
+                        break;
                     }
 
-                    break;
-                }
-
-                case BlueCtrl.CRD_HEADER: {
+                    case BlueCtrl.CRD_HEADER: {
                     /*
                     A Card message is a heavy message containing persistent size-variable fields of a
                     ChatUser; it allows for profile customization and is only sent to create a new
                     Users table entry or update an existing one when DB contains out-of-date information.
                     Every field after header and MAC address are preceded by a length byte, indicating
                     the field length in bytes and allowing for streamer consistent reading.
-                    [3][   MAC   ][last update][length][  username  ][ age ][gender][nationality][length][profile pic]
-                       | 6 bytes |   8 bytes  |1 byte |length bytes |1 byte|1 byte |   1 byte   |1 byte |length bytes|
+                    [3][   MAC   ][last update][ age ][gender][nationality][length][  username  ][length][profile pic]
+                       | 6 bytes |   8 bytes  |1 byte|1 byte |   1 byte   |1 byte |length bytes |1 byte |length bytes|
                      */
+                        byte[] buffer = new byte[6],
+                               lastUpd = new byte[8],
+                               username, pic;
+                        int length, age, gender, country;
 
-                    //TODO: Card Msg case
+                        i = 0;
+                        do {
+                            j = in.read(buffer, i, 6 - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < 6);
 
-                    break;
+                        i = 0;
+                        do {
+                            j = in.read(lastUpd, i, 8 - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < 8);
 
-                }
+                        age = in.read();
+                        gender = in.read();
+                        country = in.read();
 
-                case BlueCtrl.MSG_HEADER: {
+                        length = in.read();
+                        username = new byte[length];
+
+                        i = 0;
+                        do {
+                            j = in.read(username, i, length - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < length);
+
+                        length = in.read();
+                        pic = new byte[length];
+
+                        i = 0;
+                        do {
+                            j = in.read(pic, i, length - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < length);
+
+                        BlueCtrl.updateUserTable(BlueCtrl.bytesToMAC(buffer), BlueCtrl.rebuildTimestamp(lastUpd),
+                                                 new String(username), age, gender, country);
+
+                        //TODO: ChatUser update
+
+                        out.write(BlueCtrl.ACK); //ACKed
+
+                        break;
+
+                    }
+
+                    case BlueCtrl.MSG_HEADER: {
                     /*
                     A Chat message is the kind of message which is ultimately shown to the user upon reception.
                     It wraps up a message from the sender in a packet consisting of a header, a target MAC address,
@@ -238,62 +252,63 @@ public class ReceiverThread extends Thread {
                     [4][Target MAC][Sender MAC][Msg length][  Message field  ]
                        | 6 bytes  |  6 bytes  |   1 byte  | Msg length bytes |
                      */
-                    byte[] buffer = new byte[6], sender = new byte[6];
-                    int length;
-                    i = 0;
+                        byte[] buffer = new byte[6], sender = new byte[6];
+                        int length;
+                        i = 0;
 
-                    do {
-                        j = in.read(buffer, i, 6 - i);
-                        if (j < 0) {
-                            System.out.println("Premature EOF, message misunderstanding");
-                            //TODO: throw something
+                        do {
+                            j = in.read(buffer, i, 6 - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < 6);
+
+                        i = 0;
+                        do {
+                            j = in.read(sender, i, 6 - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < 6);
+
+                        if ((length = in.read()) < 0) {
+                            System.out.println("Read Error");
+                            //TODO: optional read exception
                         }
-                        i += j;
-                    } while (i < 6);
 
-                    i = 0;
-                    do {
-                        j = in.read(sender, i, 6 - i);
-                        if (j < 0) {
-                            System.out.println("Premature EOF, message misunderstanding");
-                            //TODO: throw something
-                        }
-                        i += j;
-                    } while (i < 6);
+                        byte[] msgBuffer = new byte[length];
+                        i = 0;
+                        do {
+                            j = in.read(msgBuffer, i, length - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < length);
 
-                    if ((length = in.read()) < 0) {
-                        System.out.println("Read Error");
-                        //TODO: optional read exception
-                    }
+                        if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
-                    byte[] msgBuffer = new byte[length];
-                    i = 0;
-                    do {
-                        j = in.read(msgBuffer, i, length - i);
-                        if (j < 0) {
-                            System.out.println("Premature EOF, message misunderstanding");
-                            //TODO: throw something
-                        }
-                        i += j;
-                    } while (i < length);
+                            BlueCtrl.buildMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer));
+                        } else {
 
-                    if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
-
-                        BlueCtrl.buildMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer));
-                    }
-                    else {
-
-                        BlueCtrl.sendMsg(buffer, sender, msgBuffer);
+                            BlueCtrl.sendMsg(buffer, sender, msgBuffer);
                         /*
                         if this device is not the target device, message has to be forwarded to the next node
                         on the route leading to the target; it is wrapped again in a packet and sent as a
                          */
+                        }
+
+                        out.write(BlueCtrl.ACK); //ACKed
+
+                        break;
                     }
 
-                    break;
-                }
-
-                case BlueCtrl.DRP_HEADER: {
+                    case BlueCtrl.DRP_HEADER: {
                     /*
                     A Drop Request is sent when a device closes its connection and is no longer reachable.
                     It contains a list of MACs of devices no longer reachable by this device due to
@@ -301,36 +316,43 @@ public class ReceiverThread extends Thread {
                     every MAC address is made up of 6 bytes.
                     [5][MAC][MAC]...
                     */
-                    byte[] buffer = new byte[6];
-                    breakFree = true;
+                        byte[] buffer = new byte[6];
+                        boolean breakFree = true;
 
-                    while(breakFree) {
+                        while (breakFree) {
 
-                        i = 0;
-                        do {
-                            j = in.read(buffer, i, 6 - i);
-                            if (j < 0) {
-                                switch (i) {
-                                    case 0:
-                                        breakFree = false; //EOF reached
-                                        break;
-                                    default:
-                                        System.out.println("Premature EOF, message misunderstanding");
-                                        //TODO: throw something
+                            i = 0;
+                            do {
+                                j = in.read(buffer, i, 6 - i);
+                                if (j < 0) {
+                                    switch (i) {
+                                        case 0:
+                                            breakFree = false; //EOF reached
+                                            break;
+                                        default:
+                                            System.out.println("Premature EOF, message misunderstanding");
+                                            //TODO: throw something
+                                    }
+
+                                    break;
                                 }
+                                i += j;
+                            } while (i < 6);
 
-                                break;
+                            ChatUser user = BlueCtrl.manageDropRequest(rmtDvc.getAddress(), BlueCtrl.bytesToMAC(buffer));
+                            if (user != null) {
+                                out.write(BlueCtrl.buildUpdMsg(user));
                             }
-                            i += j;
-                        } while (i < 6);
+                        }
 
-                        BlueCtrl.manageDropRequest(rmtDvc.getAddress(), BlueCtrl.bytesToMAC(buffer));
-                        //TODO: Instant Reply Update Msg
+                        out.write(BlueCtrl.ACK); //ACKed
+
+                        break;
                     }
-
-                    break;
+                    case -1:
+                        connected = false;
                 }
-            }
+            } while(connected);
         }
         catch (IOException e) {
             cancel();

@@ -8,10 +8,10 @@ import android.database.Cursor;
 
 import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatUser;
-import com.example.christian.chatbluetooth.model.ChatUserAdapter;
 
+import java.io.File;
 import java.io.IOException;
-
+import java.util.List;
 public class BlueCtrl {
 
     public static final byte GRT_HEADER = (byte) 0; //header for Greetings Message
@@ -26,11 +26,11 @@ public class BlueCtrl {
     public static boolean DISCOVERY_SUSPENDED = false;
     public static int DISCOVERY_LOCK = 0; //l'ultimo che esce chiude la porta
 
-    private static ChatUserAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
+    private static List<ChatUser> userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
     private static BlueDBManager dbManager;          //User and Messages DB Manager
     private static final String dbname = "bluedb"; //DB name
 
-    public static void setUserAdapt(ChatUserAdapter userAdapt) {
+    public static void setUserAdapt(List<ChatUser> userAdapt) {
         BlueCtrl.userAdapt = userAdapt;
     }
 
@@ -86,7 +86,7 @@ public class BlueCtrl {
 
     private static BluetoothDevice scanUsers(byte[] address) {
 
-        //TODO: access ChatUserAdapter and retrieve ChatUser with address == MAC
+        //TODO: access RecyclerAdapter and retrieve ChatUser with address == MAC
 
         return null;
     }
@@ -109,9 +109,84 @@ public class BlueCtrl {
 
     }
 
-    public static void manageDropRequest(String address, String macs) {
+    public static byte[] buildUpdMsg(ChatUser user) {
+
+        byte[] upd = new byte[16], lastUpd;
+
+        upd[0] = BlueCtrl.UPD_HEADER;
+
+        int i = 1, j;
+        for (j = 0; j < 6; ++j) {
+            upd[i + j] = user.getMacInBytes()[j];
+        }
+        i += j;
+
+        lastUpd = longToBytes(user.getLastUpd().getTime());
+        for (j = 0; j < 8; ++j) {
+            upd[i + j] = lastUpd[j];
+        }
+        i += j;
+
+        upd[i] = (byte) (user.getBounces());
+        ++i;
+
+        upd[i] = (byte) user.getStatus();
+
+        return upd;
+    }
+
+    public static byte[] buildCard(Cursor info) {
+
+        info.moveToFirst();
+        String mac = info.getString(1), username = info.getString(2);
+        long timestamp  = info.getLong(3);
+        String profile_pic = info.getString(5);
+        int country = info.getInt(6), gender = info.getInt(7), age = info.getInt(8);
+
+        byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
+                pic = extractImage(profile_pic), card = new byte[20 + user.length + pic.length];
+
+        int i = 0, j;
+        card[i] = BlueCtrl.CRD_HEADER;
+        ++i;
+
+        for (j = 0; i < 6; ++j) {
+            card[i + j] = address[j];
+        }
+        i += j;
+
+        for (j = 0; i < 8; ++j) {
+            card[i + j] = lastUpd[j];
+        }
+        i += j;
+
+        card[i] = (byte) age;
+        ++i;
+        card[i] = (byte) gender;
+        ++i;
+        card[i] = (byte) country;
+        ++i;
+
+        card[i] = (byte) user.length;
+        ++i;
+        for (j = 0; j < user.length; ++j) {
+            card[i + j] = user[j];
+        }
+        i += j;
+
+        card[i] = (byte) pic.length;
+        ++i;
+        for (j = 0; j < pic.length; ++j) {
+            card[i + j] = pic[j];
+        }
+
+        return card;
+    }
+
+    public static ChatUser manageDropRequest(String address, String macs) {
 
         //TODO: Drop Request management
+        return null;
     }
 
     public static void addChatUser(byte[] mac, BluetoothDevice next, int bounces, String name, byte status) {
@@ -146,11 +221,16 @@ public class BlueCtrl {
         return true;
     }
 
+    public static void updateUserTable(String mac, long timestamp, String username, int age, int gender, int country){
+
+        dbManager.updateUserInfo(mac, username, null, country, gender, age, timestamp);
+
+    }
+
     public static Cursor fetchPersistentInfo(String address) {
 
-        //TODO: fetch persistent user informations
+        return dbManager.fetchUserInfo(address);
 
-        return null;
     }
 
     //TODO: Utils
@@ -243,5 +323,13 @@ public class BlueCtrl {
             if (!BluetoothAdapter.getDefaultAdapter().isDiscovering())
                 BluetoothAdapter.getDefaultAdapter().startDiscovery(); //and closes the door
         }
+    }
+
+    public static byte[] extractImage(String path) {
+
+        /*BufferedImage image = new BufferedImage(new File(path));
+        return image.getRaster().getDataBuffer().getData();
+         */
+        return null;
     }
 }

@@ -42,7 +42,7 @@ public class BlueDBManager {
         if (!db.rawQuery(query, null).moveToFirst()) {
             query = "CREATE TABLE " + tables[0] + "(integer _id primary key autoincrement, " +
                             "text " + userTable[0]+ " not null, "+ "text " + userTable[1] + " not null, " +  ", integer " + userTable[2] + " not null" +
-                            ", boolean " + userTable[3] + " not null, " + "text " + userTable[4] + " not null, " + "text " + userTable[5] +
+                            ", boolean " + userTable[3] + " not null, " + "text " + userTable[4] + ", " + "integer " + userTable[5] +
                             ", integer " + userTable[6] + ", integer " + userTable[7] + "UNIQUE  (mac) ON CONFLICT REPLACE)";
             db.execSQL(query);
         }
@@ -54,6 +54,8 @@ public class BlueDBManager {
                     "text " + historyTalble[2] + " not null, boolean " + historyTalble[3] + " not null)";
             db.execSQL(query);
         }
+
+        //TODO: Nations Table
 
         setDb(db);
     }
@@ -140,7 +142,7 @@ public class BlueDBManager {
 
     //TODO: Update methods
 
-    public long updateUserInfo(String address, String username, String profile_pic, String nation, int gender, int age, long timestamp) {
+    public long updateUserInfo(String address, String username, String profile_pic, int nation, int gender, int age, long timestamp) {
 
         ContentValues values = new ContentValues();
         values.put(userTable[1], username);
