@@ -2,16 +2,25 @@ package com.example.christian.chatbluetooth.controller;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatUser;
+import com.example.christian.chatbluetooth.view.RecycleAdapter;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+
 public class BlueCtrl {
 
     public static final byte GRT_HEADER = (byte) 0; //header for Greetings Message
@@ -26,22 +35,145 @@ public class BlueCtrl {
     public static boolean DISCOVERY_SUSPENDED = false;
     public static int DISCOVERY_LOCK = 0; //l'ultimo che esce chiude la porta
 
-    private static List<ChatUser> userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
+    private static SharedPreferences currentUser;
+    private static File internalDirectory;
+    private static RecycleAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
+    private static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>();
+    private static int counter = 0;
     private static BlueDBManager dbManager;          //User and Messages DB Manager
     private static final String dbname = "bluedb"; //DB name
 
-    public static void setUserAdapt(List<ChatUser> userAdapt) {
-        BlueCtrl.userAdapt = userAdapt;
+    public static void setUserAdapt(RecycleAdapter recycleAdapter) {
+        BlueCtrl.userAdapt = recycleAdapter;
     }
 
     public static void setDbManager(BlueDBManager dbManager) {
         BlueCtrl.dbManager = dbManager;
     }
 
-    public static void sendMsg(byte[] target, byte[] sender, byte[] msg) {
-        //Use this method to prepare the packet to forward to a Bluetooth device.
-        //Target param is the MAC address of target device, NOT the Bluetooth device receiving the packet from
-        //this device. Sender param is the sender's MAC address.
+    public static void bindUser(SharedPreferences sh, File dir) {
+        currentUser = sh;
+        internalDirectory = dir;
+    }
+
+    public static void sendMsg(BluetoothDevice dvc, byte[] msg) {
+
+        (new MessageThread(dvc, msg)).start();
+    }
+
+    public static void greet(BluetoothDevice dvc) {
+        byte[] grt = new byte[10], timestamp = longToBytes(currentUser.getLong("lastUpd", (new Date()).getTime()));
+        grt[0] = BlueCtrl.GRT_HEADER;
+        grt[1] = (byte) currentUser.getInt("status", 1); //1 = disponibile
+
+        for(int i = 2; i < 10; ++i) {
+            grt[i] = timestamp[i-2];
+        }
+
+        sendMsg(dvc, grt);
+    }
+    public static void dispatchNews(byte[] msg, BluetoothDevice filter) {
+        //dispatch message to all close devices;
+        //used for GRT, UPD, DRP messages
+        for(BluetoothDevice dvc : BlueCtrl.closeDvc) {
+            if (!dvc.equals(filter))
+                sendMsg(dvc, msg);
+        }
+    }
+
+    public static ChatUser scanUsers(String address) {
+
+        return BlueCtrl.userAdapt.getItem(address);
+    }
+
+    public static void getUserList() {
+
+        //TODO: make bluetooth discovery and update model ChatUser Adapter
+
+    }
+
+    public static void retrieveHistory(String username) {
+
+        //TODO: fetch msg history via DBManager
+
+    }
+
+    public static ChatUser manageDropRequest(String address, String macs) {
+
+        //TODO: Drop Request management
+        return null;
+    }
+
+    public static void addChatUser(byte[] mac, BluetoothDevice next, int bounces, String name, byte status) {
+
+        //TODO: create new ChatUser object and add it to ChatUser Adapter
+
+    }
+
+    public static boolean awakeUser(String mac, BluetoothDevice manInTheMiddle, byte status, int bounces) {
+
+        ChatUser user = scanUsers(mac);
+        if (user != null) {
+            if (user.updateUser(manInTheMiddle, bounces, (int) status)) {
+                userAdapt.notifyDataSetChanged();
+                return true;
+            }
+            return false;
+        }
+        return BlueCtrl.userAdapt.add(new ChatUser(mac, manInTheMiddle, bounces, status, dbManager.fetchUserInfo(mac)));
+
+    }
+
+    public static void cardUpdate(String address, byte[] image) {
+        try {
+
+            scanUsers(address).addPersistentInfo(fetchPersistentInfo(address));
+
+            Bitmap bmp = rebuildImage(image);
+            userAdapt.notifyDataSetChanged();
+        } catch (NullPointerException ignore) {}
+    }
+
+    public static boolean addCloseDvc(BluetoothDevice dvc) {
+
+        boolean newcomer;
+        int pos;
+        if ((pos = closeDvc.indexOf(dvc)) != -1) {
+            //swap
+            if (pos != counter) {
+                closeDvc.set(pos, closeDvc.get(counter));
+                closeDvc.set(counter, dvc);
+            }
+            newcomer = false;
+        }
+        //insert into position
+        else {
+            closeDvc.add(counter, dvc);
+            newcomer = true;
+        }
+
+        ++counter;
+        return newcomer;
+    }
+
+    public static BluetoothDevice cleanCloseDvc() {
+
+        if (closeDvc.size() > counter) return closeDvc.remove(counter);
+        return null;
+    }
+
+    public static void showMsg(String from, String msg){
+        //TODO: show message into chat activity
+    }
+
+    //TODO: Build Message routines
+
+    public static byte[] buildMsg(byte[] target, byte[] sender, byte[] msg) {
+        /*
+        Use this method to prepare the packet to forward to a Bluetooth device.
+        Target param is the MAC address of target device, NOT the Bluetooth device receiving the packet from
+        this device. Sender param is the sender's MAC address.
+        */
 
         int length = msg.length; //must prevent more than 255 characters long messages
         byte[] pckt = new byte[14 + length]; //actual bytes packet that has to be sent
@@ -66,50 +198,11 @@ public class BlueCtrl {
             ++i;
         }
 
-        BluetoothDevice node = scanUsers(target); //searches for the actual Bluetooth Device that receives the packet
-        BluetoothSocket sckt;
-
-        try{
-            //initiate communication in another thread
-            if (node != null) {
-                sckt = node.createInsecureRfcommSocketToServiceRecord(java.util.UUID.fromString(UUID));
-                (new MessageThread(sckt, pckt)).start();
-            }
-        }
-        catch (IOException ignore) {}
-
-    }
-
-    public static void sendMsg(byte[] target, byte[] msg) {
-
-    }
-
-    private static BluetoothDevice scanUsers(byte[] address) {
-
-        //TODO: access RecyclerAdapter and retrieve ChatUser with address == MAC
-
-        return null;
-    }
-
-    public static void getUserList() {
-
-        //TODO: make bluetooth discovery and update model ChatUser Adapter
-
-    }
-
-    public static void retrieveHistory(String username) {
-
-        //TODO: fetch msg history via DBManager
-
-    }
-
-    public static void buildMsg(String from, String msg) {
-
-        //TODO: TextView building mechanism to show message in chat
-
+        return pckt;
     }
 
     public static byte[] buildUpdMsg(ChatUser user) {
+        //For DROP REQUEST Instant Reply only
 
         byte[] upd = new byte[16], lastUpd;
 
@@ -121,7 +214,7 @@ public class BlueCtrl {
         }
         i += j;
 
-        lastUpd = longToBytes(user.getLastUpd().getTime());
+        lastUpd = longToBytes(user.getLastUpd());
         for (j = 0; j < 8; ++j) {
             upd[i + j] = lastUpd[j];
         }
@@ -131,6 +224,23 @@ public class BlueCtrl {
         ++i;
 
         upd[i] = (byte) user.getStatus();
+
+        return upd;
+    }
+
+    public static byte[] buildUpdMsg(List<byte[]> updCascade) {
+        //Multi-user Update Message
+
+        byte[] upd = new byte[2 + 16 * updCascade.size()];
+
+        upd[0] = BlueCtrl.UPD_HEADER;
+        upd[1] = (byte) updCascade.size();
+
+        for (int i = 0; i < updCascade.size(); ++i) {
+            for (int j = 0; j < 16; ++j) {
+                upd[2 + i * 16 + j] = updCascade.get(i)[j];
+            }
+        }
 
         return upd;
     }
@@ -183,24 +293,6 @@ public class BlueCtrl {
         return card;
     }
 
-    public static ChatUser manageDropRequest(String address, String macs) {
-
-        //TODO: Drop Request management
-        return null;
-    }
-
-    public static void addChatUser(byte[] mac, BluetoothDevice next, int bounces, String name, byte status) {
-
-        //TODO: create new ChatUser object and add it to ChatUser Adapter
-
-    }
-
-    public static void awakeUser(byte[] mac, String address, byte status, int bounces) {
-
-        //TODO: fetch user information from DB and initialize ChatUser object
-
-    }
-
 
     //TODO: DB Operations
 
@@ -213,12 +305,7 @@ public class BlueCtrl {
     public static boolean validateUser(String address, long timestamp) {
 
         Cursor cursor = dbManager.fetchTimestamp(address);
-
-        if (!cursor.moveToFirst() || cursor.getLong(0) != timestamp) {
-            return false;
-        }
-
-        return true;
+        return (cursor.moveToFirst() && cursor.getLong(0) == timestamp);
     }
 
     public static void updateUserTable(String mac, long timestamp, String username, int age, int gender, int country){
@@ -327,9 +414,20 @@ public class BlueCtrl {
 
     public static byte[] extractImage(String path) {
 
-        /*BufferedImage image = new BufferedImage(new File(path));
-        return image.getRaster().getDataBuffer().getData();
-         */
-        return null;
+        Bitmap bmp = BitmapFactory.decodeFile(path);
+        OutputStream outputStream = new ByteArrayOutputStream();
+
+        bmp.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+
+        return ((ByteArrayOutputStream)outputStream).toByteArray();
+    }
+
+    public static Bitmap rebuildImage(byte[] image) {
+
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
+    }
+
+    public static Collection dropUsers(BluetoothDevice dvc) {
+        return userAdapt.dropUsers(dvc);
     }
 }

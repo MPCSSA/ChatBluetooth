@@ -3,13 +3,13 @@ package com.example.christian.chatbluetooth.controller;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.database.Cursor;
 
 import com.example.christian.chatbluetooth.model.ChatUser;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 public class ReceiverThread extends Thread {
 
@@ -24,33 +24,38 @@ public class ReceiverThread extends Thread {
 
     public ReceiverThread(BluetoothSocket sckt) {
         setSckt(sckt);
-        InputStream tmp = null;
+        InputStream tmp0 = null;
+        OutputStream tmp1 = null;
 
         try {
-            tmp = this.sckt.getInputStream();
+            tmp0 = this.sckt.getInputStream();
+            tmp1 = this.sckt.getOutputStream();
         }
         catch (IOException ignore) {}
 
-        in = tmp;
+        in = tmp0;  //InputStream for message listening
+        out = tmp1; //OutputStream for Instant Reply or ACK forwarding
 
-        rmtDvc = sckt.getRemoteDevice();
+        rmtDvc = sckt.getRemoteDevice(); //communicating device
     }
 
     public void run() {
 
         try {
 
-            int i, j;
-            boolean connected = true;
+            int i, j; //counters
+            boolean connected = true; //connection still on, i.e. rmtDvc did not shut its OutputStream yet
+            ArrayList<byte[]> filteredUpdCascade = null; //ArrayList containing Update Message segments of an Update Cascade
 
             do {
 
                 byte flag = (byte) in.read();
             /*
             incoming message flag;
-            0: Greetings Message; a newly connected device is sending informations about itself.
-            1: Update Message; a device is transmitting informations about remote devices that are accessible through itself.
+            0: Greetings Message; a newly connected device is sending information about itself.
+            1: Update Message; a device is transmitting information about remote devices that are accessible through itself.
             2: Info Request; a device has got inconsistent or no information about a target device and it requests an heavy update.
+                             It is an Instant Reply only message, and it is not supposed to be received here.
             3: Card Message; an heavy response to an Info Request; it contains persistent user information.
             4: Chat Message; if this device is the target, show message in chat; else, forward the message on the route.
             5: Drop Request; a list of devices no longer reachable due to one device disconnection.
@@ -65,7 +70,7 @@ public class ReceiverThread extends Thread {
                        |1 byte|   8 byte  |
                     */
 
-                        byte status = (byte) in.read();
+                        byte status = (byte) in.read(); //read Status
                         byte[] bytes = new byte[8];
                         i = 0;
 
@@ -77,16 +82,22 @@ public class ReceiverThread extends Thread {
                             }
                             i += j;
                         } while (i < 8);
+                        //read timestamp
 
                         long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
 
-                        if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
+                        BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0);
+                        /*
+                        New ChatUser object is created regardless of incoherent or non-existent persistent information;
+                        if needed, an update will be requested and the object will be updated
+                        */
 
-                            BlueCtrl.awakeUser(BlueCtrl.macToBytes(rmtDvc.getAddress()), rmtDvc.getAddress(), status, 0);
-                            //a new ChatUser object is created from pre-existing information in addition
-                            //to volatile fields
-                            out.write(BlueCtrl.ACK);
+                        if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
+                            out.write(BlueCtrl.ACK); //ACKed
                         } else {
+                            /*
+                            User information are not up to date, an Info Request is forwarded as Instant Reply
+                            */
                             out.write(BlueCtrl.RQS_HEADER);
                             out.write(BlueCtrl.macToBytes(rmtDvc.getAddress()));
                         }
@@ -97,66 +108,90 @@ public class ReceiverThread extends Thread {
                     case BlueCtrl.UPD_HEADER: {
 
                     /*
-                    An Update message contain key and/or volatile information about a user;
-                    target MAC, bounces, user status and last update fields are included. These fields
-                    have fixed length, therefore no divider is needed. To be precise, MAC addresses
+                    An Update message contain key and/or volatile information about users, stuffed into
+                    16-bytes-long segments; target MAC, bounces, user status and last update fields are included.
+                    These fields have fixed length, therefore no divider is needed. To be precise, MAC addresses
                     are 6 bytes long, both bounces and user status can be represented by a single byte,
                     and last update field is a long int value (8 bytes), for a total of 16 bytes per
-                    user. These are all vital or non persistent information, and they are engineered to
+                    user (a segment). A Number field is included at the beginning of the message to keep track of segments
+                    number. These are all vital or non persistent information, and they are engineered to
                     take up as little space as they can.
-                    [1][MAC][last update][bounces][status]
-                       |            16 bytes             |
+                    [1][number][MAC][last update][bounces][status]{user}{user}...
+                       |1 byte|            16 bytes              | 16  | 16  |
                     */
 
-                        byte[] buffer = new byte[6], lastUpd = new byte[8];
-                        byte b, status;
-                        int bounces;
+                        byte[] segment = new byte[16], buffer = new byte[6], lastUpd = new byte[8];
+                        byte status;
+                        int bounces, number = in.read();
+                        boolean bool;
+                        filteredUpdCascade = new ArrayList<>();
 
-                        i = 0;
-                        do {
-                            j = in.read(buffer, i, 6 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
+                        for (int _ = 0; _ < number; ++_) {
+                            //repeat until all segments have been read
+
+                            i = 0;
+                            do {
+                                j = in.read(segment, i, 16 - i);
+                                if (j < 0) {
+                                    System.out.println("Premature EOF, message misunderstanding");
+                                    //TODO: throw something
+                                }
+                                i += j;
+                            } while (i < 16);
+                            //read a whole segment
+
+                            i = 0;
+                            while (i < 6) {
+                                buffer[i] = segment[i];
+                                ++i;
                             }
-                            i += j;
-                        } while (i < 6);
 
-                        b = (byte) in.read();
-                        bounces = (b < 0) ? b + 256 : (int) b;
-                        status = (byte) in.read();
-
-                        i = 0;
-                        do {
-                            j = in.read(lastUpd, i, 8 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
+                            i = 0;
+                            while (i < 8) {
+                                lastUpd[i] = segment[i + 6];
+                                ++i;
                             }
-                            i += j;
-                        } while (i < 8);
+                            bounces = (segment[14] < 0) ? (byte) (segment[14] + 256) : segment[14];
+                            status = segment[15];
+                            //recreate fields information from segment
 
-                        String address = BlueCtrl.bytesToMAC(buffer);
-                        if (BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
+                            String address = BlueCtrl.bytesToMAC(buffer);
+                            bool = BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1);
+                            //show new ChatUser regardless of coherent information; that will be updated if needed
+                            if (BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
 
-                            BlueCtrl.awakeUser(buffer, address, status, bounces + 1);
+                                if (bool) {
+
+                                    ++segment[14];
+                                    filteredUpdCascade.add(segment);
+                                }
                             /*
-                            add a new ChatUser object to the adapter, building it from memorized information;
-                            bounce field is increased by 1 because the remote device represents an additional
-                            node to bounce on
+                            try adding or updating a ChatUser object into the adapter; if addition was
+                            successful, this segment is inserted into the array of filtered update segments;
+                            bounces field has to be increased by one though, because this device is one more
+                            node on the route.
                             */
-                            out.write(BlueCtrl.ACK); //ACKed
 
-                        }
-                        else {
-                            out.write(BlueCtrl.RQS_HEADER); //Info Request
-                            out.write(buffer);
+                            } else {
+
+                                ++segment[14];
+                                filteredUpdCascade.add(segment);
+                                /*
+                                up to date information is required; an Info Request will be fulfilled,
+                                and this segment will be forwarded after that
+                                 */
+
+                                out.write(BlueCtrl.RQS_HEADER); //Info Request
+                                out.write(buffer);
+                            }
                         }
 
+                        out.write(BlueCtrl.ACK); //all segments were received; ACKed
                         break;
                     }
 
                     case BlueCtrl.RQS_HEADER: {
+                        //You should not be able to send these as actual messages
 
                         System.out.println("This message should not be captured here");
                         //TODO: Misunderstanding management
@@ -168,16 +203,18 @@ public class ReceiverThread extends Thread {
                     A Card message is a heavy message containing persistent size-variable fields of a
                     ChatUser; it allows for profile customization and is only sent to create a new
                     Users table entry or update an existing one when DB contains out-of-date information.
-                    Every field after header and MAC address are preceded by a length byte, indicating
+                    Username and Profile Pic fields are preceded by a length byte, indicating
                     the field length in bytes and allowing for streamer consistent reading.
                     [3][   MAC   ][last update][ age ][gender][nationality][length][  username  ][length][profile pic]
                        | 6 bytes |   8 bytes  |1 byte|1 byte |   1 byte   |1 byte |length bytes |1 byte |length bytes|
                      */
-                        byte[] buffer = new byte[6],
+                        final byte[] buffer = new byte[6],
                                lastUpd = new byte[8],
                                username, pic;
-                        int length, age, gender, country;
+                        final int age, gender, country;
+                        int length;
 
+                        BlueCtrl.lockDiscoverySuspension(); //heavy message, needs fast download
                         i = 0;
                         do {
                             j = in.read(buffer, i, 6 - i);
@@ -187,6 +224,7 @@ public class ReceiverThread extends Thread {
                             }
                             i += j;
                         } while (i < 6);
+                        //read MAC address
 
                         i = 0;
                         do {
@@ -197,10 +235,12 @@ public class ReceiverThread extends Thread {
                             }
                             i += j;
                         } while (i < 8);
+                        //read LastUpd field
 
                         age = in.read();
                         gender = in.read();
                         country = in.read();
+                        //read optional user information; can be null
 
                         length = in.read();
                         username = new byte[length];
@@ -214,9 +254,11 @@ public class ReceiverThread extends Thread {
                             }
                             i += j;
                         } while (i < length);
+                        //read username
 
                         length = in.read();
                         pic = new byte[length];
+                        //TODO: images are too big; length field as a int or final character?
 
                         i = 0;
                         do {
@@ -227,11 +269,22 @@ public class ReceiverThread extends Thread {
                             }
                             i += j;
                         } while (i < length);
+                        //download profile image as a byte sequence
 
-                        BlueCtrl.updateUserTable(BlueCtrl.bytesToMAC(buffer), BlueCtrl.rebuildTimestamp(lastUpd),
-                                                 new String(username), age, gender, country);
+                        BlueCtrl.unlockDiscoverySuspension(); //end of discovery suspension
 
-                        //TODO: ChatUser update
+                        (new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                String address = BlueCtrl.bytesToMAC(buffer);
+                                BlueCtrl.updateUserTable(address, BlueCtrl.rebuildTimestamp(lastUpd),
+                                        new String(username), age, gender, country);
+                                //consistent information inserted into DB
+
+                                //TODO: image updating
+                                BlueCtrl.cardUpdate(address); //ChatUser object updated
+                            }
+                        })).start();
 
                         out.write(BlueCtrl.ACK); //ACKed
 
@@ -293,10 +346,11 @@ public class ReceiverThread extends Thread {
 
                         if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
-                            BlueCtrl.buildMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer));
+                            BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer));
                         } else {
 
-                            BlueCtrl.sendMsg(buffer, sender, msgBuffer);
+                            BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
+                                             BlueCtrl.buildMsg(buffer, sender, msgBuffer));
                         /*
                         if this device is not the target device, message has to be forwarded to the next node
                         on the route leading to the target; it is wrapped again in a packet and sent as a
@@ -353,8 +407,15 @@ public class ReceiverThread extends Thread {
                         connected = false;
                 }
             } while(connected);
+
+            if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {
+                BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(filteredUpdCascade), rmtDvc);
+            }
+            in.close();
+            out.close();
         }
         catch (IOException e) {
+
             cancel();
         }
         catch(NullPointerException ignore) {}

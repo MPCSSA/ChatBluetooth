@@ -1,9 +1,7 @@
 package com.example.christian.chatbluetooth.controller;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.database.Cursor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,9 +30,7 @@ public class MessageThread extends Thread {
     public byte[] getMsg() {
         return msg;
     }
-    public void setMsg(byte[] msg) {
-        this.msg = msg;
-    }
+    public void setMsg(byte[] msg) { this.msg = msg; }
 
     public BluetoothDevice getDevice() { return this.rmtDvc; }
     public void setDevice(BluetoothDevice device) { this.rmtDvc = device; }
@@ -53,8 +49,19 @@ public class MessageThread extends Thread {
         this.out = out;
     }
 
-    public MessageThread(BluetoothSocket sckt, byte[] msg) {
+    public MessageThread(BluetoothDevice dvc, byte[] msg) {
+
+        BluetoothSocket sckt = null;
+
+        try{
+            //initiate communication
+            sckt = dvc.createInsecureRfcommSocketToServiceRecord(java.util.UUID.fromString(BlueCtrl.UUID));
+        }
+        catch (IOException ignore) {}
+        catch (NullPointerException ignore) {}
+
         setSckt(sckt);
+        setDevice(dvc);
         setMsg(msg);
         setType(msg[0]);
 
@@ -80,7 +87,6 @@ public class MessageThread extends Thread {
             boolean waiting = false;
 
             switch (type) {
-
                 case BlueCtrl.CRD_HEADER:
                     BlueCtrl.lockDiscoverySuspension();
                     out.write(msg);
@@ -202,7 +208,7 @@ public class MessageThread extends Thread {
                             address = BlueCtrl.bytesToMAC(buffer);
                             if (BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
 
-                                BlueCtrl.awakeUser(buffer, address, status, bounces + 1);
+                                BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1);
                             /*
                             New route to address target
                             */
@@ -212,7 +218,7 @@ public class MessageThread extends Thread {
                             }
                             /*
                             This is controlled environment; if an UPD msg is received, it has to refer to
-                            a ChatUser this device dropped, therefore no RQS if needed beacuse this device
+                            a ChatUser this device dropped, therefore no RQS if needed because this device
                             certainly has got the user information
                              */
                         }
