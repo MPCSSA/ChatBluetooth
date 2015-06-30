@@ -282,7 +282,7 @@ public class ReceiverThread extends Thread {
                                 //consistent information inserted into DB
 
                                 //TODO: image updating
-                                BlueCtrl.cardUpdate(address); //ChatUser object updated
+                                BlueCtrl.cardUpdate(address, pic); //ChatUser object updated
                             }
                         })).start();
 

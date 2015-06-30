@@ -36,7 +36,6 @@ public class BlueCtrl {
     public static int DISCOVERY_LOCK = 0; //l'ultimo che esce chiude la porta
 
     private static SharedPreferences currentUser;
-    private static File internalDirectory;
     private static RecycleAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
     private static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>();
     private static int counter = 0;
@@ -51,9 +50,8 @@ public class BlueCtrl {
         BlueCtrl.dbManager = dbManager;
     }
 
-    public static void bindUser(SharedPreferences sh, File dir) {
+    public static void bindUser(SharedPreferences sh) {
         currentUser = sh;
-        internalDirectory = dir;
     }
 
     public static void sendMsg(BluetoothDevice dvc, byte[] msg) {
