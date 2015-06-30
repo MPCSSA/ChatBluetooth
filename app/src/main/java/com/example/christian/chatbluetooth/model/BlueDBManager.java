@@ -164,4 +164,12 @@ public class BlueDBManager {
 
         return db.update(tables[0], values, userTable[0] + " = " + address, null);
     }
+
+    public long updatePicture(String address) {
+        ContentValues values = new ContentValues();
+
+        values.put(userTable[4], "IMG_" + address);
+
+        return db.update(tables[0], values, userTable[0] + " = " + address, null);
+    }
 }

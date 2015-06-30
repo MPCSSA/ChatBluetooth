@@ -127,11 +127,15 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         super.onActivityCreated(savedIstanceState);
 
         msgText = (EditText) getActivity().findViewById(R.id.etMsg);
-        MessageAdapter msgAdapt = new MessageAdapter(getActivity(), R.layout.listitem_discuss, user);
-        ListView listView = (ListView) getActivity().findViewById(R.id.msgList);
 
-        listView.setAdapter(msgAdapt);
-        BlueCtrl.bindMsgAdapter(msgAdapt);
+        if (!BlueCtrl.msgAdapt.getAddress().equals(user)) {
+            BlueCtrl.msgAdapt.clear();
+            BlueCtrl.msgAdapt.setAddress(user);
+            BlueCtrl.fillMsgAdapter();
+        }
+
+        ListView listView = (ListView) getActivity().findViewById(R.id.msgList);
+        listView.setAdapter(BlueCtrl.msgAdapt);
 
         Button sendBtn = (Button) getActivity().findViewById(R.id.sendBtn);
         sendBtn.setOnClickListener(this);

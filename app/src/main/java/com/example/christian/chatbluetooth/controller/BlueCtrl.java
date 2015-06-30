@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 
 import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatMessage;
@@ -16,9 +17,9 @@ import com.example.christian.chatbluetooth.view.RecycleAdapter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.InputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -34,6 +35,7 @@ public class BlueCtrl {
     public static final byte DRP_HEADER = (byte) 5; //header for Drop Request
     public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
     public static final String     UUID = "BlueRoom"; //custom UUID
+    public static File appFolder;
 
     public static boolean DISCOVERY_SUSPENDED = false;
     public static int DISCOVERY_LOCK = 0; //l'ultimo che esce chiude la porta
@@ -44,7 +46,7 @@ public class BlueCtrl {
     private static int counter = 0;
     private static BlueDBManager dbManager;          //User and Messages DB Manager
     private static final String dbname = "bluedb"; //DB name
-    private static MessageAdapter msgAdapt;
+    public static MessageAdapter msgAdapt;
 
     public static void setUserAdapt(RecycleAdapter recycleAdapter) {
         BlueCtrl.userAdapt = recycleAdapter;
@@ -58,15 +60,15 @@ public class BlueCtrl {
         currentUser = sh;
     }
 
-    public static void bindMsgAdapter(MessageAdapter adapt){
-        BlueCtrl.msgAdapt = adapt;
-        Cursor cursor = fetchMsgHistory(adapt.getAddress());
+    public static void fillMsgAdapter(){
+
+        Cursor cursor = fetchMsgHistory(msgAdapt.getAddress());
         if (cursor.getCount() > 0){
             cursor.moveToFirst();
-
             do{
-                adapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2), cursor.getLong(1)));
-            }while(cursor.moveToNext());
+
+                msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2), cursor.getLong(1)));
+            } while(cursor.moveToNext());
         }
     }
 
@@ -141,11 +143,24 @@ public class BlueCtrl {
     public static void cardUpdate(String address, byte[] image) {
         try {
 
-            scanUsers(address).addPersistentInfo(fetchPersistentInfo(address));
+            Cursor info = fetchPersistentInfo(address);
+            scanUsers(address).addPersistentInfo(info);
 
-            Bitmap bmp = rebuildImage(image);
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+
+                String pic = info.getString(5);
+                if (pic == null) {
+                    dbManager.updatePicture(address);
+                }
+                File directory = new File(BlueCtrl.appFolder, Environment.DIRECTORY_PICTURES);
+                OutputStream outputStream = new FileOutputStream(directory.getAbsolutePath() + "/IMG_" + address);
+                outputStream.write(image);
+
+            }
+
             userAdapt.notifyDataSetChanged();
         } catch (NullPointerException ignore) {}
+        catch (IOException ignore) {}
     }
 
     public static boolean addCloseDvc(BluetoothDevice dvc) {

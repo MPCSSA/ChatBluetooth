@@ -27,7 +27,7 @@ public class ChatMessage {
         return this.sentBy;
     }
 
-    public String getDate(){
-        return date.toString();
+    public Date getDate(){
+        return date;
     }
 }

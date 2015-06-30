@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -32,7 +33,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             String action = intent.getAction();
             switch (action) {
                 case BluetoothDevice.ACTION_FOUND:
-
+                    BluetoothDevice dvc = (BluetoothDevice) getIntent().getExtras().get(BluetoothDevice.EXTRA_DEVICE);
+                    if (BlueCtrl.addCloseDvc(dvc))
+                        BlueCtrl.greet(dvc);
                     break;
 
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
@@ -61,6 +64,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         fragmentTransaction.commit();
 
         BlueCtrl.openDatabase(this);
+        BlueCtrl.msgAdapt = new MessageAdapter(this, R.layout.listitem_discuss);
+        if (BlueCtrl.appFolder == null) BlueCtrl.appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
     }
 
     @Override
