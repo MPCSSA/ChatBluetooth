@@ -13,9 +13,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 
 import com.example.christian.chatbluetooth.R;
-import com.example.christian.chatbluetooth.controller.AsyncScavenger;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
-import com.example.christian.chatbluetooth.controller.MessageThread;
 import com.example.christian.chatbluetooth.model.ChatUser;
 
 import java.util.ArrayList;
@@ -28,16 +26,12 @@ public class ChatActivity extends Activity{
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            BluetoothDevice dvc;
             switch (action) {
                 case BluetoothDevice.ACTION_FOUND:
-                    dvc = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    if (BlueCtrl.addCloseDvc(dvc))
-                        BlueCtrl.greet(dvc); //greet new device
+
                     break;
 
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
-                    (new AsyncScavenger()).execute(); //check if any close device disconnected
                     if (!BlueCtrl.DISCOVERY_SUSPENDED) {
                         if (!BluetoothAdapter.getDefaultAdapter().startDiscovery()) {
                             System.out.println("Discovery failed");
@@ -64,9 +58,6 @@ public class ChatActivity extends Activity{
 
         RecycleAdapter cardadapt = new RecycleAdapter(createList(10));
         recList.setAdapter(cardadapt);
-        BlueCtrl.setUserAdapt(cardadapt);
-
-        BlueCtrl.bindUser(getSharedPreferences(BlueCtrl.UUID, MODE_PRIVATE), getFilesDir());
     }
 
     private List createList(int size) {

@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/divider"
-    tools:context=".ChatActivity">
+    tools:context=".ChatActivity"
+    android:id="@+id/containerCard">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/cardList"

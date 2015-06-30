@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 
 import com.example.christian.chatbluetooth.R;
 
+
+
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -92,6 +94,13 @@ public class ChatFragment extends Fragment {
         mListener = null;
     }
 
+
+    @Override
+    public void onActivityCreated(Bundle savedIstanceState) {
+        super.onActivityCreated(savedIstanceState);
+
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -102,6 +111,7 @@ public class ChatFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
+
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
