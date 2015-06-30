@@ -73,6 +73,10 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         return null;
     }
 
+    public ChatUser getItem(int position){
+        return userList.get(position);
+    }
+
     public Collection dropUsers(BluetoothDevice lostDvc) {
 
         ArrayList<byte[]> lostDvcs = new ArrayList<>();

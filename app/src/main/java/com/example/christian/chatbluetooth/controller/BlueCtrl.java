@@ -9,13 +9,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.example.christian.chatbluetooth.model.BlueDBManager;
+import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
+import com.example.christian.chatbluetooth.view.MessageAdapter;
 import com.example.christian.chatbluetooth.view.RecycleAdapter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -41,6 +44,7 @@ public class BlueCtrl {
     private static int counter = 0;
     private static BlueDBManager dbManager;          //User and Messages DB Manager
     private static final String dbname = "bluedb"; //DB name
+    private static MessageAdapter msgAdapt;
 
     public static void setUserAdapt(RecycleAdapter recycleAdapter) {
         BlueCtrl.userAdapt = recycleAdapter;
@@ -52,6 +56,18 @@ public class BlueCtrl {
 
     public static void bindUser(SharedPreferences sh) {
         currentUser = sh;
+    }
+
+    public static void bindMsgAdapter(MessageAdapter adapt){
+        BlueCtrl.msgAdapt = adapt;
+        Cursor cursor = fetchMsgHistory(adapt.getAddress());
+        if (cursor.getCount() > 0){
+            cursor.moveToFirst();
+
+            do{
+                adapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2), cursor.getLong(1)));
+            }while(cursor.moveToNext());
+        }
     }
 
     public static void sendMsg(BluetoothDevice dvc, byte[] msg) {
@@ -160,8 +176,13 @@ public class BlueCtrl {
         return null;
     }
 
-    public static void showMsg(String from, String msg){
-        //TODO: show message into chat activity
+    public static void showMsg(String from, String msg, Date time, int sentBy){
+
+        dbManager.createRecord(1, new Object[] {msg, from, time.getTime(), sentBy});
+        if (from.equals(msgAdapt.getAddress())){
+            msgAdapt.add(new ChatMessage(msg, sentBy, time));
+            msgAdapt.notifyDataSetChanged();
+        }
     }
 
     //TODO: Build Message routines
@@ -329,7 +350,7 @@ public class BlueCtrl {
             byte b, counter = 0;
 
             for(String d : digits) {
-                b = (byte) Integer.parseInt(d);
+                b = (byte) Integer.parseInt(d, 16);
                 mac[counter] = b;
                 ++counter;
             }
@@ -427,5 +448,9 @@ public class BlueCtrl {
 
     public static Collection dropUsers(BluetoothDevice dvc) {
         return userAdapt.dropUsers(dvc);
+    }
+
+    public static Cursor fetchMsgHistory(String address){
+        return dbManager.fetchMsgHistory(address);
     }
 }

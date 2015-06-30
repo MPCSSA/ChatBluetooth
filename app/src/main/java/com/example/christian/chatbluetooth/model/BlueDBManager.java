@@ -16,7 +16,7 @@ public class BlueDBManager {
     private SQLiteDatabase db;
     private final String[] tables = {"user", "history"};
     private final String[] userTable = {"mac","username","last_upd","isFav","profile_pic","nationality","gender","age"}; //field User Table
-    private final String[] historyTalble ={"msg","date","user","sent_by"}; //field Hystory Table
+    private final String[] historyTable ={"msg","user","date","sent_by"}; //field Hystory Table
 
     public Context getContext() { return context; }
 
@@ -40,18 +40,18 @@ public class BlueDBManager {
         //create User and History tables if this is first opening of DB
         String query = "SELECT name FROM sqlite_master WHERE type = \'table\' AND name = \'" + tables[0] + "\'";
         if (!db.rawQuery(query, null).moveToFirst()) {
-            query = "CREATE TABLE " + tables[0] + "(integer _id primary key autoincrement, " +
-                            "text " + userTable[0]+ " not null, "+ "text " + userTable[1] + " not null, " +  ", integer " + userTable[2] + " not null" +
-                            ", boolean " + userTable[3] + " not null, " + "text " + userTable[4] + ", " + "integer " + userTable[5] +
-                            ", integer " + userTable[6] + ", integer " + userTable[7] + "UNIQUE  (mac) ON CONFLICT REPLACE)";
+            query = "CREATE TABLE " + tables[0] + "(_id integer primary key autoincrement, " +
+                            userTable[0]+ " text not null, "+ userTable[1] + " text not null, " + userTable[2] +  ", integer not null, " +
+                            userTable[3] + " boolean not null, " + userTable[4] + " text, " + userTable[5] +
+                            " integer, " + userTable[6] + " integer, " + userTable[7] + " integer, UNIQUE  (mac) ON CONFLICT REPLACE)";
             db.execSQL(query);
         }
 
         query = "SELECT name FROM sqlite_master WHERE type = \'table\' AND name = \'" + tables[1] + "\'";
         if (!db.rawQuery(query, null).moveToFirst()) {
-            query = "CREATE TABLE " + tables[1] + "(integer _id primary key autoincrement, " +
-                    "text " + historyTalble[0] + " not null, integer " + historyTalble[1] + " not null, " +
-                    "text " + historyTalble[2] + " not null, boolean " + historyTalble[3] + " not null)";
+            query = "CREATE TABLE " + tables[1] + "(_id integer primary key autoincrement, " +
+                    historyTable[0] + " text not null, " + historyTable[1] + " integer not null, " +
+                    historyTable[2] + " text not null, " + historyTable[3] + " integer not null)";
             db.execSQL(query);
         }
 
@@ -76,14 +76,14 @@ public class BlueDBManager {
         return values;
     }
 
-    private ContentValues createCV(String msg, String user, long timestamp, boolean sent_by) {
+    private ContentValues createCV(String msg, String user, long timestamp, int sent_by) {
 
         ContentValues values = new ContentValues();
 
-        values.put(historyTalble[0], msg);
-        values.put(historyTalble[1], user);
-        values.put(historyTalble[2], timestamp);
-        values.put(historyTalble[3], sent_by);
+        values.put(historyTable[0], msg);
+        values.put(historyTable[1], user);
+        values.put(historyTable[2], timestamp);
+        values.put(historyTable[3], sent_by);
 
         return values;
     }
@@ -102,7 +102,7 @@ public class BlueDBManager {
 
             case 1:
                 id = db.insertWithOnConflict(tables[table], null,
-                        createCV((String) attrs[0], (String) attrs[1], (long) attrs[2], (boolean) attrs[3]),
+                        createCV((String) attrs[0], (String) attrs[1], (long) attrs[2], (int) attrs[3]),
                         SQLiteDatabase.CONFLICT_IGNORE);
                 break;
 
@@ -129,8 +129,8 @@ public class BlueDBManager {
 
     public Cursor fetchMsgHistory(String address) {
 
-        return db.query(tables[1], new String [] {historyTalble[0], historyTalble[1], historyTalble[3]}, userTable[0] + " = " + address, null, null, null
-                        , historyTalble[3], "25");
+        return db.query(tables[1], new String [] {historyTable[0], historyTable[1], historyTable[3]}, historyTable[1] + " = \'" + address + "\'", null, null, null
+                        , historyTable[2], "25");
 
     }
 

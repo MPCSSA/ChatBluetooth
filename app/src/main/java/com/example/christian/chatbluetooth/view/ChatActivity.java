@@ -1,16 +1,20 @@
 package com.example.christian.chatbluetooth.view;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
+import android.view.View;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
@@ -19,7 +23,7 @@ import com.example.christian.chatbluetooth.model.ChatUser;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatActivity extends Activity{
+public class ChatActivity extends Activity implements ListFragment.OnFragmentInteractionListener, ChatFragment.OnFragmentInteractionListener{
 
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
@@ -49,27 +53,14 @@ public class ChatActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        RecyclerView recList = (RecyclerView) findViewById(R.id.cardList);
-        recList.setHasFixedSize(true);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        recList.setLayoutManager(llm);
-        recList.setItemAnimator(new DefaultItemAnimator());
+        ListFragment listFragment = new ListFragment();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+        fragmentTransaction.add(R.id.containerChat, listFragment);
+        fragmentTransaction.commit();
 
-        RecycleAdapter cardadapt = new RecycleAdapter(createList(10));
-        recList.setAdapter(cardadapt);
-    }
-
-    private List createList(int size) {
-
-        List result = new ArrayList();
-        for (int i=1; i <= size; i++) {
-            ChatUser card = new ChatUser();
-            result.add(card);
-
-        }
-
-        return result;
+        BlueCtrl.openDatabase(this);
     }
 
     @Override
@@ -89,5 +80,10 @@ public class ChatActivity extends Activity{
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }

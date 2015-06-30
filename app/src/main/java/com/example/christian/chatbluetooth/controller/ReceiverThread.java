@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class ReceiverThread extends Thread {
 
@@ -346,7 +347,7 @@ public class ReceiverThread extends Thread {
 
                         if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
-                            BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer));
+                            BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date(), 1);
                         } else {
 
                             BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
