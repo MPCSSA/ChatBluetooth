@@ -32,6 +32,7 @@ public class AsyncScavenger extends AsyncTask<Void, Void, Void> {
         while ((dvc = BlueCtrl.cleanCloseDvc()) != null) {
             macs.addAll(BlueCtrl.dropUsers(dvc));
         }
+        BlueCtrl.counter = 0;
         return null;
     }
 

@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Space;
 import android.widget.TableLayout;
 import android.widget.TextView;
@@ -27,7 +28,7 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage>{
     private String address;
 
     public String getAddress() { return this.address; }
-    public void setAddress(String user) { this.address = address; }
+    public void setAddress(String address) { this.address = address; }
 
     public MessageAdapter(Context context, int resource) {
         super(context, resource);
@@ -73,7 +74,7 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage>{
 
         if (ago < 86400000) {
             //this day
-            when = "at " + (new SimpleDateFormat("HH:mm:ss")).format(date1);
+            when = "at " + (new SimpleDateFormat("HH:mm")).format(date1);
 
         }
         else if (ago < 172800000) {
@@ -82,7 +83,7 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage>{
         }
         else if (ago < 604800000) {
             //this week
-            when = "on " + (new SimpleDateFormat("EEE 'at' HH:mm:ss")).format(date1);
+            when = "on " + (new SimpleDateFormat("EEE 'at' HH:mm")).format(date1);
         }
         else if (ago < 2629743830l) {
             //this month

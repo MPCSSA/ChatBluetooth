@@ -222,6 +222,8 @@ public class RegistrationFragment extends Fragment {
                                 preferences.edit().putString("gender", getActivity().findViewById(((RadioGroup) (getActivity().findViewById(R.id.radioGroup_reg))).getCheckedRadioButtonId()).getTag().toString()).commit();
                             preferences.edit().putString("nationality", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItem().toString()).commit();
 
+                            BlueCtrl.bindUser(preferences);
+
                             //TODO: do login
 
                         } else

@@ -141,12 +141,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
         msgText = (EditText) getActivity().findViewById(R.id.etMsg);
 
-        if (!BlueCtrl.msgAdapt.getAddress().equals(user)) {
-            BlueCtrl.msgAdapt.clear();
-            BlueCtrl.msgAdapt.setAddress(user);
-            BlueCtrl.fillMsgAdapter();
-        }
-
         ListView listView = (ListView) getActivity().findViewById(R.id.msgList);
         listView.setAdapter(BlueCtrl.msgAdapt);
 
@@ -159,9 +153,9 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         String msg = msgText.getText().toString();
         if (!msg.equals("")){
             Date time = new Date();
-            /*(new MessageThread(dvc, BlueCtrl.buildMsg(mac,
+            (new MessageThread(dvc, BlueCtrl.buildMsg(mac,
                     BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
-                    msg.getBytes()))).start();*/
+                    msg.getBytes()))).start();
 
             BlueCtrl.showMsg(user, msg, time, 0);
             msgText.setText(null);

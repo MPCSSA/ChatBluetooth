@@ -1,5 +1,6 @@
 package com.example.christian.chatbluetooth.controller;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
@@ -56,6 +57,7 @@ public class MessageThread extends Thread {
         try{
             //initiate communication
             sckt = dvc.createInsecureRfcommSocketToServiceRecord(java.util.UUID.fromString(BlueCtrl.UUID));
+            System.out.println("hello pippo baudo");
         }
         catch (IOException ignore) {}
         catch (NullPointerException ignore) {}
@@ -83,7 +85,13 @@ public class MessageThread extends Thread {
 
         try {
 
+            BlueCtrl.lockDiscoverySuspension();
+            while(BluetoothAdapter.getDefaultAdapter().isDiscovering()) {
+
+            }
+            System.out.println("no non ci sono!");
             sckt.connect();
+            System.out.println("c sei pippo?" + sckt.isConnected());
             boolean waiting = false;
 
             switch (type) {
@@ -235,9 +243,13 @@ public class MessageThread extends Thread {
             if (waiting) out.close();
             in.close();
 
+            BlueCtrl.unlockDiscoverySuspension();
+
         }
         catch(IOException e) {
 
+            e.printStackTrace();
+            System.out.println("alimortaccitua");
             try {
                 sckt.close();
             }

@@ -47,6 +47,7 @@ public class ReceiverThread extends Thread {
             int i, j; //counters
             boolean connected = true; //connection still on, i.e. rmtDvc did not shut its OutputStream yet
             ArrayList<byte[]> filteredUpdCascade = null; //ArrayList containing Update Message segments of an Update Cascade
+            BlueCtrl.lockDiscoverySuspension();
 
             do {
 
@@ -88,20 +89,21 @@ public class ReceiverThread extends Thread {
                         long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
 
                         BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0);
+                        System.out.println("summoned");
                         /*
                         New ChatUser object is created regardless of incoherent or non-existent persistent information;
                         if needed, an update will be requested and the object will be updated
                         */
 
-                        if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
+                        //if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
                             out.write(BlueCtrl.ACK); //ACKed
-                        } else {
+                        //} else {
                             /*
                             User information are not up to date, an Info Request is forwarded as Instant Reply
                             */
-                            out.write(BlueCtrl.RQS_HEADER);
+                           /* out.write(BlueCtrl.RQS_HEADER);
                             out.write(BlueCtrl.macToBytes(rmtDvc.getAddress()));
-                        }
+                        }*/
 
                         break;
                     }
@@ -427,6 +429,7 @@ public class ReceiverThread extends Thread {
     private void cancel() {
         //close connection
 
+        BlueCtrl.unlockDiscoverySuspension();
         try{
             sckt.close();
         }

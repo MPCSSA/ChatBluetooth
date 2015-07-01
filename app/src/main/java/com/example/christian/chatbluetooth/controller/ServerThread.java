@@ -27,17 +27,21 @@ public class ServerThread extends Thread {
 
         BluetoothSocket sckt;
         while(true) {
-
+            System.out.println("before accept");
             try {
                 sckt = server.accept();
+                System.out.println("accepted");
             }
             catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("server side down");
                 break;
             }
 
             if (sckt != null) {
                 (new ReceiverThread(sckt)).start();
             }
+            else System.out.println("whattafuck");
         }
 
         cancel();

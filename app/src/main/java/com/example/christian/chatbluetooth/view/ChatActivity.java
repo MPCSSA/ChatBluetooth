@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -20,11 +21,15 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.AsyncScavenger;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.controller.ServerThread;
 import com.example.christian.chatbluetooth.model.ChatUser;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ChatActivity extends Activity implements ListFragment.OnFragmentInteractionListener, ChatFragment.OnFragmentInteractionListener{
 
@@ -35,12 +40,18 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             String action = intent.getAction();
             switch (action) {
                 case BluetoothDevice.ACTION_FOUND:
-                    BluetoothDevice dvc = (BluetoothDevice) getIntent().getExtras().get(BluetoothDevice.EXTRA_DEVICE);
-                    if (BlueCtrl.addCloseDvc(dvc))
+
+                    BluetoothDevice dvc = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    if (BlueCtrl.addCloseDvc(dvc)) {
+                        System.out.println("greetings");
                         BlueCtrl.greet(dvc);
+                    }
+
                     break;
 
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
+                    System.out.println("scavenging");
+                    (new AsyncScavenger()).execute();
                     if (!BlueCtrl.DISCOVERY_SUSPENDED) {
                         if (!BluetoothAdapter.getDefaultAdapter().startDiscovery()) {
                             System.out.println("Discovery failed");
@@ -67,7 +78,18 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         BlueCtrl.openDatabase(this);
         BlueCtrl.msgAdapt = new MessageAdapter(this, R.layout.listitem_discuss);
+        BlueCtrl.msgAdapt.setAddress(new String());
         if (BlueCtrl.appFolder == null) BlueCtrl.appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        try {
+            (new ServerThread(BluetoothAdapter.getDefaultAdapter().listenUsingInsecureRfcommWithServiceRecord("com.example.christian.chatbluetooth", UUID.fromString(BlueCtrl.UUID)))).start();
+        }
+
+        catch (IOException ignore){}
+
+        registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
+        registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        BluetoothAdapter.getDefaultAdapter().startDiscovery();
     }
 
     @Override
@@ -109,11 +131,17 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     @Override
     protected void onResume() {
         super.onResume();
+
+        registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
+        registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        BluetoothAdapter.getDefaultAdapter().startDiscovery();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+
+        unregisterReceiver(blueReceiver);
     }
 
     @Override

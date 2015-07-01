@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class BlueCtrl {
 
@@ -34,7 +35,7 @@ public class BlueCtrl {
     public static final byte MSG_HEADER = (byte) 4; //header for Chat Message
     public static final byte DRP_HEADER = (byte) 5; //header for Drop Request
     public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
-    public static final String     UUID = "BlueRoom"; //custom UUID
+    public static final String     UUID = "00001101-0000-1000-8000-00805F9B34FB"; //custom UUID
     public static File appFolder;
 
     public static boolean DISCOVERY_SUSPENDED = false;
@@ -43,7 +44,7 @@ public class BlueCtrl {
     private static SharedPreferences currentUser;
     private static RecycleAdapter userAdapt;        //ChatUser Adapter; initialized on MainActivity creation
     private static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>();
-    private static int counter = 0;
+    public static int counter = 0;
     private static BlueDBManager dbManager;          //User and Messages DB Manager
     private static final String dbname = "bluedb"; //DB name
     public static MessageAdapter msgAdapt;
@@ -74,13 +75,14 @@ public class BlueCtrl {
 
     public static void sendMsg(BluetoothDevice dvc, byte[] msg) {
 
+        System.out.println("sending " + dvc.getAddress());
         (new MessageThread(dvc, msg)).start();
     }
 
     public static void greet(BluetoothDevice dvc) {
-        byte[] grt = new byte[10], timestamp = longToBytes(currentUser.getLong("lastUpd", (new Date()).getTime()));
+        byte[] grt = new byte[10], timestamp = longToBytes((new Date()).getTime());//currentUser.getLong("lastUpd", (new Date()).getTime()));
         grt[0] = BlueCtrl.GRT_HEADER;
-        grt[1] = (byte) currentUser.getInt("status", 1); //1 = disponibile
+        grt[1] = (byte) 1;//currentUser.getInt("status", 1); //1 = disponibile
 
         for(int i = 2; i < 10; ++i) {
             grt[i] = timestamp[i-2];
@@ -168,20 +170,25 @@ public class BlueCtrl {
         boolean newcomer;
         int pos;
         if ((pos = closeDvc.indexOf(dvc)) != -1) {
+            System.out.println(pos);
+            System.out.println(counter);
             //swap
-            if (pos != counter) {
+            /*if (pos != counter) {
                 closeDvc.set(pos, closeDvc.get(counter));
                 closeDvc.set(counter, dvc);
-            }
+            }*/
             newcomer = false;
         }
         //insert into position
         else {
-            closeDvc.add(counter, dvc);
+            System.out.println("adding");
+            System.out.println("pippo: " + counter);
+            closeDvc.add(/*counter, */dvc);
             newcomer = true;
         }
 
         ++counter;
+        System.out.println("pippo: " + counter);
         return newcomer;
     }
 

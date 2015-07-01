@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.bluetooth.BluetoothAdapter;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatUser;
 
 import java.util.ArrayList;
@@ -133,12 +135,20 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
         recList.setLayoutManager(llm);
         recList.setItemAnimator(new DefaultItemAnimator());
 
-        final RecycleAdapter cardadapt = new RecycleAdapter(createList(10));
+        final RecycleAdapter cardadapt = new RecycleAdapter(createList(0));
         recList.setAdapter(cardadapt);
+        BlueCtrl.setUserAdapt(cardadapt);
 
         recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener(){
             @Override
             public void onItemClick(View view, int position){
+
+                if (!BlueCtrl.msgAdapt.getAddress().equals(cardadapt.getItem(position).getMac())) {
+                    BlueCtrl.msgAdapt.clear();
+                    BlueCtrl.msgAdapt.setAddress(cardadapt.getItem(position).getMac());
+                    BlueCtrl.fillMsgAdapter();
+                }
+
                 ChatFragment chatFragment = new ChatFragment();
 
                 chatFragment.setAddress(cardadapt.getItem(position).getMac());
