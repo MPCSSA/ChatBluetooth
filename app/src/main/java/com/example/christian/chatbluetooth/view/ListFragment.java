@@ -1,14 +1,18 @@
 package com.example.christian.chatbluetooth.view;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -115,6 +119,12 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     @Override
     public void onActivityCreated(Bundle savedInstanceState){
         super.onActivityCreated(savedInstanceState);
+
+        Typeface type = Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf");
+        SpannableString title = new SpannableString("Lista Contatti");
+        title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ActionBar actionBar = getActivity().getActionBar();
+        actionBar.setTitle(title);
 
         final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
         recList.setHasFixedSize(true);

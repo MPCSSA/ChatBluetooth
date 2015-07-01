@@ -13,7 +13,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@+id/form"
-            android:layout_alignParentTop="true">
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="16dp"
+            android:transcriptMode="alwaysScroll"
+            android:stackFromBottom="true">
         </ListView>
         <LinearLayout
             android:id="@+id/form"
@@ -22,6 +25,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:orientation="horizontal">
+
             <EditText
                 android:id="@+id/etMsg"
                 android:layout_width="wrap_content"
@@ -29,19 +33,21 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentRight="true"
                 android:ems="10" android:inputType="text"
+                android:layout_marginRight="8dp"
+                android:layout_marginLeft="8dp"
                 android:layout_weight="0.95"/>
 
-            <Button
-                style="?android:attr/buttonStyleSmall"
+            <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/sendBtn"
-                android:background="@drawable/ripple_button"
-                android:layout_alignBottom="@+id/etMsg"
-                android:layout_alignParentEnd="true"
+                android:layout_marginRight="8dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginBottom="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="0.05"/>
+                android:layout_weight="0.05"
+                android:src="@drawable/ic_send_white_24dp"
+                android:background="@color/background" />
+
         </LinearLayout>
     </RelativeLayout>
 

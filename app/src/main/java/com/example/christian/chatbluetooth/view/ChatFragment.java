@@ -1,17 +1,22 @@
 package com.example.christian.chatbluetooth.view;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import com.example.christian.chatbluetooth.R;
@@ -126,6 +131,14 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     public void onActivityCreated(Bundle savedIstanceState) {
         super.onActivityCreated(savedIstanceState);
 
+        ActionBar actionBar = getActivity().getActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+        Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
+        SpannableString title = new SpannableString("Nome Utente");
+        title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        actionBar.setTitle(title);
+
         msgText = (EditText) getActivity().findViewById(R.id.etMsg);
 
         if (!BlueCtrl.msgAdapt.getAddress().equals(user)) {
@@ -137,14 +150,14 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         ListView listView = (ListView) getActivity().findViewById(R.id.msgList);
         listView.setAdapter(BlueCtrl.msgAdapt);
 
-        Button sendBtn = (Button) getActivity().findViewById(R.id.sendBtn);
+        ImageButton sendBtn = (ImageButton) getActivity().findViewById(R.id.sendBtn);
         sendBtn.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         String msg = msgText.getText().toString();
-        if (msg != null){
+        if (!msg.equals("")){
             Date time = new Date();
             /*(new MessageThread(dvc, BlueCtrl.buildMsg(mac,
                     BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
