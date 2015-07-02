@@ -1,4 +1,4 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Activities;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -31,6 +31,10 @@ import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.AsyncScavenger;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.ServerThread;
+import com.example.christian.chatbluetooth.view.Fragments.ChatFragment;
+import com.example.christian.chatbluetooth.view.Fragments.ListFragment;
+import com.example.christian.chatbluetooth.view.Adapters.MenuAdapter;
+import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -76,6 +80,10 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         setContentView(R.layout.activity_chat);
 
         /* NEW PART */
+        /*ActionBar actionBar = getActionBar();
+        actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
+        actionBar.setDisplayHomeAsUpEnabled(true);*/
+
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         ((TextView)findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
         listViewMenu = (ListView) findViewById(R.id.list_menu);
@@ -94,6 +102,20 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         );
                         startActivity(intent);
                         break;
+
+                    case 1:
+                        intent = new Intent(
+                                getApplicationContext(),
+                                SettingActivity.class
+                        );
+                        startActivity(intent);
+
+                    case 2:
+                        intent = new Intent(
+                                getApplicationContext(),
+                                HistoryActivity.class
+                        );
+                        startActivity(intent);
                 }
             }
         });
@@ -162,13 +184,13 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
             fragmentTransaction.replace(R.id.containerChat, listFragment);
             fragmentTransaction.commit();
-            ActionBar actionBar = this.getActionBar();
+            ActionBar actionBar = getActionBar();
             actionBar.setDisplayHomeAsUpEnabled(false);
             return true;
         }
 
         if (id == R.id.action_user){
-            if (drawerLayout.isActivated()) drawerLayout.closeDrawer(findViewById(R.id.left_drawer));
+            if (drawerLayout.isDrawerOpen(drawerLayout)) drawerLayout.closeDrawer(findViewById(R.id.left_drawer));
             else drawerLayout.openDrawer(findViewById(R.id.left_drawer));
         }
 
@@ -179,7 +201,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_chat, menu);
-        // TODO: user button must be in the left side of actionBar
 
         return true;
     }

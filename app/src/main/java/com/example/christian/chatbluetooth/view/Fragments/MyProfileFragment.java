@@ -1,40 +1,34 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.database.Cursor;
-import android.graphics.Typeface;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.example.christian.chatbluetooth.R;
-import com.example.christian.chatbluetooth.controller.BlueCtrl;
-import com.example.christian.chatbluetooth.controller.MessageThread;
-
-import java.util.Date;
-
+import com.example.christian.chatbluetooth.view.Adapters.MyProfileAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link ChatFragment.OnFragmentInteractionListener} interface
+ * {@link MyProfileFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link ChatFragment#newInstance} factory method to
+ * Use the {@link MyProfileFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ChatFragment extends Fragment implements View.OnClickListener{
+public class MyProfileFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -46,35 +40,17 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
     private OnFragmentInteractionListener mListener;
 
-    private EditText msgText;
-
-    private String user;
-    private BluetoothDevice dvc;
-    private byte[] mac;
-
-    public void setMac(byte [] mac){
-        this.mac = mac;
-    }
-
-    public void setAddress(String address){
-        this.user = address;
-    }
-
-    public void setDevice(BluetoothDevice dvc){
-        this.dvc = dvc;
-    }
-
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment ChatFragment.
+     * @return A new instance of fragment MyProfileFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static ChatFragment newInstance(String param1, String param2) {
-        ChatFragment fragment = new ChatFragment();
+    public static MyProfileFragment newInstance(String param1, String param2) {
+        MyProfileFragment fragment = new MyProfileFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -82,7 +58,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         return fragment;
     }
 
-    public ChatFragment() {
+    public MyProfileFragment() {
         // Required empty public constructor
     }
 
@@ -96,10 +72,37 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        ActionBar actionBar = getActivity().getActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+        ListView fieldList = (ListView) getActivity().findViewById(R.id.my_info_list);
+
+        int width = getResources().getDisplayMetrics().widthPixels*2;
+
+
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
+        ((ImageView) getActivity().findViewById(R.id.my_profile_image)).setImageDrawable(new BitmapDrawable(Bitmap.createScaledBitmap(bmp, width, width, false)));
+
+        SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
+        fieldList.setAdapter(new MyProfileAdapter(getActivity(), R.layout.my_profile_item));
+        ((ArrayAdapter<String>)fieldList.getAdapter()).add(sh.getString("username", "my profile"));
+        String birth = sh.getString("birth", null);
+        if (birth != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(birth);
+        String gender = sh.getString("gender", null);
+        if (gender != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(gender);
+        String country = sh.getString("country", null);
+        if (country != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(country);
+
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_chat, container, false);
+        return inflater.inflate(R.layout.fragment_my_profile, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -126,43 +129,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         mListener = null;
     }
 
-
-    @Override
-    public void onActivityCreated(Bundle savedIstanceState) {
-        super.onActivityCreated(savedIstanceState);
-
-        ActionBar actionBar = getActivity().getActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-
-        Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
-        SpannableString title = new SpannableString("Nome Utente");
-        title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        actionBar.setTitle(title);
-
-        msgText = (EditText) getActivity().findViewById(R.id.etMsg);
-
-        ListView listView = (ListView) getActivity().findViewById(R.id.msgList);
-        listView.setAdapter(BlueCtrl.msgAdapt);
-
-        ImageButton sendBtn = (ImageButton) getActivity().findViewById(R.id.sendBtn);
-        sendBtn.setOnClickListener(this);
-    }
-
-    @Override
-    public void onClick(View v) {
-        String msg = msgText.getText().toString();
-        if (!msg.equals("")){
-            Date time = new Date();
-            (new MessageThread(dvc, BlueCtrl.buildMsg(mac,
-                    BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
-                    msg.getBytes()))).start();
-
-            BlueCtrl.showMsg(user, msg, time, 0);
-            msgText.setText(null);
-            msgText.requestFocus();
-        }
-    }
-
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -173,7 +139,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);

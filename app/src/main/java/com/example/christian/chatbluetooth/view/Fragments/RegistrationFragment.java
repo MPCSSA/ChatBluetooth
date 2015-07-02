@@ -1,12 +1,9 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,13 +11,10 @@ import android.app.Fragment;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -31,6 +25,9 @@ import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.view.Activities.MainActivity;
+import com.example.christian.chatbluetooth.view.ConfirmationWatcher;
+import com.example.christian.chatbluetooth.view.PasswordWatcher;
 
 import java.util.ArrayList;
 import java.util.Date;

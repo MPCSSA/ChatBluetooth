@@ -12,8 +12,8 @@ import android.os.Environment;
 import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
-import com.example.christian.chatbluetooth.view.MessageAdapter;
-import com.example.christian.chatbluetooth.view.RecycleAdapter;
+import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
+import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 public class BlueCtrl {
 

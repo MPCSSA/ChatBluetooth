@@ -1,32 +1,24 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.ListView;
 
 import com.example.christian.chatbluetooth.R;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link MyProfileFragment.OnFragmentInteractionListener} interface
+ * {@link HistoryFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link MyProfileFragment#newInstance} factory method to
+ * Use the {@link HistoryFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MyProfileFragment extends Fragment {
+public class HistoryFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -44,11 +36,11 @@ public class MyProfileFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment MyProfileFragment.
+     * @return A new instance of fragment HistoryFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static MyProfileFragment newInstance(String param1, String param2) {
-        MyProfileFragment fragment = new MyProfileFragment();
+    public static HistoryFragment newInstance(String param1, String param2) {
+        HistoryFragment fragment = new HistoryFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -56,7 +48,7 @@ public class MyProfileFragment extends Fragment {
         return fragment;
     }
 
-    public MyProfileFragment() {
+    public HistoryFragment() {
         // Required empty public constructor
     }
 
@@ -70,34 +62,10 @@ public class MyProfileFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        ListView fieldList = (ListView) getActivity().findViewById(R.id.my_info_list);
-
-        int width = getResources().getDisplayMetrics().widthPixels*2;
-
-
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-        ((ImageView) getActivity().findViewById(R.id.my_profile_image)).setImageDrawable(new BitmapDrawable(Bitmap.createScaledBitmap(bmp, width, width, false)));
-
-        SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
-        fieldList.setAdapter(new MyProfileAdapter(getActivity(), R.layout.my_profile_item));
-        ((ArrayAdapter<String>)fieldList.getAdapter()).add(sh.getString("username", "my profile"));
-        String birth = sh.getString("birth", null);
-        if (birth != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(birth);
-        String gender = sh.getString("gender", null);
-        if (gender != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(gender);
-        String country = sh.getString("country", null);
-        if (country != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(country);
-
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_my_profile, container, false);
+        return inflater.inflate(R.layout.fragment_history, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event

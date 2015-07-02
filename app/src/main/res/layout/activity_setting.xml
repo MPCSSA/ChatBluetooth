@@ -3,13 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.christian.chatbluetooth.view.Activities.ProfileActivity">
+    tools:context="com.example.christian.chatbluetooth.view.Activities.SettingActivity">
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/profile_container">
+        android:id="@+id/setting_container">
 
     </FrameLayout>
+
 
 </RelativeLayout>

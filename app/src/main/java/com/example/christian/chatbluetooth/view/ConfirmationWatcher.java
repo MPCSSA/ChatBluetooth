@@ -7,6 +7,7 @@ import android.text.TextWatcher;
 import android.widget.EditText;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.view.Activities.MainActivity;
 
 public class ConfirmationWatcher implements TextWatcher {
 

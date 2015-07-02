@@ -1,4 +1,4 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Adapters;
 
 
 import android.content.Context;
@@ -6,20 +6,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
 
 import java.util.zip.Inflater;
 
-public class MyProfileAdapter extends ArrayAdapter<String>{
+public class MenuAdapter extends ArrayAdapter<String>{
 
     private int layout;
+    private int[] icons = {R.mipmap.profile, R.mipmap.setting, R.mipmap.history};
+    private String[] titles = {"Profilo", "Impostazioni", "Cronologia"};
 
-    public MyProfileAdapter(Context context, int resource) {
+    public MenuAdapter(Context context, int resource) {
         super(context, resource);
-
         layout = resource;
     }
 
@@ -31,12 +32,11 @@ public class MyProfileAdapter extends ArrayAdapter<String>{
             view = inflater.inflate(layout, parent, false);
         }
 
-        ((TextView) view.findViewById(R.id.field)).setText(getItem(position));
-        if (position == 0){
-            CheckBox checkBox = (CheckBox) view.findViewById(R.id.visibility_cb);
-            checkBox.setVisibility(View.INVISIBLE);
-            checkBox.setEnabled(false);
-        }
+        ImageView imageView = (ImageView) view.findViewById(R.id.menu_item_icon);
+        TextView textView = (TextView) view.findViewById(R.id.menu_item_text);
+
+        imageView.setBackground(getContext().getDrawable(icons[position]));
+        textView.setText(titles[position]);
 
         return view;
     }

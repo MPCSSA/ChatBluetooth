@@ -6,6 +6,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.view.Activities.MainActivity;
 
 public class PasswordWatcher implements TextWatcher {
 

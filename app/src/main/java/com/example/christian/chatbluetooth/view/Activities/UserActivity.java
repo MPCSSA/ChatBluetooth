@@ -1,4 +1,4 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Activities;
 
 import android.app.Activity;
 import android.os.Bundle;

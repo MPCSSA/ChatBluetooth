@@ -1,4 +1,4 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Adapters;
 
 
 import android.app.ActionBar;

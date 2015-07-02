@@ -1,7 +1,6 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Adapters;
 
 import android.bluetooth.BluetoothDevice;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,9 +12,7 @@ import com.example.christian.chatbluetooth.model.ChatUser;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 
 public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserViewHolder> {  // <RecycleAdapter.UserViewHolder>

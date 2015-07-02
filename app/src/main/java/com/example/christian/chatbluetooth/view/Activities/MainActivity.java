@@ -1,26 +1,18 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Activities;
 
 
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
-import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.view.Fragments.LoginFragment;
+import com.example.christian.chatbluetooth.view.Fragments.RegistrationFragment;
 
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener,

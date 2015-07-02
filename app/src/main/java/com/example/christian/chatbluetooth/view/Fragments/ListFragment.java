@@ -1,36 +1,40 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.model.ChatUser;
+import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
+import com.example.christian.chatbluetooth.view.RecyclerItemClickListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link LoginFragment.OnFragmentInteractionListener} interface
+ * {@link ListFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link LoginFragment#newInstance} factory method to
+ * Use the {@link ListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class LoginFragment extends Fragment {
+public class ListFragment extends Fragment implements ChatFragment.OnFragmentInteractionListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -42,23 +46,17 @@ public class LoginFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    private EditText name;
-    private EditText passw;
-    private Button login;
-    private Button registration;
-
-
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment LoginFragment.
+     * @return A new instance of fragment ListFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static LoginFragment newInstance(String param1, String param2) {
-        LoginFragment fragment = new LoginFragment();
+    public static ListFragment newInstance(String param1, String param2) {
+        ListFragment fragment = new ListFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -66,7 +64,7 @@ public class LoginFragment extends Fragment {
         return fragment;
     }
 
-    public LoginFragment() {
+    public ListFragment() {
         // Required empty public constructor
     }
 
@@ -83,7 +81,7 @@ public class LoginFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_login, container, false);
+        return inflater.inflate(R.layout.fragment_list, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -122,69 +120,69 @@ public class LoginFragment extends Fragment {
      */
 
     @Override
-    public void onActivityCreated(Bundle savedIstanceState){
-        super.onActivityCreated(savedIstanceState);
+    public void onActivityCreated(Bundle savedInstanceState){
+        super.onActivityCreated(savedInstanceState);
 
         Typeface type = Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf");
-        name = (EditText) getActivity().findViewById(R.id.logName);
-        passw = (EditText) getActivity().findViewById(R.id.logPass);
-        login = (Button) getActivity().findViewById(R.id.loginButton);
-        registration = (Button) getActivity().findViewById(R.id.logRegButton);
-
-        SpannableString title = new SpannableString("Login");
+        SpannableString title = new SpannableString("Lista Contatti");
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         ActionBar actionBar = getActivity().getActionBar();
         actionBar.setTitle(title);
 
+        final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
+        recList.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recList.setLayoutManager(llm);
+        recList.setItemAnimator(new DefaultItemAnimator());
 
-        name.setTypeface(type);
-        passw.setTypeface(type);
-        login.setTypeface(type);
-        registration.setTypeface(type);
+        final RecycleAdapter cardadapt = new RecycleAdapter(createList(0));
+        recList.setAdapter(cardadapt);
+        BlueCtrl.setUserAdapt(cardadapt);
 
-        registration = (Button) getActivity().findViewById(R.id.logRegButton);
-        registration.setOnClickListener(new View.OnClickListener() {
+        recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener(){
             @Override
-            public void onClick(View v) {
-                RegistrationFragment registrationFragment = new RegistrationFragment();
+            public void onItemClick(View view, int position){
+
+                if (!BlueCtrl.msgAdapt.getAddress().equals(cardadapt.getItem(position).getMac())) {
+                    BlueCtrl.msgAdapt.clear();
+                    BlueCtrl.msgAdapt.setAddress(cardadapt.getItem(position).getMac());
+                    BlueCtrl.fillMsgAdapter();
+                }
+
+                ChatFragment chatFragment = new ChatFragment();
+
+                chatFragment.setAddress(cardadapt.getItem(position).getMac());
+                chatFragment.setDevice(cardadapt.getItem(position).getNextNode());
+                chatFragment.setMac(cardadapt.getItem(position).getMacInBytes());
+
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-                fragmentTransaction.replace(R.id.container, registrationFragment);
+                fragmentTransaction.replace(R.id.containerChat, chatFragment);
                 fragmentTransaction.commit();
+
             }
-        });
+        }));
+    }
 
-        login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SharedPreferences preferences = getActivity().getSharedPreferences("preferences", getActivity().MODE_PRIVATE);
+    private List createList(int size) {
 
-                String User = preferences.getString("username",null); // null is a default value if they don't exist
-                String Pass = preferences.getString("password",null); // null is a default value if they don't exist
+        List result = new ArrayList();
+        for (int i=1; i <= size; i++) {
+            ChatUser card = new ChatUser("FF:FF:FF:FF:FF:FF", null, 0, 0, null);
+            card.setName("ciaone");
+            result.add(card);
 
-                if(User != null && Pass != null){
-                    if(name.getText().toString().equals(User) && passw.getText().toString().equals(Pass))
-                    {
-                        //TODO: do login
-                        Toast.makeText(getActivity(), "Login", Toast.LENGTH_SHORT).show();
-                    }
-                    else{
-                        // Wrong user or pass
-                        Toast.makeText(getActivity(), "Wrong username or password", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                else{
-                    //Not registered
-                    Toast.makeText(getActivity(), "You must first register", Toast.LENGTH_SHORT).show();
-                }
-                Intent intent = new Intent(
-                        getActivity().getApplicationContext(),
-                        ChatActivity.class
-                );
-                startActivity(intent);
-            }
-        });
+        }
+
+        return result;
+
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 
     public interface OnFragmentInteractionListener {
