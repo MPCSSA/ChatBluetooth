@@ -112,7 +112,7 @@
                 android:textColor="@color/primary_text"
                 android:buttonTint="@color/accent"
                 android:id="@+id/rbtn_male"
-                android:checked="true"
+                android:checked="false"
                 android:textSize="18dp"
                 android:elevation="8dp"
                 android:tag="@string/male"/>
@@ -124,6 +124,7 @@
                 android:textColor="@color/primary_text"
                 android:buttonTint="@color/accent"
                 android:id="@+id/rbtn_fem"
+                android:checked="false"
                 android:textSize="18dp"
                 android:elevation="8dp"
                 android:tag="@string/female"/>

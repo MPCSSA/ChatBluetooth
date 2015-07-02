@@ -158,7 +158,7 @@ public class LoginFragment extends Fragment {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences preferences = getActivity().getSharedPreferences(BlueCtrl.UUID, getActivity().MODE_PRIVATE);
+                SharedPreferences preferences = getActivity().getSharedPreferences("preferences", getActivity().MODE_PRIVATE);
 
                 String User = preferences.getString("username",null); // null is a default value if they don't exist
                 String Pass = preferences.getString("password",null); // null is a default value if they don't exist

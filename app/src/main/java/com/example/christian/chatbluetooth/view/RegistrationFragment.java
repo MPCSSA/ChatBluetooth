@@ -33,6 +33,7 @@ import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -203,7 +204,7 @@ public class RegistrationFragment extends Fragment {
         registration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences preferences = getActivity().getSharedPreferences(BlueCtrl.UUID, getActivity().MODE_PRIVATE);
+                SharedPreferences preferences = getActivity().getSharedPreferences("preferences", getActivity().MODE_PRIVATE);
 
                 String User = preferences.getString("username", null); // null is a default value if they don't exist
                 String Pass = preferences.getString("password", null); // null is a default value if they don't exist
@@ -214,13 +215,20 @@ public class RegistrationFragment extends Fragment {
 
                         if (((MainActivity) getActivity()).getOkConf()) {
 
+                            Date creation = new Date();
 
-                            preferences.edit().putString("username", name.getText().toString()).commit();
-                            preferences.edit().putString("password", passw.getText().toString()).commit();
-                            preferences.edit().putLong("birth", 0).commit();
-                            if ((getActivity().findViewById(R.id.radioGroup_reg)).isPressed())
-                                preferences.edit().putString("gender", getActivity().findViewById(((RadioGroup) (getActivity().findViewById(R.id.radioGroup_reg))).getCheckedRadioButtonId()).getTag().toString()).commit();
-                            preferences.edit().putString("nationality", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItem().toString()).commit();
+                            preferences.edit().putString("username", name.getText().toString()).apply();
+                            preferences.edit().putString("password", passw.getText().toString()).apply();
+                            preferences.edit().putLong("timestamp", creation.getTime()).apply();
+
+                            preferences.edit().putString("birth", date.getText().toString());
+
+                            if ((getActivity().findViewById(R.id.radioGroup_reg)).isSelected()) {
+                                String gender = (((RadioButton) getActivity().findViewById(R.id.rbtn_male)).isChecked()) ? "M" : "F";
+                                preferences.edit().putString("gender", gender).apply();
+                            }
+
+                            preferences.edit().putString("nationality", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItem().toString()).apply();
 
                             BlueCtrl.bindUser(preferences);
 

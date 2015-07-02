@@ -10,29 +10,35 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.AsyncScavenger;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.ServerThread;
-import com.example.christian.chatbluetooth.model.ChatUser;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 public class ChatActivity extends Activity implements ListFragment.OnFragmentInteractionListener, ChatFragment.OnFragmentInteractionListener{
 
+    private DrawerLayout drawerLayout;
+    private ListView listViewMenu;
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
         @Override
@@ -68,6 +74,51 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+
+        /* NEW PART */
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        ((TextView)findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
+        listViewMenu = (ListView) findViewById(R.id.list_menu);
+        listViewMenu.setAdapter(new MenuAdapter(this, R.layout.menu_item_layout));
+        ((ArrayAdapter)listViewMenu.getAdapter()).add("Profilo");
+        ((ArrayAdapter)listViewMenu.getAdapter()).add("Impostazioni");
+        ((ArrayAdapter)listViewMenu.getAdapter()).add("Cronologia");
+        listViewMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                switch (position){
+                    case 0:
+                        Intent intent = new Intent(
+                                getApplicationContext(),
+                                ProfileActivity.class
+                        );
+                        startActivity(intent);
+                        break;
+                }
+            }
+        });
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null, R.string.app_name, R.string.app_name){
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                getActionBar().setTitle("Lista Contatti");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                getActionBar().setTitle("Menu");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
+
+        drawerLayout.setDrawerListener(drawerToggle);
+
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
+        ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(Bitmap.createScaledBitmap(bmp,240, 180, false)));
+        /* END NEW PART */
+
 
         ListFragment listFragment = new ListFragment();
         FragmentManager fragmentManager = getFragmentManager();
@@ -114,6 +165,11 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             ActionBar actionBar = this.getActionBar();
             actionBar.setDisplayHomeAsUpEnabled(false);
             return true;
+        }
+
+        if (id == R.id.action_user){
+            if (drawerLayout.isActivated()) drawerLayout.closeDrawer(findViewById(R.id.left_drawer));
+            else drawerLayout.openDrawer(findViewById(R.id.left_drawer));
         }
 
         return super.onOptionsItemSelected(item);
