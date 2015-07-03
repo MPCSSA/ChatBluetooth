@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -150,7 +151,12 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         drawerLayout.setDrawerListener(drawerToggle);
 
         Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-        ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(Bitmap.createScaledBitmap(bmp,240, 180, false)));
+        int[] pixel = new int[2];
+        pixel[0] = (bmp.getWidth() - 240) / 2;
+        pixel[1] = (bmp.getHeight() -180) / 2;
+        bmp = Bitmap.createScaledBitmap(bmp, 240, 180, false);
+        bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+        ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bmp));
         /* END NEW PART */
 
 
@@ -166,6 +172,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         BlueCtrl.msgAdapt.setAddress(new String());
         if (BlueCtrl.appFolder == null) BlueCtrl.appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
+        /*
         try {
             (new ServerThread(BluetoothAdapter.getDefaultAdapter().listenUsingInsecureRfcommWithServiceRecord("com.example.christian.chatbluetooth", UUID.fromString(BlueCtrl.UUID)))).start();
         }
@@ -176,7 +183,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-        BluetoothAdapter.getDefaultAdapter().startDiscovery();
+        BluetoothAdapter.getDefaultAdapter().startDiscovery();*/
     }
 
     @Override
@@ -224,17 +231,17 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     @Override
     protected void onResume() {
         super.onResume();
-
+        /*
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-        BluetoothAdapter.getDefaultAdapter().startDiscovery();
+        BluetoothAdapter.getDefaultAdapter().startDiscovery();*/
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        unregisterReceiver(blueReceiver);
+        /*unregisterReceiver(blueReceiver);*/
     }
 
     @Override

@@ -53,6 +53,7 @@ public class ProfileActivity extends Activity implements MyProfileFragment.OnFra
                     ChatActivity.class
             );
             startActivity(intent);
+
         }
 
         return super.onOptionsItemSelected(item);

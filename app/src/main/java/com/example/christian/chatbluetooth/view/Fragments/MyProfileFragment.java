@@ -6,10 +6,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -80,11 +82,19 @@ public class MyProfileFragment extends Fragment {
 
         ListView fieldList = (ListView) getActivity().findViewById(R.id.my_info_list);
 
-        int width = getResources().getDisplayMetrics().widthPixels*2;
-
+        Point point = new Point();
+        getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
+        System.out.println("La larghezza: " + point.x);
+        int width = point.x;
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
         Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-        ((ImageView) getActivity().findViewById(R.id.my_profile_image)).setImageDrawable(new BitmapDrawable(Bitmap.createScaledBitmap(bmp, width, width, false)));
+        bmp = Bitmap.createScaledBitmap(bmp, width, width, false);
+        bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+        ImageView imageView = (ImageView) getActivity().findViewById(R.id.my_profile_image);
+        imageView.setImageDrawable(new BitmapDrawable(bmp));
+
 
         SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
         fieldList.setAdapter(new MyProfileAdapter(getActivity(), R.layout.my_profile_item));
