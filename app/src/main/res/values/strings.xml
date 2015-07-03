@@ -11,6 +11,7 @@
     <string name="birth">Date of birth</string>
     <string name="male" translatable="false">M</string>
     <string name="female" translatable="false">F</string>
+    <string name="state">Set visibility: </string>
 
     <!-- BUTTONS -->
     <string name="login_btn">Login</string>

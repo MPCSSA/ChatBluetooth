@@ -49,6 +49,28 @@
             android:layout_marginTop="8dp">
 
         </ListView>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:id="@+id/switch_layout">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_switch"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="16dp"/>
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/switch_state"
+                android:layout_marginLeft="72dp"
+                android:layout_centerVertical="true"
+                android:hint="@string/state"
+                android:textColorHint="@color/background"
+            />
+        </RelativeLayout>
     </LinearLayout>
 
 </android.support.v4.widget.DrawerLayout>

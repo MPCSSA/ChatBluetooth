@@ -29,6 +29,8 @@ import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
@@ -47,6 +49,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
     private DrawerLayout drawerLayout;
     private ListView listViewMenu;
+    private Switch switchVisibility;
     public boolean state = false;
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
@@ -85,7 +88,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         setContentView(R.layout.activity_chat);
 
         /* NEW PART */
-        ActionBar actionBar = getActionBar();
 
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         drawerLayout = (DrawerLayout) inflater.inflate(R.layout.nav_drawer, null);
@@ -132,6 +134,11 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 }
             }
         });
+
+        switchVisibility = (Switch) findViewById(R.id.switch_state);
+
+        ((ImageView) findViewById(R.id.image_switch)).setBackground(getDrawable(R.mipmap.visibility));
+
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null, R.string.app_name, R.string.app_name){
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
