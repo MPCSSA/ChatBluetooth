@@ -18,11 +18,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -43,6 +46,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
     private DrawerLayout drawerLayout;
     private ListView listViewMenu;
+    public boolean state = false;
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
         @Override
@@ -80,12 +84,18 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         setContentView(R.layout.activity_chat);
 
         /* NEW PART */
-        /*ActionBar actionBar = getActionBar();
-        actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
-        actionBar.setDisplayHomeAsUpEnabled(true);*/
+        ActionBar actionBar = getActionBar();
 
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
-        ((TextView)findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        drawerLayout = (DrawerLayout) inflater.inflate(R.layout.nav_drawer, null);
+
+        ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+        View child = decor.getChildAt(0);
+        decor.removeView(child);
+        FrameLayout container = (FrameLayout) drawerLayout.findViewById(R.id.nav_container);
+        container.addView(child);
+        decor.addView(drawerLayout);
+        ((TextView) findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
         listViewMenu = (ListView) findViewById(R.id.list_menu);
         listViewMenu.setAdapter(new MenuAdapter(this, R.layout.menu_item_layout));
         ((ArrayAdapter)listViewMenu.getAdapter()).add("Profilo");
@@ -109,6 +119,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                                 SettingActivity.class
                         );
                         startActivity(intent);
+                        break;
 
                     case 2:
                         intent = new Intent(
@@ -116,6 +127,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                                 HistoryActivity.class
                         );
                         startActivity(intent);
+                        break;
                 }
             }
         });
@@ -158,7 +170,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             (new ServerThread(BluetoothAdapter.getDefaultAdapter().listenUsingInsecureRfcommWithServiceRecord("com.example.christian.chatbluetooth", UUID.fromString(BlueCtrl.UUID)))).start();
         }
 
-        catch (IOException ignore){}
+        catch (IOException ignore){
+            System.out.println("listen failed");
+        }
 
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
@@ -178,20 +192,22 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         }
 
         if (id == android.R.id.home){
-            ListFragment listFragment = new ListFragment();
-            FragmentManager fragmentManager = getFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
-            fragmentTransaction.replace(R.id.containerChat, listFragment);
-            fragmentTransaction.commit();
-            ActionBar actionBar = getActionBar();
-            actionBar.setDisplayHomeAsUpEnabled(false);
-            return true;
-        }
 
-        if (id == R.id.action_user){
-            if (drawerLayout.isDrawerOpen(drawerLayout)) drawerLayout.closeDrawer(findViewById(R.id.left_drawer));
-            else drawerLayout.openDrawer(findViewById(R.id.left_drawer));
+            if (state){
+                ListFragment listFragment = new ListFragment();
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
+                fragmentTransaction.replace(R.id.containerChat, listFragment);
+                fragmentTransaction.commit();
+                state = false;
+                return true;
+            }
+
+            else{
+                drawerLayout.openDrawer(findViewById(R.id.left_drawer));
+            }
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -224,5 +240,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    public void setState(boolean val){
+        state = val;
     }
 }

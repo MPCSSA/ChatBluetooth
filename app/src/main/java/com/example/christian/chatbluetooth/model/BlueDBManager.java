@@ -123,7 +123,7 @@ public class BlueDBManager {
 
     public Cursor fetchUserInfo(String address) {
 
-        return db.query(tables[0], null, userTable[0] + " = " + address, null, null, null, null, "1");
+        return db.query(tables[0], null, userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
 
     }
 

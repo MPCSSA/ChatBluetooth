@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatUser;
+import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
 import com.example.christian.chatbluetooth.view.RecyclerItemClickListener;
 
@@ -123,10 +124,14 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     public void onActivityCreated(Bundle savedInstanceState){
         super.onActivityCreated(savedInstanceState);
 
+        ((ChatActivity) getActivity()).state = false;
+
         Typeface type = Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf");
         SpannableString title = new SpannableString("Lista Contatti");
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         ActionBar actionBar = getActivity().getActionBar();
+        actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
+        actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setTitle(title);
 
         final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
@@ -136,25 +141,28 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
         recList.setLayoutManager(llm);
         recList.setItemAnimator(new DefaultItemAnimator());
 
-        final RecycleAdapter cardadapt = new RecycleAdapter(createList(0));
-        recList.setAdapter(cardadapt);
-        BlueCtrl.setUserAdapt(cardadapt);
+        //final RecycleAdapter cardadapt = new RecycleAdapter(createList(1));
+        recList.setAdapter(BlueCtrl.userAdapt);
+
+        ChatUser card = new ChatUser("FF:FF:FF:FF:FF:FF", null, 0, 0, null);
+        card.setName("ciaone");
+        BlueCtrl.userAdapt.add(card);
 
         recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener(){
             @Override
             public void onItemClick(View view, int position){
 
-                if (!BlueCtrl.msgAdapt.getAddress().equals(cardadapt.getItem(position).getMac())) {
+                if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
                     BlueCtrl.msgAdapt.clear();
-                    BlueCtrl.msgAdapt.setAddress(cardadapt.getItem(position).getMac());
+                    BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
                     BlueCtrl.fillMsgAdapter();
                 }
 
                 ChatFragment chatFragment = new ChatFragment();
 
-                chatFragment.setAddress(cardadapt.getItem(position).getMac());
-                chatFragment.setDevice(cardadapt.getItem(position).getNextNode());
-                chatFragment.setMac(cardadapt.getItem(position).getMacInBytes());
+                chatFragment.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
+                chatFragment.setDevice(BlueCtrl.userAdapt.getItem(position).getNextNode());
+                chatFragment.setMac(BlueCtrl.userAdapt.getItem(position).getMacInBytes());
 
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

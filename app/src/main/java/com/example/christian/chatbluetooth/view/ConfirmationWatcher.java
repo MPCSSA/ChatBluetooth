@@ -34,9 +34,9 @@ public class ConfirmationWatcher implements TextWatcher {
         boolean bool = ((EditText)((Activity) context).findViewById(R.id.et_reg_password)).getText().toString().equals(s.toString());
 
         if (bool)
-            ((Activity) context).findViewById(R.id.iv_confirm).setBackgroundColor(0xFF8BC34A);
+            ((Activity) context).findViewById(R.id.iv_confirm).setBackground(context.getDrawable(R.mipmap.check));
         else
-            ((Activity) context).findViewById(R.id.iv_confirm).setBackgroundColor(0xFFF44336);
+            ((Activity) context).findViewById(R.id.iv_confirm).setBackground(context.getDrawable(R.mipmap.close));
 
         ((MainActivity)context).setOkConf(bool);
     }

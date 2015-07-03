@@ -23,6 +23,7 @@ import android.widget.ListView;
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.MessageThread;
+import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 
 import java.util.Date;
 
@@ -133,12 +134,13 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         super.onActivityCreated(savedIstanceState);
 
         ActionBar actionBar = getActivity().getActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        ((ChatActivity) getActivity()).setState(true);
 
         Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
         SpannableString title = new SpannableString("Nome Utente");
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         actionBar.setTitle(title);
+        actionBar.setHomeAsUpIndicator(null);
 
         msgText = (EditText) getActivity().findViewById(R.id.etMsg);
 
@@ -154,9 +156,9 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         String msg = msgText.getText().toString();
         if (!msg.equals("")){
             Date time = new Date();
-            (new MessageThread(dvc, BlueCtrl.buildMsg(mac,
+            /*(new MessageThread(dvc, BlueCtrl.buildMsg(mac,
                     BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
-                    msg.getBytes()))).start();
+                    msg.getBytes()))).start();*/
 
             BlueCtrl.showMsg(user, msg, time, 0);
             msgText.setText(null);
@@ -174,6 +176,8 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
+
+
 
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name

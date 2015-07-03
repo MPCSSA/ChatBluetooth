@@ -80,7 +80,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
 
         int i = 0;
         for (ChatUser u : userList) {
-            if (u.getNextNode().equals(lostDvc)) {
+            if (u.getNextNode() != null && u.getNextNode().equals(lostDvc)) {
                 lostDvcs.add(u.getMacInBytes());
                 userList.remove(i);
             }

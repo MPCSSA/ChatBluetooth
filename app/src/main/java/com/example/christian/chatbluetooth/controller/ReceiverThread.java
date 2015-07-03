@@ -42,6 +42,7 @@ public class ReceiverThread extends Thread {
 
     public void run() {
 
+        System.out.println("sto ricevendo");
         try {
 
             int i, j; //counters
@@ -51,7 +52,9 @@ public class ReceiverThread extends Thread {
 
             do {
 
+                System.out.println("leggo");
                 byte flag = (byte) in.read();
+                System.out.println("ho letto " + flag);
             /*
             incoming message flag;
             0: Greetings Message; a newly connected device is sending information about itself.
@@ -72,6 +75,7 @@ public class ReceiverThread extends Thread {
                        |1 byte|   8 byte  |
                     */
 
+                        System.out.println("piacere pippo");
                         byte status = (byte) in.read(); //read Status
                         byte[] bytes = new byte[8];
                         i = 0;

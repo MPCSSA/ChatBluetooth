@@ -14,14 +14,14 @@
             android:layout_height="wrap_content"
             android:layout_above="@+id/form"
             android:layout_alignParentTop="true"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="8dp"
             android:transcriptMode="alwaysScroll"
             android:stackFromBottom="true">
         </ListView>
         <LinearLayout
             android:id="@+id/form"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:orientation="horizontal">
@@ -29,7 +29,7 @@
             <EditText
                 android:id="@+id/etMsg"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentRight="true"
                 android:ems="10" android:inputType="text"
