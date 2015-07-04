@@ -41,7 +41,7 @@ public class BlueDBManager {
         String query = "SELECT name FROM sqlite_master WHERE type = \'table\' AND name = \'" + tables[0] + "\'";
         if (!db.rawQuery(query, null).moveToFirst()) {
             query = "CREATE TABLE " + tables[0] + "(_id integer primary key autoincrement, " +
-                            userTable[0]+ " text not null, "+ userTable[1] + " text not null, " + userTable[2] +  ", integer not null, " +
+                            userTable[0]+ " text not null, "+ userTable[1] + " text not null, " + userTable[2] +  " integer not null, " +
                             userTable[3] + " boolean not null, " + userTable[4] + " text, " + userTable[5] +
                             " integer, " + userTable[6] + " integer, " + userTable[7] + " integer, UNIQUE  (mac) ON CONFLICT REPLACE)";
             db.execSQL(query);
@@ -60,7 +60,7 @@ public class BlueDBManager {
         setDb(db);
     }
 
-    private ContentValues createCV(String address, String username, long timestamp, boolean isFav, String profile_pic, String nation, int gender, int age) {
+    private ContentValues createCV(String address, String username, long timestamp, boolean isFav, String profile_pic, int nation, int gender, int age) {
 
         ContentValues values = new ContentValues();
 
@@ -91,12 +91,14 @@ public class BlueDBManager {
     public long createRecord(int table, Object[] attrs) {
 
         long id;
+
+        System.out.println("creating the magic");
         switch (table) {
 
             case 0:
                 id = db.insertWithOnConflict(tables[table], null,
                         createCV((String) attrs[0], (String) attrs[1], (long) attrs[2], (boolean) attrs[3],
-                                 (String) attrs[4], (String) attrs[5], (int) attrs[6], (int) attrs[7]),
+                                 (String) attrs[4], (int) attrs[5], (int) attrs[6], (int) attrs[7]),
                         SQLiteDatabase.CONFLICT_IGNORE);
                 break;
 
@@ -110,6 +112,7 @@ public class BlueDBManager {
                 id = -1;
         }
 
+        System.out.println("DB error: " + id);
         return id;
     }
 
@@ -117,13 +120,15 @@ public class BlueDBManager {
     //TODO: fetchMethods
     public Cursor fetchListedUser(String address) {
 
-        return db.query(tables[0], new String[]{userTable[0], userTable[4], userTable[3]}, userTable[0] + " = " + address, null, null, null, null, "1");
+        return db.query(tables[0], new String[]{userTable[0], userTable[4], userTable[3]}, userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
 
     }
 
     public Cursor fetchUserInfo(String address) {
 
-        return db.query(tables[0], null, userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
+        return db.query(tables[0], new String[] {userTable[0], userTable[1], userTable[2],
+                                                 userTable[5], userTable[6], userTable[7]},
+                        userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
 
     }
 
@@ -136,7 +141,7 @@ public class BlueDBManager {
 
     public Cursor fetchTimestamp(String address) {
 
-        return db.query(tables[0], new String[] {userTable[2]}, userTable[0] + " = " + address, null, null, null, null, "1");
+        return db.query(tables[0], new String[] {userTable[2]}, userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
 
     }
 
@@ -153,7 +158,7 @@ public class BlueDBManager {
         values.put(userTable[7], age);
 
 
-        return db.update(tables[0], values, userTable[0] + " = " + address, null);
+        return db.update(tables[0], values, userTable[0] + " = \'" + address + "\'", null);
     }
 
     public long updateFavourites(String address, boolean isFav) {
@@ -162,7 +167,7 @@ public class BlueDBManager {
 
         values.put(userTable[3], isFav);
 
-        return db.update(tables[0], values, userTable[0] + " = " + address, null);
+        return db.update(tables[0], values, userTable[0] + " = \'" + address + "\'", null);
     }
 
     public long updatePicture(String address) {
@@ -170,6 +175,6 @@ public class BlueDBManager {
 
         values.put(userTable[4], "IMG_" + address);
 
-        return db.update(tables[0], values, userTable[0] + " = " + address, null);
+        return db.update(tables[0], values, userTable[0] + " = \'" + address + "\'", null);
     }
 }

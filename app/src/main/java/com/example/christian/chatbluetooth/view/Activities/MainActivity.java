@@ -6,11 +6,13 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Fragments.LoginFragment;
 import com.example.christian.chatbluetooth.view.Fragments.RegistrationFragment;
 
@@ -21,7 +23,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
     //TODO: encapsulate ChatFragment and UsersFragment
 
     private LoginFragment loginFragment;
-    private boolean okPass = false, okConf = false;
+    private boolean okPass = false, okConf = false, registered = false;
 
 
     public boolean getOkPass() {
@@ -38,11 +40,20 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         okConf = bool;
     }
 
+    public boolean isNew() { return this.registered; }
+    public void registered() { this.registered = true; }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    /*
+    DEBUG ONLY
+    */
+        BlueCtrl.version = Build.VERSION.SDK_INT >= 21;
+    /*
+    DEBUG ONLY
+    */
 
         loginFragment = new LoginFragment();
         FragmentManager fragmentManager = getFragmentManager();

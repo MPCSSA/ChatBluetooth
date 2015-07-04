@@ -85,13 +85,12 @@ public class MessageThread extends Thread {
 
         try {
 
-            BlueCtrl.lockDiscoverySuspension();
+            //BlueCtrl.lockDiscoverySuspension();
             while(BluetoothAdapter.getDefaultAdapter().isDiscovering()) {
 
             }
-            System.out.println("no non ci sono!");
             sckt.connect();
-            System.out.println("c sei pippo?" + sckt.isConnected());
+            System.out.println("Connected to " + rmtDvc.getAddress());
             boolean waiting = false;
 
             switch (type) {
@@ -141,35 +140,28 @@ public class MessageThread extends Thread {
                     No divider is needed, because every MAC address is made up of exactly 6 bytes.
                     [2][MAC]
                      */
-                        breakFree = true;
 
-                        while (breakFree) {
-                            i = 0;
+                        System.out.println("infromation requested");
+                        i = 0;
+                        do {
+                            j = in.read(buffer, i, 6 - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                //TODO: throw something
+                            }
+                            i += j;
+                        } while (i < 6);
 
-                            do {
-                                j = in.read(buffer, i, 6 - i);
-                                if (j < 0) {
-                                    switch (i) {
-                                        case 0:
-                                            breakFree = false; //EOF reached
-                                            break;
-                                        default:
-                                            System.out.println("Premature EOF, message misunderstanding");
-                                            //TODO: throw something
-                                    }
+                        address = BlueCtrl.bytesToMAC(buffer);
+                        System.out.println("my mac is this: " + address);
 
-                                    break;
-                                }
-                                i += j;
-                            } while (i < 6);
+                        byte[] card = BlueCtrl.buildCard(BlueCtrl.fetchPersistentInfo(address));
+                        System.out.println("got your nose");
+                        //BlueCtrl.lockDiscoverySuspension();
+                        out.write(card);
+                        //BlueCtrl.unlockDiscoverySuspension();
+                        System.out.println("card sent");
 
-                            address = BlueCtrl.bytesToMAC(buffer);
-
-                            byte[] card = BlueCtrl.buildCard(BlueCtrl.fetchPersistentInfo(address));
-                            BlueCtrl.lockDiscoverySuspension();
-                            out.write(card);
-                            BlueCtrl.unlockDiscoverySuspension();
-                        }
                         break;
 
                     case BlueCtrl.UPD_HEADER:
@@ -243,7 +235,7 @@ public class MessageThread extends Thread {
             if (waiting) out.close();
             in.close();
 
-            BlueCtrl.unlockDiscoverySuspension();
+            //BlueCtrl.unlockDiscoverySuspension();
 
         }
         catch(IOException e) {

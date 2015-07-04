@@ -20,7 +20,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
+import com.example.christian.chatbluetooth.view.Activities.MainActivity;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -82,8 +84,15 @@ public class LoginFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+    /*
+    DEBUG ONLY
+    */
+        int layout = (BlueCtrl.version) ? R.layout.fragment_login : R.layout.fragment_login_nomat;
+    /*
+    DEBUG ONLY
+    */
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_login, container, false);
+        return inflater.inflate(layout, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -149,7 +158,8 @@ public class LoginFragment extends Fragment {
                 RegistrationFragment registrationFragment = new RegistrationFragment();
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                /*DEBUG ONLY*/
+                if (BlueCtrl.version) fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
                 fragmentTransaction.replace(R.id.container, registrationFragment);
                 fragmentTransaction.commit();
             }
@@ -182,6 +192,7 @@ public class LoginFragment extends Fragment {
                         getActivity().getApplicationContext(),
                         ChatActivity.class
                 );
+                intent.putExtra("newbie", ((MainActivity)getActivity()).isNew());
                 startActivity(intent);
             }
         });

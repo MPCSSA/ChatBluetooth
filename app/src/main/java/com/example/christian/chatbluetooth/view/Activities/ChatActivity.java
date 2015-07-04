@@ -10,12 +10,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.DisplayMetrics;
@@ -39,11 +42,17 @@ import com.example.christian.chatbluetooth.view.Fragments.ChatFragment;
 import com.example.christian.chatbluetooth.view.Fragments.ListFragment;
 import com.example.christian.chatbluetooth.view.Adapters.MenuAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
+import com.example.christian.chatbluetooth.view.Fragments.NoMaterialNavDrawerFragment;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
-public class ChatActivity extends Activity implements ListFragment.OnFragmentInteractionListener, ChatFragment.OnFragmentInteractionListener{
+public class ChatActivity extends Activity implements ListFragment.OnFragmentInteractionListener,
+                                                      ChatFragment.OnFragmentInteractionListener,
+    /*DEBUG ONLY*/                                    NoMaterialNavDrawerFragment.OnFragmentInteractionListener{
 
     private DrawerLayout drawerLayout;
     private ListView listViewMenu;
@@ -84,81 +93,22 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        /* NEW PART */
-        ActionBar actionBar = getActionBar();
-
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        drawerLayout = (DrawerLayout) inflater.inflate(R.layout.nav_drawer, null);
-
-        ViewGroup decor = (ViewGroup) getWindow().getDecorView();
-        View child = decor.getChildAt(0);
-        decor.removeView(child);
-        FrameLayout container = (FrameLayout) drawerLayout.findViewById(R.id.nav_container);
-        container.addView(child);
-        decor.addView(drawerLayout);
-        ((TextView) findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
-        listViewMenu = (ListView) findViewById(R.id.list_menu);
-        listViewMenu.setAdapter(new MenuAdapter(this, R.layout.menu_item_layout));
-        ((ArrayAdapter)listViewMenu.getAdapter()).add("Profilo");
-        ((ArrayAdapter)listViewMenu.getAdapter()).add("Impostazioni");
-        ((ArrayAdapter)listViewMenu.getAdapter()).add("Cronologia");
-        listViewMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        Handler handler = new Handler() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                switch (position){
-                    case 0:
-                        Intent intent = new Intent(
-                                getApplicationContext(),
-                                ProfileActivity.class
-                        );
-                        startActivity(intent);
-                        break;
-
-                    case 1:
-                        intent = new Intent(
-                                getApplicationContext(),
-                                SettingActivity.class
-                        );
-                        startActivity(intent);
-                        break;
-
-                    case 2:
-                        intent = new Intent(
-                                getApplicationContext(),
-                                HistoryActivity.class
-                        );
-                        startActivity(intent);
-                        break;
+            public void handleMessage(Message msg) {
+                if (msg.what == 0) {
+                    if (BlueCtrl.version) BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
+                    else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
                 }
-            }
-        });
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null, R.string.app_name, R.string.app_name){
-            /** Called when a drawer has settled in a completely closed state. */
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-                getActionBar().setTitle("Lista Contatti");
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
+                else {
+                    BlueCtrl.cardUpdate(BlueCtrl.updateQueue.remove(0));
+                }
 
-            /** Called when a drawer has settled in a completely open state. */
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                getActionBar().setTitle("Menu");
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+                if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
+                else BlueCtrl.userNomat.notifyDataSetChanged();
+
             }
         };
-
-        drawerLayout.setDrawerListener(drawerToggle);
-
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-        int[] pixel = new int[2];
-        pixel[0] = (bmp.getWidth() - 240) / 2;
-        pixel[1] = (bmp.getHeight() -180) / 2;
-        bmp = Bitmap.createScaledBitmap(bmp, 240, 180, false);
-        bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
-        ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bmp));
-        /* END NEW PART */
-
 
         ListFragment listFragment = new ListFragment();
         FragmentManager fragmentManager = getFragmentManager();
@@ -167,23 +117,126 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         fragmentTransaction.add(R.id.containerChat, listFragment);
         fragmentTransaction.commit();
 
+        /* NEW PART */
+
+        if (BlueCtrl.version) {
+
+            LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            drawerLayout = (DrawerLayout) inflater.inflate(R.layout.nav_drawer, null);
+
+            ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+            View child = decor.getChildAt(0);
+            decor.removeView(child);
+            FrameLayout container = (FrameLayout) drawerLayout.findViewById(R.id.nav_container);
+            container.addView(child);
+            decor.addView(drawerLayout);
+            ((TextView) findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
+            listViewMenu = (ListView) findViewById(R.id.list_menu);
+            listViewMenu.setAdapter(new MenuAdapter(this, R.layout.menu_item_layout));
+            ((ArrayAdapter) listViewMenu.getAdapter()).add("Profilo");
+            ((ArrayAdapter) listViewMenu.getAdapter()).add("Impostazioni");
+            ((ArrayAdapter) listViewMenu.getAdapter()).add("Cronologia");
+            listViewMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    switch (position) {
+                        case 0:
+                            Intent intent = new Intent(
+                                    getApplicationContext(),
+                                    ProfileActivity.class
+                            );
+                            startActivity(intent);
+                            break;
+
+                        case 1:
+                            intent = new Intent(
+                                    getApplicationContext(),
+                                    SettingActivity.class
+                            );
+                            startActivity(intent);
+                            break;
+
+                        case 2:
+                            intent = new Intent(
+                                    getApplicationContext(),
+                                    HistoryActivity.class
+                            );
+                            startActivity(intent);
+                            break;
+                    }
+                }
+            });
+            ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null, R.string.app_name, R.string.app_name) {
+                /**
+                 * Called when a drawer has settled in a completely closed state.
+                 */
+                public void onDrawerClosed(View view) {
+                    super.onDrawerClosed(view);
+                    getActionBar().setTitle("Lista Contatti");
+                    invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+                }
+
+                /**
+                 * Called when a drawer has settled in a completely open state.
+                 */
+                public void onDrawerOpened(View drawerView) {
+                    super.onDrawerOpened(drawerView);
+                    getActionBar().setTitle("Menu");
+                    invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+                }
+            };
+
+            drawerLayout.setDrawerListener(drawerToggle);
+
+            Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
+            int[] pixel = new int[2];
+            pixel[0] = (bmp.getWidth() - 240) / 2;
+            pixel[1] = (bmp.getHeight() - 180) / 2;
+            bmp = Bitmap.createScaledBitmap(bmp, 240, 180, false);
+            bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+            ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bmp));
+        /* END NEW PART */
+
+        }
+
+
         BlueCtrl.openDatabase(this);
+        if (getIntent().getBooleanExtra("newbie", false)) {
+            System.out.println("saving info in db");
+            SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
+            long timestamp = sh.getLong("timestamp", 0);
+            int age = 0;
+            try {
+                long millis = (new SimpleDateFormat("dd mm yyyy")).parse(sh.getString("birth", "01 01 1980")).getTime() -
+                              (new Date()).getTime();
+                age = (int) (millis / 31536000000l);
+            }
+            catch (Exception ignore) {}
+            BlueCtrl.insertUserTable(BluetoothAdapter.getDefaultAdapter().getAddress(), timestamp, sh.getString("username", "Unknown"), age, sh.getInt("gender", 0), sh.getInt("nationality", 0));
+        }
+
+        BlueCtrl.validateUser(BluetoothAdapter.getDefaultAdapter().getAddress(), getSharedPreferences("preferences", MODE_PRIVATE).getLong("timestamp", 0));
+
+        System.out.println("my mac is " + BluetoothAdapter.getDefaultAdapter().getAddress());
         BlueCtrl.msgAdapt = new MessageAdapter(this, R.layout.listitem_discuss);
         BlueCtrl.msgAdapt.setAddress(new String());
         if (BlueCtrl.appFolder == null) BlueCtrl.appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
-        /*
+
         try {
-            (new ServerThread(BluetoothAdapter.getDefaultAdapter().listenUsingInsecureRfcommWithServiceRecord("com.example.christian.chatbluetooth", UUID.fromString(BlueCtrl.UUID)))).start();
+            (new ServerThread(BluetoothAdapter.getDefaultAdapter().listenUsingInsecureRfcommWithServiceRecord("com.example.christian.chatbluetooth", UUID.fromString(BlueCtrl.UUID)), handler)).start();
         }
 
         catch (IOException ignore){
             System.out.println("listen failed");
         }
 
+        Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+        startActivity(discoverable);
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-        BluetoothAdapter.getDefaultAdapter().startDiscovery();*/
+        BluetoothAdapter.getDefaultAdapter().startDiscovery();
     }
 
     @Override
@@ -212,7 +265,20 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             }
 
             else{
-                drawerLayout.openDrawer(findViewById(R.id.left_drawer));
+                if (BlueCtrl.version) drawerLayout.openDrawer(findViewById(R.id.left_drawer));
+    /*
+    DEBUG ONLY
+     */
+                else {
+                    NoMaterialNavDrawerFragment fragment = new NoMaterialNavDrawerFragment();
+                    FragmentManager fragmentManager = getFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.replace(R.id.containerChat, fragment);
+                    fragmentTransaction.commit();
+                }
+    /*
+    DEBUG ONLY
+     */
             }
 
         }
@@ -235,6 +301,11 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         BluetoothAdapter.getDefaultAdapter().startDiscovery();*/
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

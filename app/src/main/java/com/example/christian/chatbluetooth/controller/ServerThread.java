@@ -3,12 +3,14 @@ package com.example.christian.chatbluetooth.controller;
 
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.os.Handler;
 
 import java.io.IOException;
 
 public class ServerThread extends Thread {
 
     private BluetoothServerSocket server;
+    private Handler handler;
 
     public BluetoothServerSocket getServer() {
         return server;
@@ -17,9 +19,14 @@ public class ServerThread extends Thread {
         this.server = server;
     }
 
-    public ServerThread(BluetoothServerSocket server) {
+    public void setHandler(Handler handler) {
+        this.handler = handler;
+    }
+
+    public ServerThread(BluetoothServerSocket server, Handler handler) {
 
         setServer(server);
+        setHandler(handler);
 
     }
 
@@ -39,7 +46,7 @@ public class ServerThread extends Thread {
             }
 
             if (sckt != null) {
-                (new ReceiverThread(sckt)).start();
+                (new ReceiverThread(sckt, handler)).start();
             }
             else System.out.println("whattafuck");
         }

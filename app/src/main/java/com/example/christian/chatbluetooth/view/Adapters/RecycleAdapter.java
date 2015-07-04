@@ -32,7 +32,9 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
     @Override
     public void onBindViewHolder(UserViewHolder userViewHolder, int i){
         ChatUser chatUser = userList.get(i);
-        userViewHolder.name.setText("Ciao"); // chatUser.getName()
+        String username = chatUser.getName();
+        if (username == null) username = "Unknown";
+        userViewHolder.name.setText(username); // chatUser.getName()
     }
 
     @Override
@@ -51,6 +53,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
             super(v);
 
             name = (TextView) v.findViewById(R.id.title);
+
         }
     }
 

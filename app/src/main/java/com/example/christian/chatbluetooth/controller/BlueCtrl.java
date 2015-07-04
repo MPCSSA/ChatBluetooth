@@ -14,7 +14,9 @@ import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
+import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
+import com.example.christian.chatbluetooth.view.Fragments.NoMaterialNavDrawerFragment;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -40,10 +42,30 @@ public class BlueCtrl {
     public static final String     UUID = "00001101-0000-1000-8000-00805F9B34FB"; //custom UUID
     public static File appFolder;
 
+    /*
+    DEBUG ONLY
+     */
+    public static boolean version;
+    /*
+    DEBUG ONLY
+    */
+
+    public static ArrayList<ChatUser> userQueue = new ArrayList<>();
+    public static ArrayList<String> updateQueue = new ArrayList<>();
+
     public static boolean DISCOVERY_SUSPENDED = false;
     public static int DISCOVERY_LOCK = 0; //l'ultimo che esce chiude la porta
 
     private static SharedPreferences currentUser;
+
+    /*
+    DEBUG ONLY
+     */
+    public static NoMaterialRecyclerAdapter userNomat;
+    /*
+    DEBUG ONLY
+     */
+
     public final static RecycleAdapter userAdapt = new RecycleAdapter(new ArrayList<ChatUser>());        //ChatUser Adapter; initialized on MainActivity creation
     private static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>();
     public static int counter = 0;
@@ -103,7 +125,15 @@ public class BlueCtrl {
 
     public static ChatUser scanUsers(String address) {
 
-        return BlueCtrl.userAdapt.getItem(address);
+        if (BlueCtrl.version) return BlueCtrl.userAdapt.getItem(address);
+    /*
+    DEBUG ONLY
+    */
+        return BlueCtrl.userNomat.getItem(address);
+    /*
+    DEBUG ONLY
+    */
+
     }
 
     public static void getUserList() {
@@ -135,22 +165,33 @@ public class BlueCtrl {
         ChatUser user = scanUsers(mac);
         if (user != null) {
             if (user.updateUser(manInTheMiddle, bounces, (int) status)) {
-                userAdapt.notifyDataSetChanged();
+
+                if (BlueCtrl.version) userAdapt.notifyDataSetChanged();
+    /*
+    DEBUG ONLY
+    */
+                else userNomat.notifyDataSetChanged();
+    /*
+    DEBUG ONLY
+    */
                 return true;
             }
             return false;
         }
-        return BlueCtrl.userAdapt.add(new ChatUser(mac, manInTheMiddle, bounces, status, dbManager.fetchUserInfo(mac)));
+
+        return userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, null));
 
     }
 
-    public static void cardUpdate(String address, byte[] image) {
-        try {
+    public static void cardUpdate(String address/*, byte[] image*/) {
 
-            Cursor info = fetchPersistentInfo(address);
-            scanUsers(address).addPersistentInfo(info);
+        Cursor info = fetchPersistentInfo(address);
+        System.out.println("fetching new info");
+        scanUsers(address).addPersistentInfo(info);
+        System.out.println("info added");
 
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+
+            /*if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 
                 String pic = info.getString(5);
                 if (pic == null) {
@@ -160,11 +201,8 @@ public class BlueCtrl {
                 OutputStream outputStream = new FileOutputStream(directory.getAbsolutePath() + "/IMG_" + address);
                 outputStream.write(image);
 
-            }
+            }*/
 
-            userAdapt.notifyDataSetChanged();
-        } catch (NullPointerException ignore) {}
-        catch (IOException ignore) {}
     }
 
     public static boolean addCloseDvc(BluetoothDevice dvc) {
@@ -291,24 +329,28 @@ public class BlueCtrl {
     public static byte[] buildCard(Cursor info) {
 
         info.moveToFirst();
-        String mac = info.getString(1), username = info.getString(2);
-        long timestamp  = info.getLong(3);
-        String profile_pic = info.getString(5);
-        int country = info.getInt(6), gender = info.getInt(7), age = info.getInt(8);
+
+        String mac = info.getString(0), username = info.getString(1);
+        System.out.println("building card 1");
+        long timestamp  = info.getLong(2);
+        System.out.println("building card 2");
+        //String profile_pic = info.getString(5);
+        int country = info.getInt(3), gender = info.getInt(4), age = info.getInt(5);
+        System.out.println("building card 3");
 
         byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
-                pic = extractImage(profile_pic), card = new byte[20 + user.length + pic.length];
+                /*pic = extractImage(profile_pic),*/ card = new byte[20 + user.length/* + pic.length*/];
 
         int i = 0, j;
         card[i] = BlueCtrl.CRD_HEADER;
         ++i;
 
-        for (j = 0; i < 6; ++j) {
+        for (j = 0; j < 6; ++j) {
             card[i + j] = address[j];
         }
         i += j;
 
-        for (j = 0; i < 8; ++j) {
+        for (j = 0; j < 8; ++j) {
             card[i + j] = lastUpd[j];
         }
         i += j;
@@ -325,13 +367,13 @@ public class BlueCtrl {
         for (j = 0; j < user.length; ++j) {
             card[i + j] = user[j];
         }
-        i += j;
+        /*i += j;
 
         card[i] = (byte) pic.length;
         ++i;
         for (j = 0; j < pic.length; ++j) {
             card[i + j] = pic[j];
-        }
+        }*/
 
         return card;
     }
@@ -348,7 +390,15 @@ public class BlueCtrl {
     public static boolean validateUser(String address, long timestamp) {
 
         Cursor cursor = dbManager.fetchTimestamp(address);
+        if (cursor == null) System.out.println("Cursor not created");
+        else if (cursor.getCount() < 1) System.out.println("Cursor empty, what tha fuck");
         return (cursor.moveToFirst() && cursor.getLong(0) == timestamp);
+    }
+
+    public static void insertUserTable(String mac, long timestamp, String username, int age, int gender, int country){
+
+        dbManager.createRecord(0, new Object[] {mac, username, timestamp, false, null, country, gender, age});
+
     }
 
     public static void updateUserTable(String mac, long timestamp, String username, int age, int gender, int country){

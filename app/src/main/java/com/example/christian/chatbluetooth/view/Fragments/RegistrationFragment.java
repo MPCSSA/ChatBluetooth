@@ -3,6 +3,8 @@ package com.example.christian.chatbluetooth.view.Fragments;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -98,7 +100,11 @@ public class RegistrationFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_registration, container, false);
+        /*
+        DEBUG ONLY
+        */
+        int layout = (BlueCtrl.version) ? R.layout.fragment_registration : R.layout.fragment_registration_nomat;
+        return inflater.inflate(layout, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -142,7 +148,6 @@ public class RegistrationFragment extends Fragment {
 
         ActionBar actionBar = getActivity().getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
-
         Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
         name = (EditText) getActivity().findViewById(R.id.et_reg_username);
         passw = (EditText) getActivity().findViewById(R.id.et_reg_password);
@@ -174,7 +179,8 @@ public class RegistrationFragment extends Fragment {
         list.add("Inghilterra");
         list.add("Italia");
         list.add("Spagna");
-        ArrayAdapter<String> dataAdapter= new ArrayAdapter<String>(getActivity(), R.layout.spinner_item, list);
+        int spinner_item = (BlueCtrl.version) ? R.layout.spinner_item : R.layout.spinner_item_nomat;
+        ArrayAdapter<String> dataAdapter= new ArrayAdapter<String>(getActivity(), spinner_item, list);
         nations.setAdapter(dataAdapter);
 
         /*
@@ -220,16 +226,25 @@ public class RegistrationFragment extends Fragment {
 
                             preferences.edit().putString("birth", date.getText().toString());
 
+                            int gender;
                             if ((getActivity().findViewById(R.id.radioGroup_reg)).isSelected()) {
-                                String gender = (((RadioButton) getActivity().findViewById(R.id.rbtn_male)).isChecked()) ? "M" : "F";
-                                preferences.edit().putString("gender", gender).apply();
+                                gender = (((RadioButton) getActivity().findViewById(R.id.rbtn_male)).isChecked()) ? 1 : 2;
                             }
+                            else gender = 0;
+                            preferences.edit().putInt("gender", gender).apply();
 
-                            preferences.edit().putString("nationality", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItem().toString()).apply();
+                            preferences.edit().putInt("nationality", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItemPosition()).apply();
 
-                            BlueCtrl.bindUser(preferences);
+                            //BlueCtrl.bindUser(preferences);
+                            ((MainActivity)getActivity()).registered();
 
-                            //TODO: do login
+                            LoginFragment fragment = new LoginFragment();
+                            FragmentManager fragmentManager = getFragmentManager();
+                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                            /*DEBUG ONLY*/
+                            if (BlueCtrl.version) fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
+                            fragmentTransaction.replace(R.id.container, fragment);
+                            fragmentTransaction.commit();
 
                         } else
                             Toast.makeText(getActivity(), "Confirm password!", Toast.LENGTH_SHORT).show();
@@ -257,14 +272,19 @@ public class RegistrationFragment extends Fragment {
                 String Toset = "";
                 if(dayOfMonth < 10)
                     Toset="0";
-                Toset = Toset + dayOfMonth + "/";
+                Toset = Toset + dayOfMonth + " ";
                 if(monthOfYear < 10)
                     Toset = Toset + "0";
-                Toset = Toset + (monthOfYear+1) + "/" + year;
+                Toset = Toset + (monthOfYear+1) + " " + year;
 
                 date.setText(Toset);
-                date.setTextColor(getResources().getColor(R.color.primary_text));
-                date.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf"));
+
+                //DEBUG ONLY
+                if (BlueCtrl.version) {
+                    date.setTextColor(getResources().getColor(R.color.primary_text));
+                    date.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf"));
+                }
+                //DEBUG ONLY
 
             }};
         DatePickerDialog dpDialog=new DatePickerDialog(getActivity(), R.style.DialogTheme,listener, 1980, 1,1);

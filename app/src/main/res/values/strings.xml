@@ -22,12 +22,12 @@
     <string name="registration_btn">Sign Up</string>
 
 <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_profile">ProfileActivity</string>
+    <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
+    <string name="title_activity_profile" translatable="false">ProfileActivity</string>
 
-    <string name="hello_world">Hello world!</string>
-    <string name="title_activity_setting">SettingActivity</string>
-    <string name="title_activity_history">HistoryActivity</string>
+    <string name="hello_world" translatable="false">Hello world!</string>
+    <string name="title_activity_setting" translatable="false">SettingActivity</string>
+    <string name="title_activity_history" translatable="false">HistoryActivity</string>
 
 
 </resources>

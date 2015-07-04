@@ -16,11 +16,15 @@ import android.text.SpannableString;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
+import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
 import com.example.christian.chatbluetooth.view.RecyclerItemClickListener;
 
@@ -81,8 +85,15 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+    /*
+    DEBUG ONLY
+    */
+        int layout = (BlueCtrl.version) ? R.layout.fragment_list : R.layout.fragment_list_nomat;
+    /*
+    DEBUG ONLY
+    */
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_list, container, false);
+        return inflater.inflate(layout, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -129,63 +140,100 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
         Typeface type = Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf");
         SpannableString title = new SpannableString("Lista Contatti");
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
         ActionBar actionBar = getActivity().getActionBar();
-        actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
-        actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setTitle(title);
 
-        final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
-        recList.setHasFixedSize(true);
-        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        recList.setLayoutManager(llm);
-        recList.setItemAnimator(new DefaultItemAnimator());
+        if (BlueCtrl.version) {
 
-        //final RecycleAdapter cardadapt = new RecycleAdapter(createList(1));
-        recList.setAdapter(BlueCtrl.userAdapt);
+            actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
+            actionBar.setDisplayHomeAsUpEnabled(true);
 
-        ChatUser card = new ChatUser("FF:FF:FF:FF:FF:FF", null, 0, 0, null);
-        card.setName("ciaone");
-        BlueCtrl.userAdapt.add(card);
 
-        recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener(){
-            @Override
-            public void onItemClick(View view, int position){
+            final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
+            recList.setHasFixedSize(true);
+            LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+            llm.setOrientation(LinearLayoutManager.VERTICAL);
+            recList.setLayoutManager(llm);
+            recList.setItemAnimator(new DefaultItemAnimator());
 
-                if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
-                    BlueCtrl.msgAdapt.clear();
-                    BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
-                    BlueCtrl.fillMsgAdapter();
-                }
+            //final RecycleAdapter cardadapt = new RecycleAdapter(createList(1));
+            recList.setAdapter(BlueCtrl.userAdapt);
 
-                ChatFragment chatFragment = new ChatFragment();
-
-                chatFragment.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
-                chatFragment.setDevice(BlueCtrl.userAdapt.getItem(position).getNextNode());
-                chatFragment.setMac(BlueCtrl.userAdapt.getItem(position).getMacInBytes());
-
-                FragmentManager fragmentManager = getFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-                fragmentTransaction.replace(R.id.containerChat, chatFragment);
-                fragmentTransaction.commit();
-
-            }
-        }));
-    }
-
-    private List createList(int size) {
-
-        List result = new ArrayList();
-        for (int i=1; i <= size; i++) {
             ChatUser card = new ChatUser("FF:FF:FF:FF:FF:FF", null, 0, 0, null);
             card.setName("ciaone");
-            result.add(card);
+            BlueCtrl.userAdapt.add(card);
 
+            recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+
+                    if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
+                        BlueCtrl.msgAdapt.clear();
+                        BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
+                        BlueCtrl.fillMsgAdapter();
+                    }
+
+                    ChatFragment chatFragment = new ChatFragment();
+
+                    chatFragment.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
+                    chatFragment.setDevice(BlueCtrl.userAdapt.getItem(position).getNextNode());
+                    chatFragment.setMac(BlueCtrl.userAdapt.getItem(position).getMacInBytes());
+
+                    FragmentManager fragmentManager = getFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                    fragmentTransaction.replace(R.id.containerChat, chatFragment);
+                    fragmentTransaction.commit();
+
+                }
+            }));
         }
 
-        return result;
+    /*
+    DEBUG ONLY
+    */
+        else {
+            System.out.println("building");
+            final ListView recList = (ListView) getActivity().findViewById(R.id.cardList);
 
+            BlueCtrl.userNomat = new NoMaterialRecyclerAdapter(getActivity(), R.layout.card_layout_nomat);
+            recList.setAdapter(BlueCtrl.userNomat);
+
+            System.out.println("chat user adapter");
+            ChatUser card = new ChatUser("FF:FF:FF:FF:FF:FF", null, 0, 0, null);
+            card.setName("ciaone");
+            ((ArrayAdapter<ChatUser>)recList.getAdapter()).add(card);
+            System.out.println("chat user");
+
+            recList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                    if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(i).getMac())) {
+                        BlueCtrl.msgAdapt.clear();
+                        BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(i).getMac());
+                        BlueCtrl.fillMsgAdapter();
+                    }
+
+                    ChatFragment chatFragment = new ChatFragment();
+
+                    chatFragment.setAddress(BlueCtrl.userAdapt.getItem(i).getMac());
+                    chatFragment.setDevice(BlueCtrl.userAdapt.getItem(i).getNextNode());
+                    chatFragment.setMac(BlueCtrl.userAdapt.getItem(i).getMacInBytes());
+
+                    FragmentManager fragmentManager = getFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.replace(R.id.containerChat, chatFragment);
+                    fragmentTransaction.commit();
+
+                }
+            });
+
+        }
+    /*
+    DEBUG ONLY
+    */
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.example.christian.chatbluetooth.controller;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.os.Handler;
 
 import com.example.christian.chatbluetooth.model.ChatUser;
 
@@ -18,13 +19,17 @@ public class ReceiverThread extends Thread {
     private InputStream in;       //InputStream object from which reading incoming messages
     private OutputStream out;     //OutputStream object from which reading ACK messages
     private BluetoothDevice rmtDvc;        //MAC address of communicating Bluetooth device
+    private Handler handler;
 
     public void setSckt(BluetoothSocket sckt) {
         this.sckt = sckt;
     }
 
-    public ReceiverThread(BluetoothSocket sckt) {
+    public void setHandler(Handler handler) { this.handler = handler; }
+
+    public ReceiverThread(BluetoothSocket sckt, Handler handler) {
         setSckt(sckt);
+        setHandler(handler);
         InputStream tmp0 = null;
         OutputStream tmp1 = null;
 
@@ -48,7 +53,7 @@ public class ReceiverThread extends Thread {
             int i, j; //counters
             boolean connected = true; //connection still on, i.e. rmtDvc did not shut its OutputStream yet
             ArrayList<byte[]> filteredUpdCascade = null; //ArrayList containing Update Message segments of an Update Cascade
-            BlueCtrl.lockDiscoverySuspension();
+            //BlueCtrl.lockDiscoverySuspension();
 
             do {
 
@@ -92,22 +97,26 @@ public class ReceiverThread extends Thread {
 
                         long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
 
-                        BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0);
+                        System.out.println("summoning");
+                        if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0)) {
+                            handler.sendEmptyMessage(0);
+                        }
                         System.out.println("summoned");
                         /*
                         New ChatUser object is created regardless of incoherent or non-existent persistent information;
                         if needed, an update will be requested and the object will be updated
                         */
 
-                        //if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
+                        if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
                             out.write(BlueCtrl.ACK); //ACKed
-                        //} else {
+                        } else {
                             /*
                             User information are not up to date, an Info Request is forwarded as Instant Reply
                             */
-                           /* out.write(BlueCtrl.RQS_HEADER);
+                            System.out.println("requesting information");
+                            out.write(BlueCtrl.RQS_HEADER);
                             out.write(BlueCtrl.macToBytes(rmtDvc.getAddress()));
-                        }*/
+                        }
 
                         break;
                     }
@@ -221,7 +230,7 @@ public class ReceiverThread extends Thread {
                         final int age, gender, country;
                         int length;
 
-                        BlueCtrl.lockDiscoverySuspension(); //heavy message, needs fast download
+                        //BlueCtrl.lockDiscoverySuspension(); //heavy message, needs fast download
                         i = 0;
                         do {
                             j = in.read(buffer, i, 6 - i);
@@ -263,7 +272,7 @@ public class ReceiverThread extends Thread {
                         } while (i < length);
                         //read username
 
-                        length = in.read();
+                        /*length = in.read();
                         pic = new byte[length];
                         //TODO: images are too big; length field as a int or final character?
 
@@ -275,21 +284,24 @@ public class ReceiverThread extends Thread {
                                 //TODO: throw something
                             }
                             i += j;
-                        } while (i < length);
+                        } while (i < length);*/
                         //download profile image as a byte sequence
 
-                        BlueCtrl.unlockDiscoverySuspension(); //end of discovery suspension
+                        //BlueCtrl.unlockDiscoverySuspension(); //end of discovery suspension
 
                         (new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 String address = BlueCtrl.bytesToMAC(buffer);
-                                BlueCtrl.updateUserTable(address, BlueCtrl.rebuildTimestamp(lastUpd),
+                                BlueCtrl.insertUserTable(address, BlueCtrl.rebuildTimestamp(lastUpd),
                                         new String(username), age, gender, country);
                                 //consistent information inserted into DB
 
+                                BlueCtrl.updateQueue.add(address); //ChatUser object updated
+
+                                handler.sendEmptyMessage(1);
                                 //TODO: image updating
-                                BlueCtrl.cardUpdate(address, pic); //ChatUser object updated
+                                //
                             }
                         })).start();
 
@@ -433,7 +445,7 @@ public class ReceiverThread extends Thread {
     private void cancel() {
         //close connection
 
-        BlueCtrl.unlockDiscoverySuspension();
+        //BlueCtrl.unlockDiscoverySuspension();
         try{
             sckt.close();
         }

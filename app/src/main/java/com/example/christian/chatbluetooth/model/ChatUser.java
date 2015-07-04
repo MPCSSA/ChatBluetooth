@@ -78,7 +78,8 @@ public class ChatUser {
         setBounces(bounces);
         setStatus(status);
 
-        if (cursor != null) {
+        System.out.println("chatusing");
+        if (cursor != null && cursor.getCount() > 0) {
             addPersistentInfo(cursor);
         }
     }

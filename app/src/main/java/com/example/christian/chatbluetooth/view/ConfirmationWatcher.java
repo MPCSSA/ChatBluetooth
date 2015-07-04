@@ -7,6 +7,7 @@ import android.text.TextWatcher;
 import android.widget.EditText;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Activities.MainActivity;
 
 public class ConfirmationWatcher implements TextWatcher {
@@ -34,9 +35,11 @@ public class ConfirmationWatcher implements TextWatcher {
         boolean bool = ((EditText)((Activity) context).findViewById(R.id.et_reg_password)).getText().toString().equals(s.toString());
 
         if (bool)
-            ((Activity) context).findViewById(R.id.iv_confirm).setBackground(context.getDrawable(R.mipmap.check));
+            if (BlueCtrl.version) ((Activity) context).findViewById(R.id.iv_confirm).setBackground(context.getDrawable(R.mipmap.check));
+            /*DEBUG ONLY*/else ((Activity) context).findViewById(R.id.iv_confirm).setBackgroundColor(0x8BC34A);
         else
-            ((Activity) context).findViewById(R.id.iv_confirm).setBackground(context.getDrawable(R.mipmap.close));
+            if (BlueCtrl.version) ((Activity) context).findViewById(R.id.iv_confirm).setBackground(context.getDrawable(R.mipmap.close));
+            /*DEBUG ONLY*/else ((Activity) context).findViewById(R.id.iv_confirm).setBackgroundColor(0xF44336);
 
         ((MainActivity)context).setOkConf(bool);
     }
