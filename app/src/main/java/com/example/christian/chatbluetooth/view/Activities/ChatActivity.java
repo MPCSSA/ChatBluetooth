@@ -32,12 +32,15 @@ import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.AsyncScavenger;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.ServerThread;
+import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Fragments.ChatFragment;
 import com.example.christian.chatbluetooth.view.Fragments.ListFragment;
 import com.example.christian.chatbluetooth.view.Adapters.MenuAdapter;
@@ -47,6 +50,7 @@ import com.example.christian.chatbluetooth.view.Fragments.NoMaterialNavDrawerFra
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
@@ -56,6 +60,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
     private DrawerLayout drawerLayout;
     private ListView listViewMenu;
+    private Switch switchVisibility;
     public boolean state = false;
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
@@ -93,7 +98,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        Handler handler = new Handler() {
+        /* NEW PART */
+        public static ArrayList<ChatUser> userQueue = new ArrayList<>();
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == 0) {
@@ -108,7 +114,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 else BlueCtrl.userNomat.notifyDataSetChanged();
 
             }
-        };
+        });
 
         ListFragment listFragment = new ListFragment();
         FragmentManager fragmentManager = getFragmentManager();
@@ -195,6 +201,26 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             bmp = Bitmap.createScaledBitmap(bmp, 240, 180, false);
             bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
             ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bmp));
+
+            switchVisibility = (Switch) findViewById(R.id.switch_state);
+
+            ((ImageView) findViewById(R.id.image_switch)).setBackground(getDrawable(R.mipmap.visibility));
+
+            ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null, R.string.app_name, R.string.app_name){
+            /** Called when a drawer has settled in a completely closed state. */
+                public void onDrawerClosed(View view) {
+                    super.onDrawerClosed(view);
+                    getActionBar().setTitle("Lista Contatti");
+                    invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+                }
+
+            /** Called when a drawer has settled in a completely open state. */
+                public void onDrawerOpened(View drawerView) {
+                    super.onDrawerOpened(drawerView);
+                    getActionBar().setTitle("Menu");
+                    invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+                }
+            };
         /* END NEW PART */
 
         }
