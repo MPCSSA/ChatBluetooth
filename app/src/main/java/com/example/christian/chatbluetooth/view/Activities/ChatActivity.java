@@ -99,7 +99,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         setContentView(R.layout.activity_chat);
 
         /* NEW PART */
-        public static ArrayList<ChatUser> userQueue = new ArrayList<>();
+
+        Handler handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == 0) {
@@ -114,7 +115,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 else BlueCtrl.userNomat.notifyDataSetChanged();
 
             }
-        });
+        };
 
         ListFragment listFragment = new ListFragment();
         FragmentManager fragmentManager = getFragmentManager();
@@ -206,21 +207,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
             ((ImageView) findViewById(R.id.image_switch)).setBackground(getDrawable(R.mipmap.visibility));
 
-            ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null, R.string.app_name, R.string.app_name){
-            /** Called when a drawer has settled in a completely closed state. */
-                public void onDrawerClosed(View view) {
-                    super.onDrawerClosed(view);
-                    getActionBar().setTitle("Lista Contatti");
-                    invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-                }
 
-            /** Called when a drawer has settled in a completely open state. */
-                public void onDrawerOpened(View drawerView) {
-                    super.onDrawerOpened(drawerView);
-                    getActionBar().setTitle("Menu");
-                    invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-                }
-            };
         /* END NEW PART */
 
         }
