@@ -1,14 +1,24 @@
 package com.example.christian.chatbluetooth.view.Fragments;
 
+import android.app.ActionBar;
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Point;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.view.Adapters.SettingAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -90,6 +100,35 @@ public class SettingsFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        ActionBar actionBar = getActivity().getActionBar();
+        actionBar.setTitle("Setting");
+
+        ListView settingList = (ListView) getActivity().findViewById(R.id.setting_list);
+
+        Point point = new Point();
+        getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
+        System.out.println("La larghezza: " + point.x);
+        int width = point.x;
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
+        bmp = Bitmap.createScaledBitmap(bmp, width, (9*width)/16, false);
+        bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+        ImageView imageView = (ImageView) getActivity().findViewById(R.id.setting_image);
+        imageView.setImageDrawable(new BitmapDrawable(bmp));
+
+        settingList.setAdapter(new SettingAdapter(getActivity(), R.layout.my_profile_item));
+
+        ((ArrayAdapter<String>)settingList.getAdapter()).add("Modifica immagine");
+        ((ArrayAdapter<String>)settingList.getAdapter()).add("Modifica nickname");
+        ((ArrayAdapter<String>)settingList.getAdapter()).add("Cancella cronologia");
     }
 
     /**
