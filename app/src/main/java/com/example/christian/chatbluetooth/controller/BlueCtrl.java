@@ -130,10 +130,10 @@ public class BlueCtrl {
 
         Cursor cursor = fetchMsgHistory(msgAdapt.getAddress());
         if (cursor.getCount() > 0){
-            cursor.moveToFirst();
+            cursor.moveToLast();
             do{
                 msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2), cursor.getLong(1)));
-            } while(cursor.moveToNext());
+            } while(cursor.moveToPrevious());
         }
     }
 
@@ -430,9 +430,9 @@ public class BlueCtrl {
 
     }
 
-    public static void insertMsgTable(String msg, Date time) {
+    public static void insertMsgTable(String msg, String address, Date time) {
 
-        dbManager.createRecord(1, new Object[] {msg, BluetoothAdapter.getDefaultAdapter().getAddress(), time.getTime(), 0});
+        dbManager.createRecord(1, new Object[] {msg, address, time.getTime(), 0});
     }
 
     public static void updateUserTable(String mac, long timestamp, String username, int age, int gender, int country){

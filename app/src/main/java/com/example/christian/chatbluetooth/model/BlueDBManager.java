@@ -135,7 +135,7 @@ public class BlueDBManager {
     public Cursor fetchMsgHistory(String address) {
 
         return db.query(tables[1], new String [] {historyTable[0], historyTable[1], historyTable[3]}, historyTable[1] + " = \'" + address + "\'", null, null, null
-                        , historyTable[2], "25");
+                        , historyTable[2] + " DESC", "25");
 
     }
 
