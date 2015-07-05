@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatUser;
 
 import java.util.ArrayList;
@@ -62,15 +63,6 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         boolean result = userList.add(user);
         notifyDataSetChanged();
         return result;
-    }
-
-    public ChatUser getItem(String address) {
-
-        for (ChatUser user : userList) {
-            if (user.getMac().equals(address)) return user;
-        }
-
-        return null;
     }
 
     public ChatUser getItem(int position){

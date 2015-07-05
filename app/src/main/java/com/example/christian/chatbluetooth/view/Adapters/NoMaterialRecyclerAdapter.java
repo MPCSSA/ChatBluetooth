@@ -1,5 +1,6 @@
 package com.example.christian.chatbluetooth.view.Adapters;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -12,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
 
@@ -27,7 +29,7 @@ public class NoMaterialRecyclerAdapter extends ArrayAdapter<ChatUser> {
     private int layout;
 
     public NoMaterialRecyclerAdapter(Context context, int resource) {
-        super(context, resource);
+        super(context, resource, BlueCtrl.userList);
         this.layout = resource;
     }
 
@@ -50,12 +52,5 @@ public class NoMaterialRecyclerAdapter extends ArrayAdapter<ChatUser> {
         tv.setText(name);
 
         return view;
-    }
-
-    public ChatUser getItem(String address) {
-        for (int i = 0; i < getCount(); ++i) {
-            if (getItem(i).getMac().equals(address)) return getItem(i);
-        }
-        return null;
     }
 }

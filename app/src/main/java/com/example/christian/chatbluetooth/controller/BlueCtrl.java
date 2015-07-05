@@ -41,6 +41,44 @@ public class BlueCtrl {
     public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
     public static final String     UUID = "00001101-0000-1000-8000-00805F9B34FB"; //custom UUID
     public static File appFolder;
+    private static byte[] defaultCrd;
+
+    private static byte[] getDefaultCrd() {
+
+        if (defaultCrd == null) {
+            defaultCrd = new byte[20 + "pippobaudo94".getBytes().length];
+            defaultCrd[0] = BlueCtrl.CRD_HEADER;
+            int i = 1, j;
+            byte[] mac = macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress());
+
+            for (j = 0; j < 6; ++j) {
+                defaultCrd[i + j] = mac[j];
+            }
+            i += j;
+
+            byte[] lastUpd = longToBytes((new Date()).getTime());
+            for (j = 0; j < 8; ++j) {
+                defaultCrd[i + j] = lastUpd[j];
+            }
+            i += j;
+
+            defaultCrd[i] = (byte) 21;
+            ++i;
+            defaultCrd[i] = (byte) 1;
+            ++i;
+            defaultCrd[i] = (byte) 0;
+            ++i;
+
+            byte[] user = "pippobaudo94".getBytes();
+            defaultCrd[i] = (byte) user.length;
+            ++i;
+            for (j = 0; j < user.length; ++j) {
+                defaultCrd[i + j] = user[j];
+            }
+        }
+
+        return defaultCrd;
+    }
 
     /*
     DEBUG ONLY
@@ -65,8 +103,8 @@ public class BlueCtrl {
     /*
     DEBUG ONLY
      */
-
-    public final static RecycleAdapter userAdapt = new RecycleAdapter(new ArrayList<ChatUser>());        //ChatUser Adapter; initialized on MainActivity creation
+    public final static ArrayList<ChatUser> userList = new ArrayList<>();
+    public final static RecycleAdapter userAdapt = new RecycleAdapter(userList);        //ChatUser Adapter; initialized on MainActivity creation
     private static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>();
     public static int counter = 0;
     private static BlueDBManager dbManager;          //User and Messages DB Manager
@@ -125,14 +163,24 @@ public class BlueCtrl {
 
     public static ChatUser scanUsers(String address) {
 
-        if (BlueCtrl.version) return BlueCtrl.userAdapt.getItem(address);
+        //if (BlueCtrl.version) return BlueCtrl.userAdapt.getItem(address);
     /*
     DEBUG ONLY
     */
-        return BlueCtrl.userNomat.getItem(address);
+        //return BlueCtrl.userNomat.getItem(address);
     /*
     DEBUG ONLY
     */
+        System.out.println("searching for " + address);
+        for (ChatUser user : userList) {
+            System.out.println("ChatUser: " + user.getMac());
+            if (user.getMac().equals(address)) {
+                System.out.println("found ya");
+                return user;
+            }
+        }
+
+        return null;
 
     }
 
@@ -163,22 +211,7 @@ public class BlueCtrl {
     public static boolean awakeUser(String mac, BluetoothDevice manInTheMiddle, byte status, int bounces) {
 
         ChatUser user = scanUsers(mac);
-        if (user != null) {
-            if (user.updateUser(manInTheMiddle, bounces, (int) status)) {
-
-                if (BlueCtrl.version) userAdapt.notifyDataSetChanged();
-    /*
-    DEBUG ONLY
-    */
-                else userNomat.notifyDataSetChanged();
-    /*
-    DEBUG ONLY
-    */
-                return true;
-            }
-            return false;
-        }
-
+        if (user != null) return (user.updateUser(manInTheMiddle, bounces, (int) status));
         return userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, null));
 
     }
@@ -187,8 +220,12 @@ public class BlueCtrl {
 
         Cursor info = fetchPersistentInfo(address);
         System.out.println("fetching new info");
-        scanUsers(address).addPersistentInfo(info);
-        System.out.println("info added");
+        ChatUser user = scanUsers(address);
+
+        if (user != null) {
+            user.addPersistentInfo(info);
+            System.out.println("info added");
+        }
 
 
             /*if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -328,6 +365,7 @@ public class BlueCtrl {
 
     public static byte[] buildCard(Cursor info) {
 
+        if (info.getCount() < 1) return getDefaultCrd();
         info.moveToFirst();
 
         String mac = info.getString(0), username = info.getString(1);
@@ -397,7 +435,7 @@ public class BlueCtrl {
 
     public static void insertUserTable(String mac, long timestamp, String username, int age, int gender, int country){
 
-        dbManager.createRecord(0, new Object[] {mac, username, timestamp, false, null, country, gender, age});
+        dbManager.createRecord(0, new Object[]{mac, username, timestamp, false, null, country, gender, age});
 
     }
 
@@ -417,7 +455,7 @@ public class BlueCtrl {
 
     public static byte[] macToBytes(String address) {
 
-        if (BluetoothAdapter.checkBluetoothAddress(address)) {
+        //if (BluetoothAdapter.checkBluetoothAddress(address)) {
 
             byte[] mac = new byte[6];
             String[] digits = address.toLowerCase().split(":");
@@ -430,9 +468,9 @@ public class BlueCtrl {
             }
 
             return mac;
-        }
+        //}
 
-        return null;
+        //return null;
     }
 
     public static String bytesToMAC(byte[] mac) {
@@ -450,6 +488,7 @@ public class BlueCtrl {
                 if (bool) address += ':';
                 else bool = !bool;
 
+                if (i < 16) address += "0";
                 address += Integer.toHexString(i).toUpperCase();
 
             }

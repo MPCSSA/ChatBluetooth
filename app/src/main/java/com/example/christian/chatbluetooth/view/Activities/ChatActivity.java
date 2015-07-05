@@ -79,9 +79,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                     break;
 
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
-                    System.out.println("scavenging");
-                    (new AsyncScavenger()).execute();
                     if (!BlueCtrl.DISCOVERY_SUSPENDED) {
+                        /*System.out.println("scavenging");
+                        (new AsyncScavenger()).execute();*/
                         if (!BluetoothAdapter.getDefaultAdapter().startDiscovery()) {
                             System.out.println("Discovery failed");
                             //TODO: discovery recovery
@@ -99,6 +99,16 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         setContentView(R.layout.activity_chat);
 
         /* NEW PART */
+
+        if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
+
+            Intent bluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivity(bluetooth);
+        }
+
+        Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+        startActivity(discoverable);
 
         Handler handler = new Handler() {
             @Override
@@ -244,9 +254,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             System.out.println("listen failed");
         }
 
-        Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-        startActivity(discoverable);
+
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         BluetoothAdapter.getDefaultAdapter().startDiscovery();

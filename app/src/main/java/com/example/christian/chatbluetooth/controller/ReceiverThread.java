@@ -427,6 +427,8 @@ public class ReceiverThread extends Thread {
                 }
             } while(connected);
 
+            BlueCtrl.unlockDiscoverySuspension();
+
             if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {
                 BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(filteredUpdCascade), rmtDvc);
             }
@@ -435,6 +437,7 @@ public class ReceiverThread extends Thread {
         }
         catch (IOException e) {
 
+            BlueCtrl.unlockDiscoverySuspension();
             cancel();
         }
         catch(NullPointerException ignore) {}
@@ -445,7 +448,6 @@ public class ReceiverThread extends Thread {
     private void cancel() {
         //close connection
 
-        //BlueCtrl.unlockDiscoverySuspension();
         try{
             sckt.close();
         }

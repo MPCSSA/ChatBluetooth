@@ -37,6 +37,7 @@ public class ServerThread extends Thread {
             System.out.println("before accept");
             try {
                 sckt = server.accept();
+                BlueCtrl.lockDiscoverySuspension();
                 System.out.println("accepted");
             }
             catch (IOException e) {

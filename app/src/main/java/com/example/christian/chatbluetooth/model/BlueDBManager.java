@@ -99,13 +99,13 @@ public class BlueDBManager {
                 id = db.insertWithOnConflict(tables[table], null,
                         createCV((String) attrs[0], (String) attrs[1], (long) attrs[2], (boolean) attrs[3],
                                  (String) attrs[4], (int) attrs[5], (int) attrs[6], (int) attrs[7]),
-                        SQLiteDatabase.CONFLICT_IGNORE);
+                        SQLiteDatabase.CONFLICT_REPLACE);
                 break;
 
             case 1:
                 id = db.insertWithOnConflict(tables[table], null,
                         createCV((String) attrs[0], (String) attrs[1], (long) attrs[2], (int) attrs[3]),
-                        SQLiteDatabase.CONFLICT_IGNORE);
+                        SQLiteDatabase.CONFLICT_REPLACE);
                 break;
 
             default:

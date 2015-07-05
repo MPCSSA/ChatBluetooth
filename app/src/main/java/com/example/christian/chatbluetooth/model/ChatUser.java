@@ -67,9 +67,6 @@ public class ChatUser {
     public String getProfilePic() { return this.profilePic; }
     public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
 
-
-    public ChatUser() {  }
-
     public ChatUser(String mac, BluetoothDevice nextNode, int bounces, int status, Cursor cursor) {
 
         setMac(mac);
@@ -86,13 +83,11 @@ public class ChatUser {
 
     public void addPersistentInfo(Cursor profileInfo) {
         profileInfo.moveToFirst();
-        setName(profileInfo.getString(2));
-        setLastUpd(profileInfo.getLong(3));
-        setFav(1 == profileInfo.getInt(4));
-        setProfilePic(profileInfo.getString(5));
-        setCountry(profileInfo.getInt(6));
-        setGender(profileInfo.getInt(7));
-        setAge(profileInfo.getInt(8));
+        setName(profileInfo.getString(1));
+        setLastUpd(profileInfo.getLong(2));
+        setCountry(profileInfo.getInt(3));
+        setGender(profileInfo.getInt(4));
+        setAge(profileInfo.getInt(5));
     }
 
     public boolean updateUser(BluetoothDevice dvc, int bnc, int sts) {

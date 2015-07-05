@@ -85,25 +85,20 @@ public class MessageThread extends Thread {
 
         try {
 
-            //BlueCtrl.lockDiscoverySuspension();
-            while(BluetoothAdapter.getDefaultAdapter().isDiscovering()) {
+            BlueCtrl.lockDiscoverySuspension();
 
-            }
             sckt.connect();
+
             System.out.println("Connected to " + rmtDvc.getAddress());
             boolean waiting = false;
 
             switch (type) {
                 case BlueCtrl.CRD_HEADER:
-                    BlueCtrl.lockDiscoverySuspension();
                     out.write(msg);
-                    BlueCtrl.unlockDiscoverySuspension();
                     out.close();
                     break;
                 case BlueCtrl.MSG_HEADER:
-                    BlueCtrl.lockDiscoverySuspension();
                     out.write(msg);
-                    BlueCtrl.unlockDiscoverySuspension();
                     out.close();
                     break;
                 case BlueCtrl.DRP_HEADER:
@@ -141,7 +136,7 @@ public class MessageThread extends Thread {
                     [2][MAC]
                      */
 
-                        System.out.println("infromation requested");
+                        System.out.println("information requested");
                         i = 0;
                         do {
                             j = in.read(buffer, i, 6 - i);
@@ -157,9 +152,7 @@ public class MessageThread extends Thread {
 
                         byte[] card = BlueCtrl.buildCard(BlueCtrl.fetchPersistentInfo(address));
                         System.out.println("got your nose");
-                        //BlueCtrl.lockDiscoverySuspension();
                         out.write(card);
-                        //BlueCtrl.unlockDiscoverySuspension();
                         System.out.println("card sent");
 
                         break;
@@ -235,18 +228,20 @@ public class MessageThread extends Thread {
             if (waiting) out.close();
             in.close();
 
-            //BlueCtrl.unlockDiscoverySuspension();
+            BlueCtrl.unlockDiscoverySuspension();
 
         }
         catch(IOException e) {
 
             e.printStackTrace();
-            System.out.println("alimortaccitua");
+            System.out.println("alimortaccitua " + rmtDvc.getAddress());
+            BlueCtrl.unlockDiscoverySuspension();
             try {
                 sckt.close();
             }
             catch(IOException ignore) {}
         }
+        catch (NullPointerException e) { System.out.println("oooooooooh sheiiiiiiit"); }
 
         cancel();
     }
