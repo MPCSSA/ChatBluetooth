@@ -110,6 +110,7 @@ public class MessageThread extends Thread {
 
             }
 
+            System.out.println(type + " message sent");
             /*
             Instant Reply
             After sending the message, this device maintains connection, listening to the remote device
@@ -120,6 +121,7 @@ public class MessageThread extends Thread {
             int ack;
             while ((ack = in.read()) != BlueCtrl.ACK) {
 
+                System.out.println(ack + " message read");
                 int i, j;
                 byte[] buffer = new byte[6];
                 boolean breakFree;

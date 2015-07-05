@@ -142,7 +142,10 @@ public class BlueCtrl {
     }
 
     public static void greet(BluetoothDevice dvc) {
-        byte[] grt = new byte[10], timestamp = longToBytes((new Date()).getTime());//currentUser.getLong("lastUpd", (new Date()).getTime()));
+        byte[] grt = new byte[10], timestamp;
+        Cursor cursor = dbManager.fetchTimestamp(BluetoothAdapter.getDefaultAdapter().getAddress());
+        cursor.moveToFirst();
+        timestamp = longToBytes(cursor.getLong(0));
         grt[0] = BlueCtrl.GRT_HEADER;
         grt[1] = (byte) 1;//currentUser.getInt("status", 1); //1 = disponibile
 
@@ -212,7 +215,8 @@ public class BlueCtrl {
 
         ChatUser user = scanUsers(mac);
         if (user != null) return (user.updateUser(manInTheMiddle, bounces, (int) status));
-        return userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, null));
+        boolean bool = userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, fetchPersistentInfo(mac)));
+        return bool;
 
     }
 
@@ -428,8 +432,7 @@ public class BlueCtrl {
     public static boolean validateUser(String address, long timestamp) {
 
         Cursor cursor = dbManager.fetchTimestamp(address);
-        if (cursor == null) System.out.println("Cursor not created");
-        else if (cursor.getCount() < 1) System.out.println("Cursor empty, what tha fuck");
+        if (cursor == null || cursor.getCount() != 1) return false;
         return (cursor.moveToFirst() && cursor.getLong(0) == timestamp);
     }
 

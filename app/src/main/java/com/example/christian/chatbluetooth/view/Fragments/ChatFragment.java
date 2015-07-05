@@ -23,6 +23,7 @@ import android.widget.ListView;
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.MessageThread;
+import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 
 import java.util.Date;
@@ -50,11 +51,16 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
     private EditText msgText;
 
-    private String user;
+    private ChatUser user;
+    /*private String user;
     private BluetoothDevice dvc;
-    private byte[] mac;
+    private byte[] mac;*/
 
-    public void setMac(byte [] mac){
+    public void setUser(ChatUser chatUser) {
+        this.user = chatUser;
+    }
+
+    /*public void setMac(byte [] mac){
         this.mac = mac;
     }
 
@@ -64,7 +70,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
     public void setDevice(BluetoothDevice dvc){
         this.dvc = dvc;
-    }
+    }*/
 
     /**
      * Use this factory method to create a new instance of
@@ -101,7 +107,8 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_chat, container, false);
+        int layout = (BlueCtrl.version) ? R.layout.fragment_chat : R.layout.fragment_chat_nomat;
+        return inflater.inflate(layout, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -137,10 +144,10 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         ((ChatActivity) getActivity()).setState(true);
 
         Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
-        SpannableString title = new SpannableString("Nome Utente");
+        SpannableString title = new SpannableString(user.getName());
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         actionBar.setTitle(title);
-        actionBar.setHomeAsUpIndicator(null);
+        if (BlueCtrl.version) actionBar.setHomeAsUpIndicator(null);
 
         msgText = (EditText) getActivity().findViewById(R.id.etMsg);
 
@@ -156,11 +163,11 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         String msg = msgText.getText().toString();
         if (!msg.equals("")){
             Date time = new Date();
-            /*(new MessageThread(dvc, BlueCtrl.buildMsg(mac,
+            (new MessageThread(user.getNextNode(), BlueCtrl.buildMsg(user.getMacInBytes(),
                     BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
-                    msg.getBytes()))).start();*/
+                    msg.getBytes()))).start();
 
-            BlueCtrl.showMsg(user, msg, time, 0);
+            BlueCtrl.showMsg(user.getMac(), msg, time, 0);
             msgText.setText(null);
             msgText.requestFocus();
         }

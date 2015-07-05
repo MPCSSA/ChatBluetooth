@@ -113,12 +113,15 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         Handler handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                if (msg.what == 0) {
-                    if (BlueCtrl.version) BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
-                    else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
-                }
-                else {
-                    BlueCtrl.cardUpdate(BlueCtrl.updateQueue.remove(0));
+                switch (msg.what) {
+                    case 0:
+                        if (BlueCtrl.version) BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
+                        else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
+                        break;
+
+                    case 1:
+                        BlueCtrl.cardUpdate(BlueCtrl.updateQueue.remove(0));
+                        break;
                 }
 
                 if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
@@ -126,6 +129,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
             }
         };
+        long l = (new Date()).getTime();
+        System.out.println("PROVA DEL 9: " + (l == BlueCtrl.rebuildTimestamp(BlueCtrl.longToBytes(l))));
 
         ListFragment listFragment = new ListFragment();
         FragmentManager fragmentManager = getFragmentManager();
@@ -225,7 +230,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         BlueCtrl.openDatabase(this);
         if (getIntent().getBooleanExtra("newbie", false)) {
-            System.out.println("saving info in db");
             SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
             long timestamp = sh.getLong("timestamp", 0);
             int age = 0;
@@ -240,17 +244,18 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         BlueCtrl.validateUser(BluetoothAdapter.getDefaultAdapter().getAddress(), getSharedPreferences("preferences", MODE_PRIVATE).getLong("timestamp", 0));
 
-        System.out.println("my mac is " + BluetoothAdapter.getDefaultAdapter().getAddress());
         BlueCtrl.msgAdapt = new MessageAdapter(this, R.layout.listitem_discuss);
         BlueCtrl.msgAdapt.setAddress(new String());
-        if (BlueCtrl.appFolder == null) BlueCtrl.appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        //if (BlueCtrl.appFolder == null) BlueCtrl.appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
 
         try {
             (new ServerThread(BluetoothAdapter.getDefaultAdapter().listenUsingInsecureRfcommWithServiceRecord("com.example.christian.chatbluetooth", UUID.fromString(BlueCtrl.UUID)), handler)).start();
         }
 
-        catch (IOException ignore){
+        catch (IOException e){
+            e.printStackTrace();
             System.out.println("listen failed");
         }
 

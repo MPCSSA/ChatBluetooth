@@ -224,7 +224,7 @@ public class RegistrationFragment extends Fragment {
                             preferences.edit().putString("password", passw.getText().toString()).apply();
                             preferences.edit().putLong("timestamp", creation.getTime()).apply();
 
-                            preferences.edit().putString("birth", date.getText().toString());
+                            preferences.edit().putString("birth", date.getText().toString().replace("/", " "));
 
                             int gender;
                             if ((getActivity().findViewById(R.id.radioGroup_reg)).isSelected()) {
@@ -272,10 +272,10 @@ public class RegistrationFragment extends Fragment {
                 String Toset = "";
                 if(dayOfMonth < 10)
                     Toset="0";
-                Toset = Toset + dayOfMonth + " ";
+                Toset = Toset + dayOfMonth + "/";
                 if(monthOfYear < 10)
                     Toset = Toset + "0";
-                Toset = Toset + (monthOfYear+1) + " " + year;
+                Toset = Toset + (monthOfYear+1) + "/" + year;
 
                 date.setText(Toset);
 

@@ -108,6 +108,7 @@ public class ReceiverThread extends Thread {
                         */
 
                         if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
+                            handler.sendEmptyMessage(BlueCtrl.ACK);
                             out.write(BlueCtrl.ACK); //ACKed
                         } else {
                             /*
