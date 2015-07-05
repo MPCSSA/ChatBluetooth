@@ -159,11 +159,6 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
 
             //final RecycleAdapter cardadapt = new RecycleAdapter(createList(1));
             recList.setAdapter(BlueCtrl.userAdapt);
-
-            ChatUser card = new ChatUser("FF:FF:FF:FF:FF:FF", null, 0, 0, null);
-            card.setName("ciaone");
-            BlueCtrl.userAdapt.add(card);
-
             recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
