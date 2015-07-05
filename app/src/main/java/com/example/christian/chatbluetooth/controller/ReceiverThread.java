@@ -53,9 +53,12 @@ public class ReceiverThread extends Thread {
             int i, j; //counters
             boolean connected = true; //connection still on, i.e. rmtDvc did not shut its OutputStream yet
             ArrayList<byte[]> filteredUpdCascade = null; //ArrayList containing Update Message segments of an Update Cascade
-            //BlueCtrl.lockDiscoverySuspension();
+
+            BlueCtrl.lockDiscoverySuspension();
 
             do {
+
+                while (BluetoothAdapter.getDefaultAdapter().isDiscovering()) System.out.println("Discovery: " + BluetoothAdapter.getDefaultAdapter().isDiscovering());
 
                 System.out.println("leggo");
                 byte flag = (byte) in.read();
@@ -110,6 +113,8 @@ public class ReceiverThread extends Thread {
                         if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
                             handler.sendEmptyMessage(BlueCtrl.ACK);
                             out.write(BlueCtrl.ACK); //ACKed
+                            System.out.println("ACKED");
+                            connected = false;
                         } else {
                             /*
                             User information are not up to date, an Info Request is forwarded as Instant Reply
@@ -204,6 +209,7 @@ public class ReceiverThread extends Thread {
                         }
 
                         out.write(BlueCtrl.ACK); //all segments were received; ACKed
+                        connected = false;
                         break;
                     }
 
@@ -307,6 +313,7 @@ public class ReceiverThread extends Thread {
                         })).start();
 
                         out.write(BlueCtrl.ACK); //ACKed
+                        connected = false;
 
                         break;
 
@@ -366,7 +373,9 @@ public class ReceiverThread extends Thread {
 
                         if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
+                            System.out.println("SHOWING OFF");
                             BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date(), 1);
+                            handler.sendEmptyMessage(BlueCtrl.MSG_HEADER);
                         } else {
 
                             BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
@@ -378,6 +387,7 @@ public class ReceiverThread extends Thread {
                         }
 
                         out.write(BlueCtrl.ACK); //ACKed
+                        connected = false;
 
                         break;
                     }
@@ -428,6 +438,7 @@ public class ReceiverThread extends Thread {
                 }
             } while(connected);
 
+            System.out.println("Unlocking discovery");
             BlueCtrl.unlockDiscoverySuspension();
 
             if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {

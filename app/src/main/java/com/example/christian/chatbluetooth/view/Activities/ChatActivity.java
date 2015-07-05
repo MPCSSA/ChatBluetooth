@@ -72,6 +72,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                     BluetoothDevice dvc = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
+                    System.out.println(dvc.getAddress() + " found");
+
                     if (!BlueCtrl.closeDvc.contains(dvc)) {
                         System.out.println("greetings");
                         BlueCtrl.greet(dvc);
@@ -84,13 +86,15 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
                     if (!BlueCtrl.DISCOVERY_SUSPENDED) {
-                        /*System.out.println("scavenging");
-                        (new AsyncScavenger()).execute();*/
+                        System.out.println("scavenging");
+                        //(new AsyncScavenger()).execute();
                         if (!BluetoothAdapter.getDefaultAdapter().startDiscovery()) {
                             System.out.println("Discovery failed");
                             //TODO: discovery recovery
                         }
+                        else System.out.println("Discovering");
                     }
+                    else System.out.println("Suspended");
                     break;
 
             }
@@ -121,14 +125,27 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                     case 0:
                         if (BlueCtrl.version) BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
                         else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
+                        if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
+                        else BlueCtrl.userNomat.notifyDataSetChanged();
                         break;
 
                     case 1:
                         BlueCtrl.cardUpdate(BlueCtrl.updateQueue.remove(0));
+                        if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
+                        else BlueCtrl.userNomat.notifyDataSetChanged();
+                        break;
+
+                    case 4: //new msg received
+                        if (!BlueCtrl.msgBuffer.isEmpty()) {
+                            BlueCtrl.msgAdapt.add(BlueCtrl.msgBuffer.remove(0));
+                            BlueCtrl.msgAdapt.notifyDataSetChanged();
+                        }
                         break;
 
                     case -1:
                         BlueCtrl.newcomers.remove(msg.getData().getString("MAC"));
+                        if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
+                        else BlueCtrl.userNomat.notifyDataSetChanged();
                 }
 
                 if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();

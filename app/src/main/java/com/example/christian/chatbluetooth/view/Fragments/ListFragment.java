@@ -209,9 +209,6 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
                     ChatFragment chatFragment = new ChatFragment();
 
                     chatFragment.setUser(BlueCtrl.userAdapt.getItem(i));
-                    /*chatFragment.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
-                    chatFragment.setDevice(BlueCtrl.userAdapt.getItem(position).getNextNode());
-                    chatFragment.setMac(BlueCtrl.userAdapt.getItem(position).getMacInBytes());*/
 
                     FragmentManager fragmentManager = getFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

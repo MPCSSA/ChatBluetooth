@@ -23,6 +23,7 @@ import android.widget.ListView;
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.MessageThread;
+import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 
@@ -167,7 +168,9 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                     BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
                     msg.getBytes()))).start();
 
-            BlueCtrl.showMsg(user.getMac(), msg, time, 0);
+            BlueCtrl.insertMsgTable(msg, time);
+            BlueCtrl.msgAdapt.add(new ChatMessage(msg, 0, time.getTime()));
+            BlueCtrl.msgAdapt.notifyDataSetChanged();
             msgText.setText(null);
             msgText.requestFocus();
         }

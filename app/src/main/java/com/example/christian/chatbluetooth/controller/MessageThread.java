@@ -102,7 +102,6 @@ public class MessageThread extends Thread {
                     break;
                 case BlueCtrl.MSG_HEADER:
                     out.write(msg);
-                    out.close();
                     break;
                 case BlueCtrl.DRP_HEADER:
                     out.write(msg);
@@ -229,6 +228,8 @@ public class MessageThread extends Thread {
                 }
 
             }
+
+            System.out.println("ACKED");
 
             BlueCtrl.unlockDiscoverySuspension();
 

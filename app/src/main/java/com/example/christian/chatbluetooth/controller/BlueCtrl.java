@@ -92,6 +92,7 @@ public class BlueCtrl {
     public static ArrayList<ChatUser> userQueue = new ArrayList<>();
     public static ArrayList<String> updateQueue = new ArrayList<>();
     public static HashMap<String, BluetoothDevice> newcomers = new HashMap<>();
+    public static ArrayList<ChatMessage> msgBuffer = new ArrayList<>();
 
     public static boolean DISCOVERY_SUSPENDED = false;
     public static int DISCOVERY_LOCK = 0; //l'ultimo che esce chiude la porta
@@ -131,7 +132,6 @@ public class BlueCtrl {
         if (cursor.getCount() > 0){
             cursor.moveToFirst();
             do{
-
                 msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2), cursor.getLong(1)));
             } while(cursor.moveToNext());
         }
@@ -168,25 +168,12 @@ public class BlueCtrl {
 
     public static ChatUser scanUsers(String address) {
 
-        //if (BlueCtrl.version) return BlueCtrl.userAdapt.getItem(address);
-    /*
-    DEBUG ONLY
-    */
-        //return BlueCtrl.userNomat.getItem(address);
-    /*
-    DEBUG ONLY
-    */
         System.out.println("searching for " + address);
         for (ChatUser user : userList) {
-            System.out.println("ChatUser: " + user.getMac());
-            if (user.getMac().equals(address)) {
-                System.out.println("found ya");
-                return user;
-            }
+            if (user.getMac().equals(address)) return user;
         }
 
         return null;
-
     }
 
     public static void getUserList() {
@@ -285,8 +272,7 @@ public class BlueCtrl {
 
         dbManager.createRecord(1, new Object[] {msg, from, time.getTime(), sentBy});
         if (from.equals(msgAdapt.getAddress())){
-            msgAdapt.add(new ChatMessage(msg, sentBy, time));
-            msgAdapt.notifyDataSetChanged();
+            msgBuffer.add(new ChatMessage(msg, sentBy, time));
         }
     }
 
@@ -444,6 +430,11 @@ public class BlueCtrl {
 
     }
 
+    public static void insertMsgTable(String msg, Date time) {
+
+        dbManager.createRecord(1, new Object[] {msg, BluetoothAdapter.getDefaultAdapter().getAddress(), time.getTime(), 0});
+    }
+
     public static void updateUserTable(String mac, long timestamp, String username, int age, int gender, int country){
 
         dbManager.updateUserInfo(mac, username, null, country, gender, age, timestamp);
@@ -532,6 +523,7 @@ public class BlueCtrl {
     public static void lockDiscoverySuspension() {
 
         ++DISCOVERY_LOCK; //thread eneters the room
+        System.out.println(DISCOVERY_LOCK);
         if (DISCOVERY_SUSPENDED) return; //the door was already opened
 
         DISCOVERY_SUSPENDED = true; //thread opened the door
@@ -542,11 +534,14 @@ public class BlueCtrl {
     public static void unlockDiscoverySuspension() {
         if ((--DISCOVERY_LOCK) < 1) { //thread left the room
 
+            System.out.println("LOCK " + DISCOVERY_LOCK);
+
             DISCOVERY_SUSPENDED = false; //if thread was the last one in the room, turns off lights
 
             if (!BluetoothAdapter.getDefaultAdapter().isDiscovering())
                 BluetoothAdapter.getDefaultAdapter().startDiscovery(); //and closes the door
         }
+        else System.out.println("OPEN DOOR");
     }
 
     public static byte[] extractImage(String path) {
