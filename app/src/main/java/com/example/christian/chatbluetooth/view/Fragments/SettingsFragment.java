@@ -107,9 +107,10 @@ public class SettingsFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         ActionBar actionBar = getActivity().getActionBar();
-        actionBar.setTitle("Setting");
+        actionBar.setTitle(getString(R.string.setting_activity));
 
         ListView settingList = (ListView) getActivity().findViewById(R.id.setting_list);
+
 
         Point point = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
@@ -124,11 +125,10 @@ public class SettingsFragment extends Fragment {
         ImageView imageView = (ImageView) getActivity().findViewById(R.id.setting_image);
         imageView.setImageDrawable(new BitmapDrawable(bmp));
 
-        settingList.setAdapter(new SettingAdapter(getActivity(), R.layout.my_profile_item));
+        settingList.setAdapter(new SettingAdapter(getActivity(), R.layout.setting_item));
 
-        ((ArrayAdapter<String>)settingList.getAdapter()).add("Modifica immagine");
-        ((ArrayAdapter<String>)settingList.getAdapter()).add("Modifica nickname");
-        ((ArrayAdapter<String>)settingList.getAdapter()).add("Cancella cronologia");
+        ((ArrayAdapter<String>)settingList.getAdapter()).add(getString(R.string.setting_mod_nick));
+        ((ArrayAdapter<String>)settingList.getAdapter()).add(getString(R.string.setting_mod_history));
     }
 
     /**

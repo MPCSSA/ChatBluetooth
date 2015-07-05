@@ -68,6 +68,7 @@
                 android:layout_marginLeft="72dp"
                 android:layout_centerVertical="true"
                 android:hint="@string/state"
+                android:backgroundTint="@color/light_primary"
                 android:textColorHint="@color/background"
             />
         </RelativeLayout>
