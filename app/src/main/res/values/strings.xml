@@ -22,6 +22,18 @@
     <string name="login_greeting">Welcome,&#160;</string>
     <string name="registration_btn">Sign Up</string>
 
+    <!-- ITEM -->
+    <string name="setting_mod_image">Modify profile image</string>
+    <string name="setting_mod_nick">Modify nickname</string>
+    <string name="setting_mod_history">Delete history message</string>
+
+    <!-- ACTION BAR TITLES -->
+    <string name="profile_activity">Profile</string>
+    <string name="setting_activity">Settings</string>
+    <string name="history_activity">History</string>
+    <string name="reg_frag">Sign up</string>
+    <string name="list_frag">Users list</string>
+
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
     <string name="title_activity_profile" translatable="false">ProfileActivity</string>

@@ -167,7 +167,7 @@ public class RegistrationFragment extends Fragment {
         passw.addTextChangedListener(new PasswordWatcher(getActivity()));
         confirmPassw.addTextChangedListener(new ConfirmationWatcher(getActivity()));
 
-        SpannableString title = new SpannableString("Registrazione");
+        SpannableString title = new SpannableString(getString(R.string.reg_frag));
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         actionBar.setTitle(title);
 

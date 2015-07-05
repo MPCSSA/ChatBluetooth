@@ -138,7 +138,7 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
         ((ChatActivity) getActivity()).state = false;
 
         Typeface type = Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf");
-        SpannableString title = new SpannableString("Lista Contatti");
+        SpannableString title = new SpannableString(getString(R.string.list_frag));
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         ActionBar actionBar = getActivity().getActionBar();

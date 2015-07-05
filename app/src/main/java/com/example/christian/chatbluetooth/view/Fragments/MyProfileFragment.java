@@ -78,7 +78,7 @@ public class MyProfileFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         ActionBar actionBar = getActivity().getActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setTitle(getString(R.string.profile_activity));
 
         ListView fieldList = (ListView) getActivity().findViewById(R.id.my_info_list);
 
@@ -101,8 +101,11 @@ public class MyProfileFragment extends Fragment {
         ((ArrayAdapter<String>)fieldList.getAdapter()).add(sh.getString("username", "my profile"));
         String birth = sh.getString("birth", null);
         if (birth != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(birth);
-        String gender = sh.getString("gender", null);
-        if (gender != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(gender);
+        int gender = sh.getInt("gender", 0);
+        if (gender != 0) {
+            String g = (gender == 1) ? "M" : "F";
+            ((ArrayAdapter<String>)fieldList.getAdapter()).add(g);
+        }
         String country = sh.getString("country", null);
         if (country != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(country);
 

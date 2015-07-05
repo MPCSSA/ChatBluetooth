@@ -1,5 +1,6 @@
 package com.example.christian.chatbluetooth.view.Fragments;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
@@ -90,6 +91,14 @@ public class HistoryFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        ActionBar actionBar = getActivity().getActionBar();
+        actionBar.setTitle(getString(R.string.history_activity));
     }
 
     /**
