@@ -3,6 +3,9 @@ package com.example.christian.chatbluetooth.controller;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -227,10 +230,15 @@ public class MessageThread extends Thread {
 
             }
 
+            BlueCtrl.unlockDiscoverySuspension();
+
+            if (type == BlueCtrl.GRT_HEADER) {
+                BlueCtrl.closeDvc.add(rmtDvc);
+            }
+
             if (waiting) out.close();
             in.close();
 
-            BlueCtrl.unlockDiscoverySuspension();
 
         }
         catch(IOException e) {
@@ -243,7 +251,6 @@ public class MessageThread extends Thread {
             }
             catch(IOException ignore) {}
         }
-        catch (NullPointerException e) { System.out.println("oooooooooh sheiiiiiiit"); }
 
         cancel();
     }

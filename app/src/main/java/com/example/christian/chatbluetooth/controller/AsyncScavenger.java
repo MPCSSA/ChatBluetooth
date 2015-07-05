@@ -3,6 +3,8 @@ package com.example.christian.chatbluetooth.controller;
 import android.bluetooth.BluetoothDevice;
 import android.os.AsyncTask;
 
+import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
+
 import java.util.ArrayList;
 
 public class AsyncScavenger extends AsyncTask<Void, Void, Void> {

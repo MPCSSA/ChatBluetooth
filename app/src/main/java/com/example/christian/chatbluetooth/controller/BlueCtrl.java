@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
-import android.support.annotation.NonNull;
 
 import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatMessage;
@@ -26,6 +25,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -88,8 +88,10 @@ public class BlueCtrl {
     DEBUG ONLY
     */
 
+    //BUFFERS
     public static ArrayList<ChatUser> userQueue = new ArrayList<>();
     public static ArrayList<String> updateQueue = new ArrayList<>();
+    public static HashMap<String, BluetoothDevice> newcomers = new HashMap<>();
 
     public static boolean DISCOVERY_SUSPENDED = false;
     public static int DISCOVERY_LOCK = 0; //l'ultimo che esce chiude la porta
@@ -105,7 +107,7 @@ public class BlueCtrl {
      */
     public final static ArrayList<ChatUser> userList = new ArrayList<>();
     public final static RecycleAdapter userAdapt = new RecycleAdapter(userList);        //ChatUser Adapter; initialized on MainActivity creation
-    private static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>();
+    public static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>();
     public static int counter = 0;
     private static BlueDBManager dbManager;          //User and Messages DB Manager
     private static final String dbname = "bluedb"; //DB name

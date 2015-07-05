@@ -441,7 +441,6 @@ public class ReceiverThread extends Thread {
             BlueCtrl.unlockDiscoverySuspension();
             cancel();
         }
-        catch(NullPointerException ignore) {}
 
         cancel();
     }

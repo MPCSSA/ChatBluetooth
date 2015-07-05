@@ -71,9 +71,13 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 case BluetoothDevice.ACTION_FOUND:
 
                     BluetoothDevice dvc = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    if (BlueCtrl.addCloseDvc(dvc)) {
+
+                    if (!BlueCtrl.closeDvc.contains(dvc)) {
                         System.out.println("greetings");
                         BlueCtrl.greet(dvc);
+                    }
+                    else {
+                        //TODO: DRP Mechanism
                     }
 
                     break;
@@ -122,6 +126,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                     case 1:
                         BlueCtrl.cardUpdate(BlueCtrl.updateQueue.remove(0));
                         break;
+
+                    case -1:
+                        BlueCtrl.newcomers.remove(msg.getData().getString("MAC"));
                 }
 
                 if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
