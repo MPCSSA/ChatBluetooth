@@ -196,12 +196,6 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
             BlueCtrl.userNomat = new NoMaterialRecyclerAdapter(getActivity(), R.layout.card_layout_nomat);
             recList.setAdapter(BlueCtrl.userNomat);
 
-            System.out.println("chat user adapter");
-            ChatUser card = new ChatUser("FF:FF:FF:FF:FF:FF", null, 0, 0, null);
-            card.setName("ciaone");
-            ((ArrayAdapter<ChatUser>)recList.getAdapter()).add(card);
-            System.out.println("chat user");
-
             recList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {

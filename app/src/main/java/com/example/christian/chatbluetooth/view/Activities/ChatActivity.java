@@ -129,8 +129,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
             }
         };
-        long l = (new Date()).getTime();
-        System.out.println("PROVA DEL 9: " + (l == BlueCtrl.rebuildTimestamp(BlueCtrl.longToBytes(l))));
 
         ListFragment listFragment = new ListFragment();
         FragmentManager fragmentManager = getFragmentManager();
