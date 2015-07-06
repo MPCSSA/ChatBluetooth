@@ -19,6 +19,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcel;
+import android.os.ParcelUuid;
+import android.os.Parcelable;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -71,13 +74,13 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             switch (action) {
+
                 case BluetoothDevice.ACTION_FOUND:
 
                     BluetoothDevice dvc = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
                     System.out.println(dvc.getAddress() + " found");
 
-                    if (!BlueCtrl.closeDvc.contains(dvc) && !dvc.getAddress().equals("64:77:91:D5:7A:B9") /*!dvc.getAddress().equals("1C:B7:2C:0C:60:C6") /!dvc.getAddress().equals("14:DD:A9:3B:53:E3")*/) {
+                    if (!BlueCtrl.closeDvc.contains(dvc) /*&& !dvc.getAddress().equals("64:77:91:D5:7A:B9") /*!dvc.getAddress().equals("1C:B7:2C:0C:60:C6") /!dvc.getAddress().equals("14:DD:A9:3B:53:E3")*/) {
                         System.out.println("greetings");
                         BlueCtrl.greet(dvc);
                     }
@@ -135,7 +138,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         }
 
                         if (updCascade.size() > 0) {
-                            (new MessageThread(user.getNextNode(), BlueCtrl.buildUpdMsg(updCascade))).start();
+                            BlueCtrl.sendMsg(user.getNextNode(), BlueCtrl.buildUpdMsg(updCascade));
                             System.out.println("UPDATE CASCADE");
                         }
 
@@ -171,7 +174,10 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                     case -2:
                         user = BlueCtrl.scanUsers(msg.getData().getString("dvc"));
-                        if (user != null) (new MessageThread(user.getNextNode(), msg.getData().getByteArray("msg"))).start();
+                        if (user != null)  {
+                            System.out.println("I am sending a MESSAGE");
+                            BlueCtrl.sendMsg(user.getNextNode(), msg.getData().getByteArray("msg"));
+                        }
                         break;
                 }
 

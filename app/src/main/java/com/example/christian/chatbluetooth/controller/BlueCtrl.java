@@ -41,7 +41,7 @@ public class BlueCtrl {
     public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
     public static final byte    ACK_GRT = (byte) 7;
 
-    public static final String     UUID = "00001101-0000-1000-8000-00805F9B34FB"; //custom UUID
+    public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
     public static File appFolder;
     private static byte[] defaultCrd;
 
@@ -163,9 +163,10 @@ public class BlueCtrl {
         //dispatch message to all close devices;
         //used for GRT, UPD, DRP messages
         for(BluetoothDevice dvc : BlueCtrl.closeDvc) {
-            if (!dvc.equals(filter))
+            if (!dvc.equals(filter)) {
                 System.out.println("Dispatching " + user.getMac() + "to " + dvc.getAddress() + "filtering " + filter.getAddress());
                 sendMsg(dvc, msg);
+            }
         }
     }
 

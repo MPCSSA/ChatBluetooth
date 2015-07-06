@@ -98,20 +98,7 @@ public class MessageThread extends Thread {
             System.out.println("Connected to " + rmtDvc.getAddress());
             boolean waiting = false;
 
-            switch (type) {
-                case BlueCtrl.CRD_HEADER:
-                    out.write(msg);
-                    break;
-                case BlueCtrl.MSG_HEADER:
-                    break;
-                case BlueCtrl.DRP_HEADER:
-                    out.write(msg);
-                    out.close();
-                default:
-                    out.write(msg);
-                    waiting = true;
-
-            }
+            out.write(msg);
 
             System.out.println(type + " message sent");
             /*
@@ -122,6 +109,7 @@ public class MessageThread extends Thread {
             to a Drop Request. Connection is ended when this device receives an ACK msg.
              */
             int ack;
+
             while ((ack = in.read()) != BlueCtrl.ACK) {
 
                 System.out.println(ack + " message read");
