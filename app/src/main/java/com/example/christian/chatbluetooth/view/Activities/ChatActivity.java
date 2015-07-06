@@ -77,7 +77,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                     System.out.println(dvc.getAddress() + " found");
 
-                    if (!BlueCtrl.closeDvc.contains(dvc) && /*!dvc.getAddress().equals("1C:B7:2C:0C:60:C6") */!dvc.getAddress().equals("14:DD:A9:3B:53:E3")) {
+                    if (!BlueCtrl.closeDvc.contains(dvc) && !dvc.getAddress().equals("1C:B7:2C:0C:60:C6") /*!dvc.getAddress().equals("14:DD:A9:3B:53:E3")*/) {
                         System.out.println("greetings");
                         BlueCtrl.greet(dvc);
                     }
