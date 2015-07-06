@@ -40,7 +40,6 @@ public class NoMaterialRecyclerAdapter extends ArrayAdapter<ChatUser> {
 
         if (view == null){
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            System.out.println("can");
             view = inflater.inflate(layout, parent, false);
         }
 

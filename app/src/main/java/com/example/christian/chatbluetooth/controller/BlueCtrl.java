@@ -525,7 +525,7 @@ public class BlueCtrl {
     public static void lockDiscoverySuspension() {
 
         ++DISCOVERY_LOCK; //thread eneters the room
-        System.out.println(DISCOVERY_LOCK);
+        System.out.println("LOCK " + DISCOVERY_LOCK);
         if (DISCOVERY_SUSPENDED) return; //the door was already opened
 
         DISCOVERY_SUSPENDED = true; //thread opened the door
@@ -536,14 +536,14 @@ public class BlueCtrl {
     public static void unlockDiscoverySuspension() {
         if ((--DISCOVERY_LOCK) < 1) { //thread left the room
 
-            System.out.println("LOCK " + DISCOVERY_LOCK);
+            System.out.println("UNLOCKED");
 
             DISCOVERY_SUSPENDED = false; //if thread was the last one in the room, turns off lights
 
             if (!BluetoothAdapter.getDefaultAdapter().isDiscovering())
                 BluetoothAdapter.getDefaultAdapter().startDiscovery(); //and closes the door
         }
-        else System.out.println("OPEN DOOR");
+        else System.out.println("OPEN DOOR " + DISCOVERY_LOCK);
     }
 
     public static byte[] extractImage(String path) {

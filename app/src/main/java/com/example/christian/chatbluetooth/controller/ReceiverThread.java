@@ -111,7 +111,7 @@ public class ReceiverThread extends Thread {
                         */
 
                         if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
-                            handler.sendEmptyMessage(BlueCtrl.ACK);
+                            handler.sendEmptyMessage(BlueCtrl.GRT_HEADER);
                             out.write(BlueCtrl.ACK); //ACKed
                             System.out.println("ACKED");
                             connected = false;
@@ -440,6 +440,7 @@ public class ReceiverThread extends Thread {
 
             System.out.println("Unlocking discovery");
             BlueCtrl.unlockDiscoverySuspension();
+            handler.sendEmptyMessage(BlueCtrl.ACK);
 
             if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {
                 BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(filteredUpdCascade), rmtDvc);
@@ -449,6 +450,13 @@ public class ReceiverThread extends Thread {
         }
         catch (IOException e) {
 
+            e.printStackTrace();
+            BlueCtrl.unlockDiscoverySuspension();
+            cancel();
+        }
+        catch (Exception e) {
+
+            e.printStackTrace();
             BlueCtrl.unlockDiscoverySuspension();
             cancel();
         }
