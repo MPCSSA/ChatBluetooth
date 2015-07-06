@@ -159,11 +159,12 @@ public class BlueCtrl {
 
         sendMsg(dvc, grt);
     }
-    public static void dispatchNews(byte[] msg, BluetoothDevice filter) {
+    public static void dispatchNews(byte[] msg, BluetoothDevice filter, ChatUser user) {
         //dispatch message to all close devices;
         //used for GRT, UPD, DRP messages
         for(BluetoothDevice dvc : BlueCtrl.closeDvc) {
             if (!dvc.equals(filter))
+                System.out.println("Dispatching " + user.getMac() + "to " + dvc.getAddress() + "filtering " + filter.getAddress());
                 sendMsg(dvc, msg);
         }
     }

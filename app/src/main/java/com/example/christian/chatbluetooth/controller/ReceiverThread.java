@@ -443,9 +443,9 @@ public class ReceiverThread extends Thread {
             BlueCtrl.unlockDiscoverySuspension();
             handler.sendEmptyMessage(BlueCtrl.ACK);
 
-            if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {
+            /*if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {
                 BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(filteredUpdCascade), rmtDvc);
-            }
+            }*/
             in.close();
             out.close();
         }

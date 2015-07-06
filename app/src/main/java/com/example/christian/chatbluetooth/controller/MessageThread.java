@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
+import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -245,6 +247,17 @@ public class MessageThread extends Thread {
             e.printStackTrace();
             System.out.println("alimortaccitua " + rmtDvc.getAddress());
             BlueCtrl.unlockDiscoverySuspension();
+
+            if (type != BlueCtrl.GRT_HEADER) {
+                Message msg = new Message();
+                Bundle bundle = new Bundle();
+                msg.setTarget(ChatActivity.handler);
+                msg.what = -2;
+                bundle.putString("dvc", rmtDvc.getAddress());
+                bundle.putByteArray("msg", getMsg());
+                msg.setData(bundle);
+                msg.sendToTarget();
+            }
             try {
                 sckt.close();
             }

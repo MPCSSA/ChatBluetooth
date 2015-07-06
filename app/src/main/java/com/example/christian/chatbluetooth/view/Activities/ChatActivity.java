@@ -63,6 +63,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     private DrawerLayout drawerLayout;
     private ListView listViewMenu;
     private Switch switchVisibility;
+    public static Handler handler;
     public boolean state = false;
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
@@ -76,7 +77,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                     System.out.println(dvc.getAddress() + " found");
 
-                    if (!BlueCtrl.closeDvc.contains(dvc) && !dvc.getAddress().equals("1C:B7:2C:0C:60:C6") /*!dvc.getAddress().equals("14:DD:A9:3B:53:E3")*/) {
+                    if (!BlueCtrl.closeDvc.contains(dvc) && /*!dvc.getAddress().equals("1C:B7:2C:0C:60:C6") */!dvc.getAddress().equals("14:DD:A9:3B:53:E3")) {
                         System.out.println("greetings");
                         BlueCtrl.greet(dvc);
                     }
@@ -110,12 +111,16 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         /* NEW PART */
 
-        Handler handler = new Handler() {
+        handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
+
+                ChatUser user;
+
                 switch (msg.what) {
+
                     case BlueCtrl.GRT_HEADER:
-                        ChatUser user = BlueCtrl.userQueue.remove(0);
+                        user = BlueCtrl.userQueue.remove(0);
                         if (BlueCtrl.version) BlueCtrl.userAdapt.add(user);
                         else BlueCtrl.userNomat.add(user);
                         if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
@@ -123,12 +128,18 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                         ArrayList<byte[]> updCascade = new ArrayList<>();
                         for (ChatUser ch : BlueCtrl.userList) {
-                            if (!ch.getMac().equals(user.getMac())) updCascade.add(ch.getSegment());
+                            if (!ch.getMac().equals(user.getMac())) {
+                                updCascade.add(ch.getSegment());
+                                System.out.println("UPDATE CASCADE ADDED " + ch.getName());
+                            }
                         }
 
-                        System.out.println("UPDATE CASCADE");
-                        if (updCascade.size() > 0) (new MessageThread(user.getNextNode(), BlueCtrl.buildUpdMsg(updCascade))).start();
-                        BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(updCascade), user.getNextNode());
+                        if (updCascade.size() > 0) {
+                            (new MessageThread(user.getNextNode(), BlueCtrl.buildUpdMsg(updCascade))).start();
+                            System.out.println("UPDATE CASCADE");
+                        }
+
+                        BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(updCascade), user.getNextNode(), user);
                         break;
 
                     case BlueCtrl.UPD_HEADER:
@@ -153,6 +164,11 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         BlueCtrl.newcomers.remove(msg.getData().getString("MAC"));
                         if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
                         else BlueCtrl.userNomat.notifyDataSetChanged();
+                        break;
+
+                    case -2:
+                        user = BlueCtrl.scanUsers(msg.getData().getString("dvc"));
+                        if (user != null) (new MessageThread(user.getNextNode(), msg.getData().getByteArray("msg"))).start();
                         break;
                 }
 

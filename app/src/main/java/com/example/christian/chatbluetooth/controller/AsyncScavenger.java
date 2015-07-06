@@ -23,7 +23,7 @@ public class AsyncScavenger extends AsyncTask<Void, Void, Void> {
             ++i;
         }
 
-        BlueCtrl.dispatchNews(drop, null);
+        BlueCtrl.dispatchNews(drop, null, null);
 
     }
 
