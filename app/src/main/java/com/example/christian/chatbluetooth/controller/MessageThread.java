@@ -90,6 +90,7 @@ public class MessageThread extends Thread {
 
             BlueCtrl.lockDiscoverySuspension();
 
+            System.out.println("TRYING TO CONNECT TO " + rmtDvc.getAddress());
             sckt.connect();
 
             System.out.println("Connected to " + rmtDvc.getAddress());
@@ -98,10 +99,8 @@ public class MessageThread extends Thread {
             switch (type) {
                 case BlueCtrl.CRD_HEADER:
                     out.write(msg);
-                    out.close();
                     break;
                 case BlueCtrl.MSG_HEADER:
-                    out.write(msg);
                     break;
                 case BlueCtrl.DRP_HEADER:
                     out.write(msg);
@@ -152,12 +151,11 @@ public class MessageThread extends Thread {
                         } while (i < 6);
 
                         address = BlueCtrl.bytesToMAC(buffer);
-                        System.out.println("my mac is this: " + address);
+                        System.out.println("requested card mac is this: " + address);
 
                         byte[] card = BlueCtrl.buildCard(BlueCtrl.fetchPersistentInfo(address));
-                        System.out.println("got your nose");
                         out.write(card);
-                        System.out.println("card sent");
+                        System.out.println("card sent to " + rmtDvc.getAddress());
 
                         break;
 

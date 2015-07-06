@@ -114,7 +114,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             @Override
             public void handleMessage(Message msg) {
                 switch (msg.what) {
-                    case 0:
+                    case BlueCtrl.GRT_HEADER:
                         ChatUser user = BlueCtrl.userQueue.remove(0);
                         if (BlueCtrl.version) BlueCtrl.userAdapt.add(user);
                         else BlueCtrl.userNomat.add(user);
@@ -126,16 +126,21 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             if (!ch.getMac().equals(user.getMac())) updCascade.add(ch.getSegment());
                         }
 
+                        System.out.println("UPDATE CASCADE");
                         (new MessageThread(user.getNextNode(), BlueCtrl.buildUpdMsg(updCascade))).start();
                         break;
 
-                    case 1:
+                    case BlueCtrl.UPD_HEADER:
+                        if (BlueCtrl.version) BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
+                        else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
+
+                    case BlueCtrl.CRD_HEADER:
                         BlueCtrl.cardUpdate(BlueCtrl.updateQueue.remove(0));
                         if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
                         else BlueCtrl.userNomat.notifyDataSetChanged();
                         break;
 
-                    case 4: //new msg received
+                    case BlueCtrl.MSG_HEADER: //new msg received
                         if (!BlueCtrl.msgBuffer.isEmpty()) {
                             BlueCtrl.msgAdapt.add(BlueCtrl.msgBuffer.remove(0));
                             BlueCtrl.msgAdapt.notifyDataSetChanged();

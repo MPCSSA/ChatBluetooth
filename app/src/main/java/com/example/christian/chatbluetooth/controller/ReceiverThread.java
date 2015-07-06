@@ -306,7 +306,7 @@ public class ReceiverThread extends Thread {
 
                                 BlueCtrl.updateQueue.add(address); //ChatUser object updated
 
-                                handler.sendEmptyMessage(1);
+                                handler.sendEmptyMessage(BlueCtrl.CRD_HEADER);
                                 //TODO: image updating
                                 //
                             }
