@@ -40,6 +40,7 @@ import android.widget.TextView;
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.AsyncScavenger;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.controller.MessageThread;
 import com.example.christian.chatbluetooth.controller.ServerThread;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Fragments.ChatFragment;
@@ -75,7 +76,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                     System.out.println(dvc.getAddress() + " found");
 
-                    if (!BlueCtrl.closeDvc.contains(dvc)) {
+                    if (!BlueCtrl.closeDvc.contains(dvc) && !dvc.getAddress().equals("1C:B7:2C:0C:60:C6") /*!dvc.getAddress().equals("14:DD:A9:3B:53:E3")*/) {
                         System.out.println("greetings");
                         BlueCtrl.greet(dvc);
                     }
@@ -114,10 +115,18 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             public void handleMessage(Message msg) {
                 switch (msg.what) {
                     case 0:
-                        if (BlueCtrl.version) BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
-                        else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
+                        ChatUser user = BlueCtrl.userQueue.remove(0);
+                        if (BlueCtrl.version) BlueCtrl.userAdapt.add(user);
+                        else BlueCtrl.userNomat.add(user);
                         if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
                         else BlueCtrl.userNomat.notifyDataSetChanged();
+
+                        ArrayList<byte[]> updCascade = new ArrayList<>();
+                        for (ChatUser ch : BlueCtrl.userList) {
+                            if (!ch.getMac().equals(user.getMac())) updCascade.add(ch.getSegment());
+                        }
+
+                        (new MessageThread(user.getNextNode(), BlueCtrl.buildUpdMsg(updCascade))).start();
                         break;
 
                     case 1:

@@ -16,6 +16,7 @@ public class ChatUser {
     private String strMAC; //target MAC address in String format
     private byte[] bMAC; //target MAC address in byte array format
     private Date lastUpd;
+    private byte[] updSegment;
 
     public String getMac() { return strMAC; }
     public void setMac(String strMAC) { this.strMAC = strMAC; }
@@ -26,6 +27,9 @@ public class ChatUser {
     public long getLastUpd() { return lastUpd.getTime(); }
     public void setLastUpd(long date) { setLastUpd(new Date(date)); }
     public void setLastUpd(Date date) { this.lastUpd = date; }
+
+    public byte[] getSegment() { return this.updSegment; }
+    public void setSegment(byte[] segment) { this.updSegment = segment; }
 
 
     //volatile information
@@ -75,7 +79,6 @@ public class ChatUser {
         setBounces(bounces);
         setStatus(status);
 
-        System.out.println("chatusing");
         if (cursor != null && cursor.getCount() > 0) {
             addPersistentInfo(cursor);
         }
@@ -88,6 +91,15 @@ public class ChatUser {
         setCountry(profileInfo.getInt(3));
         setGender(profileInfo.getInt(4));
         setAge(profileInfo.getInt(5));
+
+        byte[] segment = new byte[16];
+        for (int _ = 0; _ < 6; ++_) segment[_] = bMAC[_];
+        byte[] timestamp = BlueCtrl.longToBytes(lastUpd.getTime());
+        for (int _ = 0; _ < 8; ++_) segment[_ + 6] = timestamp[_];
+        segment[14] = (byte) bounces;
+        segment[15] = (byte) status;
+
+        setSegment(segment);
     }
 
     public boolean updateUser(BluetoothDevice dvc, int bnc, int sts) {

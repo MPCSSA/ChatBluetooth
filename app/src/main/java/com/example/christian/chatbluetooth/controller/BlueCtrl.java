@@ -39,6 +39,8 @@ public class BlueCtrl {
     public static final byte MSG_HEADER = (byte) 4; //header for Chat Message
     public static final byte DRP_HEADER = (byte) 5; //header for Drop Request
     public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
+    public static final byte    ACK_GRT = (byte) 7;
+
     public static final String     UUID = "00001101-0000-1000-8000-00805F9B34FB"; //custom UUID
     public static File appFolder;
     private static byte[] defaultCrd;

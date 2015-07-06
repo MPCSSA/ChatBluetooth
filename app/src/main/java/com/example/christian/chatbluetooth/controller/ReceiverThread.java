@@ -102,7 +102,7 @@ public class ReceiverThread extends Thread {
 
                         System.out.println("summoning");
                         if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0)) {
-                            handler.sendEmptyMessage(0);
+                            handler.sendEmptyMessage(BlueCtrl.GRT_HEADER);
                         }
                         System.out.println("summoned");
                         /*

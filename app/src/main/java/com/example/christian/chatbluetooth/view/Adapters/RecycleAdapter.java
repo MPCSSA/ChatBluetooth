@@ -19,14 +19,10 @@ import java.util.List;
 public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserViewHolder> {  // <RecycleAdapter.UserViewHolder>
 
     private List<ChatUser> userList;
-    /*private int favCounter = 0;
-    private static ChatUser favTab = new ChatUser("FavoritesTab", null, 0, 0, null);
-    private static ChatUser pubTab = new ChatUser("PublicTab", null, 0, 0, null);*/
 
 
     public RecycleAdapter(List<ChatUser> userList){
         this.userList = userList;
-        //add(pubTab);
     }
 
     @Override
@@ -37,32 +33,16 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
     @Override
     public void onBindViewHolder(UserViewHolder userViewHolder, int i) {
 
-        /*if (i == 0 && favCounter > 0) {
-            userViewHolder.name.setText("Favs");
-        }
-        else if (i == favCounter) {
-            userViewHolder.name.setText("Public");
-        }
-        else {*/
-            ChatUser chatUser = userList.get(i);
-            String username = chatUser.getName();
-            if (username == null) username = "Unknown";
-            userViewHolder.name.setText(username); // chatUser.getName()
-        //}
+        ChatUser chatUser = userList.get(i);
+        String username = chatUser.getName();
+        if (username == null) username = "Unknown";
+        userViewHolder.name.setText(username); // chatUser.getName()
     }
 
     @Override
     public UserViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
 
-        View itemView;
-
-        /*if (i == 0 || i == favCounter)
-            itemView = LayoutInflater.
-                    from(viewGroup.getContext()).
-                    inflate(R.layout.card_tab, viewGroup, false);
-
-        else*/
-            itemView = LayoutInflater.
+        View itemView = LayoutInflater.
                     from(viewGroup.getContext()).
                     inflate(R.layout.card_layout, viewGroup, false);
 
@@ -83,17 +63,10 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
     public boolean add(ChatUser user) {
 
         boolean result;
-        /*if (user.isFav()) {
 
-            if (favCounter == 0) {
-
-                userList.add(0, favTab);
-
-            }
-        }
-        else */result = userList.add(user);
-
+        result = userList.add(user);
         notifyDataSetChanged();
+
         return result;
     }
 
