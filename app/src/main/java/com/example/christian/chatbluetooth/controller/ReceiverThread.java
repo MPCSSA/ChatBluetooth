@@ -178,8 +178,8 @@ public class ReceiverThread extends Thread {
 
                             String address = BlueCtrl.bytesToMAC(buffer);
                             bool = BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1);
+                            if (bool) handler.sendEmptyMessage(BlueCtrl.UPD_HEADER);
 
-                            handler.sendEmptyMessage(BlueCtrl.UPD_HEADER);
                             //show new ChatUser regardless of coherent information; that will be updated if needed
                             if (BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
 

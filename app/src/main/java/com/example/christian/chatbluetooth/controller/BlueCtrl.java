@@ -205,9 +205,7 @@ public class BlueCtrl {
     public static boolean awakeUser(String mac, BluetoothDevice manInTheMiddle, byte status, int bounces) {
 
         ChatUser user = scanUsers(mac);
-        if (user != null) return (user.updateUser(manInTheMiddle, bounces, (int) status));
-        boolean bool = userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, fetchPersistentInfo(mac)));
-        return bool;
+        return (user == null || user.updateUser(manInTheMiddle, bounces, (int) status)) && userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, fetchPersistentInfo(mac)));
 
     }
 
