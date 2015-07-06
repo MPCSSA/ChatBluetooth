@@ -111,7 +111,6 @@ public class ReceiverThread extends Thread {
                         */
 
                         if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
-                            handler.sendEmptyMessage(BlueCtrl.GRT_HEADER);
                             out.write(BlueCtrl.ACK); //ACKed
                             System.out.println("ACKED");
                             connected = false;
@@ -179,6 +178,8 @@ public class ReceiverThread extends Thread {
 
                             String address = BlueCtrl.bytesToMAC(buffer);
                             bool = BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1);
+
+                            handler.sendEmptyMessage(BlueCtrl.UPD_HEADER);
                             //show new ChatUser regardless of coherent information; that will be updated if needed
                             if (BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
 
