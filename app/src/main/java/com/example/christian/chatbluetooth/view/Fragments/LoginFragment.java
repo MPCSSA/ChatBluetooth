@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
@@ -188,14 +189,33 @@ public class LoginFragment extends Fragment {
                     //Not registered
                     Toast.makeText(getActivity(), "You must first register", Toast.LENGTH_SHORT).show();
                 }
+
+                Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+                discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+                startActivityForResult(discoverable, 1);
+            }
+        });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1) {
+            if (!(resultCode == Activity.RESULT_OK)) getActivity().finish();
+
+            System.out.println("RESULT CODE = " + (resultCode == Activity.RESULT_OK));
+            if (!(resultCode == Activity.RESULT_OK)) {
+                System.out.println("STARTING CHAT");
                 Intent intent = new Intent(
                         getActivity().getApplicationContext(),
                         ChatActivity.class
                 );
-                intent.putExtra("newbie", ((MainActivity)getActivity()).isNew());
+                intent.putExtra("newbie", ((MainActivity) getActivity()).isNew());
                 startActivity(intent);
             }
-        });
+        }
+        else getActivity().finish();
     }
 
     public interface OnFragmentInteractionListener {

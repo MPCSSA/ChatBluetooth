@@ -4,6 +4,7 @@ package com.example.christian.chatbluetooth.view.Adapters;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.text.Layout;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -17,6 +18,7 @@ import android.widget.TableLayout;
 import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 
 import java.text.SimpleDateFormat;
@@ -55,17 +57,23 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage>{
 
         if (sender == 1){
             str = "received ";
-            linearLayout.setBackground(getContext().getResources().getDrawable(R.drawable.bubble_yellow));
+            linearLayout.setBackground(getContext().getResources().getDrawable(R.drawable.white_bubbles));
             linearLayout.setGravity(Gravity.END);
             comment.setGravity(Gravity.END);
+            if (BlueCtrl.version) comment.setTextColor(getContext().getResources().getColor(R.color.background));
             date.setGravity(Gravity.END);
+            if (BlueCtrl.version) date.setTextColor(getContext().getResources().getColor(R.color.divider));
+            ((RelativeLayout) view.findViewById(R.id.listLayout)).setGravity(Gravity.START);
         }
         else{
             str = "sent ";
-            linearLayout.setBackground(getContext().getResources().getDrawable(R.drawable.bubble_green));
+            linearLayout.setBackground(getContext().getResources().getDrawable(R.drawable.red_bubbles));
             linearLayout.setGravity(Gravity.START);
             comment.setGravity(Gravity.START);
+            if (BlueCtrl.version) comment.setTextColor(getContext().getResources().getColor(R.color.accent));
             date.setGravity(Gravity.START);
+            if (BlueCtrl.version) date.setTextColor(getContext().getResources().getColor(R.color.divider));
+            ((RelativeLayout) view.findViewById(R.id.listLayout)).setGravity(Gravity.END);
         }
 
         Date date1 = getItem(position).getDate();

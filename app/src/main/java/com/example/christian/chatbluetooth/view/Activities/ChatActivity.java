@@ -109,16 +109,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         /* NEW PART */
 
-        if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
-
-            Intent bluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivity(bluetooth);
-        }
-
-        Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-        startActivity(discoverable);
-
         Handler handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
