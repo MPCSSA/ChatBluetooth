@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
@@ -43,13 +44,10 @@ public class LoginFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    EditText userField;
+    EditText passwField;
+
     private OnFragmentInteractionListener mListener;
-
-    private EditText name;
-    private EditText passw;
-    private Button login;
-    private Button registration;
-
 
     /**
      * Use this factory method to create a new instance of
@@ -85,10 +83,13 @@ public class LoginFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        int layout;
+        if ((getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("logged in", false)))
+            layout = R.layout.logo_layout;
     /*
     DEBUG ONLY
     */
-        int layout = (BlueCtrl.version) ? R.layout.fragment_login : R.layout.fragment_login_nomat;
+        else layout = (BlueCtrl.version) ? R.layout.fragment_login : R.layout.fragment_login_nomat;
     /*
     DEBUG ONLY
     */
@@ -135,66 +136,75 @@ public class LoginFragment extends Fragment {
     public void onActivityCreated(Bundle savedIstanceState){
         super.onActivityCreated(savedIstanceState);
 
-        Typeface type = Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf");
-        name = (EditText) getActivity().findViewById(R.id.logName);
-        passw = (EditText) getActivity().findViewById(R.id.logPass);
-        login = (Button) getActivity().findViewById(R.id.loginButton);
-        registration = (Button) getActivity().findViewById(R.id.logRegButton);
 
-        SpannableString title = new SpannableString("Login");
-        title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        ActionBar actionBar = getActivity().getActionBar();
-        actionBar.setTitle(title);
+        if (getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("logged in", false)) {
+            Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+            startActivityForResult(discoverable, 1);
+        }
+
+        else {
+
+            Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
+
+            userField = (EditText) getActivity().findViewById(R.id.logName);
+            passwField = (EditText) getActivity().findViewById(R.id.logPass);
+
+            Button login = (Button) getActivity().findViewById(R.id.loginButton);
+            Button registration = (Button) getActivity().findViewById(R.id.logRegButton);
+
+            SpannableString title = new SpannableString("Login");
+            title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            ActionBar actionBar = getActivity().getActionBar();
+            actionBar.setTitle(title);
 
 
-        name.setTypeface(type);
-        passw.setTypeface(type);
-        login.setTypeface(type);
-        registration.setTypeface(type);
+            userField.setTypeface(type);
+            passwField.setTypeface(type);
+            login.setTypeface(type);
+            registration.setTypeface(type);
 
-        registration = (Button) getActivity().findViewById(R.id.logRegButton);
-        registration.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                RegistrationFragment registrationFragment = new RegistrationFragment();
-                FragmentManager fragmentManager = getFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            registration = (Button) getActivity().findViewById(R.id.logRegButton);
+            registration.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    RegistrationFragment registrationFragment = new RegistrationFragment();
+                    FragmentManager fragmentManager = getFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 /*DEBUG ONLY*/
-                if (BlueCtrl.version) fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-                fragmentTransaction.replace(R.id.container, registrationFragment);
-                fragmentTransaction.commit();
-            }
-        });
+                    if (BlueCtrl.version)
+                        fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                    fragmentTransaction.replace(R.id.container, registrationFragment);
+                    fragmentTransaction.commit();
+                }
+            });
 
-        login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SharedPreferences preferences = getActivity().getSharedPreferences("preferences", getActivity().MODE_PRIVATE);
+            login.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SharedPreferences preferences = getActivity().getSharedPreferences("preferences", getActivity().MODE_PRIVATE);
 
-                String User = preferences.getString("username",null); // null is a default value if they don't exist
-                String Pass = preferences.getString("password",null); // null is a default value if they don't exist
+                    String username = preferences.getString("username", null); // null is a default value if they don't exist
+                    String password = preferences.getString("password", null); // null is a default value if they don't exist
 
-                if(User != null && Pass != null){
-                    if(name.getText().toString().equals(User) && passw.getText().toString().equals(Pass))
-                    {
-                        //TODO: do login
-                        Toast.makeText(getActivity(), "Login", Toast.LENGTH_SHORT).show();
-                    }
-                    else{
-                        // Wrong user or pass
-                        Toast.makeText(getActivity(), "Wrong username or password", Toast.LENGTH_SHORT).show();
+                    if (username == null) {
+                        //Not registered
+                        Toast.makeText(getActivity(), "You must first register", Toast.LENGTH_SHORT).show();
+                    } else if (username != null && password != null) {
+                        if (userField.getText().toString().equals(username) && passwField.getText().toString().equals(password)) {
+
+                            Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+                            discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+                            startActivityForResult(discoverable, 1);
+                        } else {
+                            // Wrong user or pass
+                            Toast.makeText(getActivity(), "Wrong username or password", Toast.LENGTH_SHORT).show();
+                            userField.requestFocus();
+                        }
                     }
                 }
-                else{
-                    //Not registered
-                    Toast.makeText(getActivity(), "You must first register", Toast.LENGTH_SHORT).show();
-                }
-
-                Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-                startActivityForResult(discoverable, 1);
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -202,11 +212,13 @@ public class LoginFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == 1) {
-            if (!(resultCode == Activity.RESULT_OK)) getActivity().finish();
 
-            System.out.println("RESULT CODE = " + (resultCode == Activity.RESULT_OK));
-            if (!(resultCode == Activity.RESULT_OK)) {
+            if (resultCode == 1) {
                 System.out.println("STARTING CHAT");
+
+                Toast.makeText(getActivity(), "Login", Toast.LENGTH_SHORT).show();
+                getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).edit().putBoolean("logged in", true).apply();
+
                 Intent intent = new Intent(
                         getActivity().getApplicationContext(),
                         ChatActivity.class
@@ -214,6 +226,7 @@ public class LoginFragment extends Fragment {
                 intent.putExtra("newbie", ((MainActivity) getActivity()).isNew());
                 startActivity(intent);
             }
+            else getActivity().finish();
         }
         else getActivity().finish();
     }

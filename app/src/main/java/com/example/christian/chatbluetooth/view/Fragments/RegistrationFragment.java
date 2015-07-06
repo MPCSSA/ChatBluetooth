@@ -183,20 +183,6 @@ public class RegistrationFragment extends Fragment {
         ArrayAdapter<String> dataAdapter= new ArrayAdapter<String>(getActivity(), spinner_item, list);
         nations.setAdapter(dataAdapter);
 
-        /*
-        PRENDERE GIORNO,MESE , ANNO :
-        //    gg / mm / aaaa
-        //    01 2 34 5 6789
-        String Data = data.getText().toString();
-        int Giorno = Integer.parseInt(Data.substring(0,2));
-        int Mese = Integer.parseInt(Data.substring(3,5));
-        String Anno = Data.substring(6);
-
-        NNNOPE
-        Gli oggetti Date vengono istanziati tramite long int; è meglio prendere la data come somma di long int
-
-        */
-
         date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -286,7 +272,15 @@ public class RegistrationFragment extends Fragment {
                 }
                 //DEBUG ONLY
 
+                date.clearFocus();
+
+                getActivity().findViewById(R.id.lay_reg_page).requestFocus();
+
             }};
+
+        name.clearFocus();
+        passw.clearFocus();
+        confirmPassw.clearFocus();
         DatePickerDialog dpDialog=new DatePickerDialog(getActivity(), R.style.DialogTheme,listener, 1980, 1,1);
         dpDialog.show();//mostra la dialog
 
