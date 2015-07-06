@@ -76,7 +76,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                     System.out.println(dvc.getAddress() + " found");
 
-                    if (!BlueCtrl.closeDvc.contains(dvc) && !dvc.getAddress().equals("1C:B7:2C:0C:60:C6")/* !dvc.getAddress().equals("14:DD:A9:3B:53:E3")*/) {
+                    if (!BlueCtrl.closeDvc.contains(dvc) && !dvc.getAddress().equals("1C:B7:2C:0C:60:C6") /*!dvc.getAddress().equals("14:DD:A9:3B:53:E3")*/) {
                         System.out.println("greetings");
                         BlueCtrl.greet(dvc);
                     }
@@ -133,6 +133,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                     case BlueCtrl.UPD_HEADER:
                         if (BlueCtrl.version) BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
                         else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
+                        break;
 
                     case BlueCtrl.CRD_HEADER:
                         BlueCtrl.cardUpdate(BlueCtrl.updateQueue.remove(0));
@@ -151,6 +152,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         BlueCtrl.newcomers.remove(msg.getData().getString("MAC"));
                         if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
                         else BlueCtrl.userNomat.notifyDataSetChanged();
+                        break;
                 }
 
                 if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
