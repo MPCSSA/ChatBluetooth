@@ -222,7 +222,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 popupWindow.setAnimationStyle(R.style.EmoticonAnim);
                 if (BlueCtrl.version) popupWindow.setElevation(8f);
 
-                popupWindow.showAtLocation(view, Gravity.BOTTOM | Gravity.END, 0, msgText.getHeight() + 16);
+                popupWindow.showAtLocation(view, Gravity.BOTTOM | Gravity.END, 36, msgText.getHeight() + 32);
 
                 grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
