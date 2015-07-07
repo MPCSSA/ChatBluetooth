@@ -25,6 +25,7 @@
             android:cursorVisible="true"
             android:backgroundTint="@color/accent"
             android:layout_alignParentStart="true"
+            android:maxLength="20"
             android:hint="@string/username"
             android:clickable="false"
             android:textCursorDrawable="@drawable/edit_cursor" />
@@ -38,6 +39,7 @@
             android:cursorVisible="true"
             android:layout_below="@+id/et_reg_username"
             android:layout_centerHorizontal="true"
+            android:maxLength="20"
             android:hint="@string/password"
             android:backgroundTint="@color/accent"
             android:textCursorDrawable="@drawable/edit_cursor" />
@@ -61,6 +63,7 @@
             android:cursorVisible="true"
             android:layout_below="@+id/et_reg_password"
             android:layout_alignStart="@+id/et_reg_password"
+            android:maxLength="20"
             android:backgroundTint="@color/accent"
             android:textCursorDrawable="@drawable/edit_cursor" />
 

@@ -2,28 +2,21 @@ package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
-import android.os.Message;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -35,7 +28,6 @@ import android.widget.PopupWindow;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
-import com.example.christian.chatbluetooth.controller.MessageThread;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
@@ -200,7 +192,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
             case R.id.emoBtn:
 
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                int layout = (BlueCtrl.version) ? R.layout.emoticon_layout : R.layout.emoticon_layout_nomat;
+                int layout = (BlueCtrl.version) ? R.layout.emoticon_popup : R.layout.emoticon_popup_nomat;
                 View view = inflater.inflate(layout, (ViewGroup) getActivity().findViewById(R.id.emoticons));
 
                 GridView grid = (GridView) view.findViewById(R.id.emo_grid);
@@ -227,11 +219,10 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 popupWindow.setHeight((h / 2) * 5);
                 popupWindow.setWidth((w / 2) * 5);
                 popupWindow.setBackgroundDrawable(new BitmapDrawable());
-                if (BlueCtrl.version) {
-                    popupWindow.setElevation(8f);
-                    popupWindow.setAnimationStyle(R.anim.abc_slide_in_bottom);
-                }
-                popupWindow.showAtLocation(view, Gravity.BOTTOM | Gravity.END, 16, 80);
+                popupWindow.setAnimationStyle(R.style.EmoticonAnim);
+                if (BlueCtrl.version) popupWindow.setElevation(8f);
+
+                popupWindow.showAtLocation(view, Gravity.BOTTOM | Gravity.END, 0, msgText.getHeight() + 16);
 
                 grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -247,7 +238,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                         BlueCtrl.msgAdapt.add(new ChatMessage(String.valueOf(i), false, time.getTime(), true));
                         BlueCtrl.msgAdapt.notifyDataSetChanged();
 
-                        popupWindow.setAnimationStyle(R.anim.abc_slide_out_bottom);
                         popupWindow.dismiss();
                     }
                 });

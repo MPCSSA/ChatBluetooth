@@ -23,4 +23,9 @@
         <item name="android:elevation">8dp</item>
     </style>
 
+    <style name="EmoticonAnim">
+        <item name="android:windowEnterAnimation">@anim/abc_slide_in_bottom</item>
+        <item name="android:windowExitAnimation">@anim/abc_slide_out_bottom</item>
+    </style>
+
 </resources>

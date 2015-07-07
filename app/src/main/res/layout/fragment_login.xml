@@ -22,7 +22,7 @@
             android:singleLine="false"
             android:cursorVisible="true"
             android:backgroundTint="@color/accent"
-
+            android:maxLength="20"
             android:hint="@string/username"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true"

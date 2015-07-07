@@ -45,7 +45,7 @@
                 android:layout_marginLeft="8dp"
                 android:layout_marginBottom="8dp"
                 android:layout_toLeftOf="@+id/sendBtn"
-                android:src="@mipmap/ic_send_white_24dp"/>
+                android:src="@mipmap/emoticon_24dp"/>
 
             <ImageButton
                 android:layout_width="wrap_content"
