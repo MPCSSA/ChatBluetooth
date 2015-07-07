@@ -17,20 +17,14 @@ import com.example.christian.chatbluetooth.view.Adapters.EmoticonAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
-import com.example.christian.chatbluetooth.view.Fragments.NoMaterialNavDrawerFragment;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 public class BlueCtrl {
 
@@ -65,15 +59,18 @@ public class BlueCtrl {
     */
 
     //BUFFERS
-    public static ArrayList<ChatUser> userQueue = new ArrayList<>();
-    public static ArrayList<String> updateQueue = new ArrayList<>();
-    public static HashMap<String, BluetoothDevice> newcomers = new HashMap<>();
-    public static ArrayList<ChatMessage> msgBuffer = new ArrayList<>();
+    public static ArrayList<ChatUser> userQueue = new ArrayList<>(); //ChatUser Buffer to store users to show in ListFragment
+    public static ArrayList<String> updateQueue = new ArrayList<>(); //
+    public static HashMap<String, BluetoothDevice> newcomers = new HashMap<>(); //newly discovered devices waiting to be greeted
+    public static ArrayList<ChatMessage> msgBuffer = new ArrayList<>(); //ChatMessage Buffer to store messages to show in ChatFragment
 
-    public static boolean DISCOVERY_SUSPENDED = false;
-    public static int DISCOVERY_LOCK = 0; //l'ultimo che esce chiude la porta
-
-    private static SharedPreferences currentUser;
+    /*
+    LAST ONE OUT CLOSES THE DOOR: synchronization mechanism to restart Bluetooth Discovery when all
+    sockets are done communication with the outside; discovery hinders message exchange and has to be put
+    down for the sake of the communication
+     */
+    public static boolean DISCOVERY_SUSPENDED = false; //Discovery locks
+    public static int DISCOVERY_LOCK = 0;
 
     /*
     DEBUG ONLY
@@ -91,24 +88,13 @@ public class BlueCtrl {
     private static final String dbname = "bluedb"; //DB name
     public static MessageAdapter msgAdapt;
 
-    /*public static void setUserAdapt(RecycleAdapter recycleAdapter) {
-        BlueCtrl.userAdapt = recycleAdapter;
-    }*/
-
-    public static void setDbManager(BlueDBManager dbManager) {
-        BlueCtrl.dbManager = dbManager;
-    }
-
-    public static void bindUser(SharedPreferences sh) {
-        currentUser = sh;
-    }
-
     public static void fillMsgAdapter(){
-
-        msgAdapt.add(null);
 
         Cursor cursor = fetchMsgHistory(msgAdapt.getAddress(), (new Date()).getTime());
         if (cursor.getCount() > 0){
+
+            msgAdapt.add(null);
+
             cursor.moveToLast();
             do {
                 msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2) == 1, cursor.getLong(1), cursor.getInt(3) == 1));

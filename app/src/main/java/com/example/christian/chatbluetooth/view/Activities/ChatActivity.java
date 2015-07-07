@@ -128,7 +128,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         for (ChatUser ch : BlueCtrl.userList) {
                             if (!ch.getMac().equals(user.getMac())) {
                                 updCascade.add(ch.getSegment());
-                                System.out.println("UPDATE CASCADE ADDED " + ch.getName());
                             }
                         }
 
