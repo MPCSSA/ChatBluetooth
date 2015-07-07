@@ -226,6 +226,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 final PopupWindow popupWindow = new PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
                 popupWindow.setHeight((h / 2) * 5);
                 popupWindow.setWidth((w / 2) * 5);
+                popupWindow.setBackgroundDrawable(new BitmapDrawable());
                 popupWindow.showAtLocation(view, Gravity.BOTTOM | Gravity.END, 16, 80);
                 if (BlueCtrl.version) popupWindow.setElevation(8f);
 
