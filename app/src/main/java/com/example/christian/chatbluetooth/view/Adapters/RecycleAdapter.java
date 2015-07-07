@@ -74,13 +74,13 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         return userList.get(position);
     }
 
-    public Collection dropUsers(BluetoothDevice lostDvc) {
+    public Collection dropUsers(String address) {
 
         ArrayList<byte[]> lostDvcs = new ArrayList<>();
 
         int i = 0;
         for (ChatUser u : userList) {
-            if (u.getNextNode() != null && u.getNextNode().equals(lostDvc)) {
+            if (u.getNextNode() != null && u.getNextNode().getAddress().equals(address)) {
                 lostDvcs.add(u.getMacInBytes());
                 userList.remove(i);
             }

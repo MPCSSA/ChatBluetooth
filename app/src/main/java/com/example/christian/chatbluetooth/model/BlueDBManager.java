@@ -144,8 +144,20 @@ public class BlueDBManager {
 
     public Cursor fetchTimestamp(String address) {
 
-        return db.query(tables[0], new String[] {userTable[2]}, userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
+        return db.query(tables[0], new String[]{userTable[2]}, userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
 
+    }
+
+    public long fetchProfilePicCode(String address) {
+
+        Cursor cursor = db.query(tables[0], new String[] {userTable[4]}, userTable[0] + " = \'" + address, null, null, null, null, "1");
+        cursor.moveToFirst();
+
+        String str = cursor.getString(0);
+        if (str == null) {
+            return 0;
+        }
+        else return Long.parseLong(cursor.getString(0));
     }
 
     //TODO: Update methods

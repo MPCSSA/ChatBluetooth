@@ -32,22 +32,25 @@ public class BlueCtrl {
     public static final byte UPD_HEADER = (byte) 1; //header for Update Message
     public static final byte RQS_HEADER = (byte) 2; //header for Info Request
     public static final byte CRD_HEADER = (byte) 3; //header for Card Message
-    public static final byte MSG_HEADER = (byte) 4; //header for Chat Message
-    public static final byte DRP_HEADER = (byte) 5; //header for Drop Request
-    public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
-    public static final byte    ACK_GRT = (byte) 7;
-    public static final byte    ACK_UPD = (byte) 8;
-    public static final byte    ACK_RQS = (byte) 9;
-    public static final byte    ACK_CRD = (byte) 10;
-    public static final byte    ACK_MSG = (byte) 11;
-    public static final byte    ACK_DRP = (byte) 12;
-    public static final byte    NAC_GRT = (byte) -7;
-    public static final byte    NAC_UPD = (byte) -6;
-    public static final byte    NAC_RQS = (byte) -5;
-    public static final byte    NAC_CRD = (byte) -4;
-    public static final byte    NAC_MSG = (byte) -3;
-    public static final byte    NAC_DRP = (byte) -2;
-    public static final byte        NAC = (byte) -1;
+    public static final byte PIC_HEADER = (byte) 4; //header for Card Message
+    public static final byte MSG_HEADER = (byte) 5; //header for Chat Message
+    public static final byte DRP_HEADER = (byte) 6; //header for Drop Request
+    public static final byte        ACK = (byte) 7; //ACKnowledge Message for communication synchronization
+    public static final byte    ACK_GRT = (byte) 8;
+    public static final byte    ACK_UPD = (byte) 9;
+    public static final byte    ACK_RQS = (byte) 10;
+    public static final byte    ACK_CRD = (byte) 11;
+    public static final byte    ACK_MSG = (byte) 12;
+    public static final byte    ACK_DRP = (byte) 13;
+    public static final byte    NAK_GRT = (byte) -8;
+    public static final byte    NAK_UPD = (byte) -7;
+    public static final byte    NAK_RQS = (byte) -6;
+    public static final byte    NAK_CRD = (byte) -5;
+    public static final byte    NAK_PIC = (byte) -4;
+    public static final byte    NAK_MSG = (byte) -3;
+    public static final byte    NAK_DRP = (byte) -2;
+    public static final byte        NAK = (byte) -1;
+    public static final int         TKN = 25;       //Token assigne to a greeted device
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
 
     /*
@@ -60,9 +63,9 @@ public class BlueCtrl {
 
     //BUFFERS
     public static ArrayList<ChatUser> userQueue = new ArrayList<>(); //ChatUser Buffer to store users to show in ListFragment
-    public static ArrayList<String> updateQueue = new ArrayList<>(); //
-    public static HashMap<String, BluetoothDevice> newcomers = new HashMap<>(); //newly discovered devices waiting to be greeted
     public static ArrayList<ChatMessage> msgBuffer = new ArrayList<>(); //ChatMessage Buffer to store messages to show in ChatFragment
+    public static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>(); //Close Devices Buffer; it makes possible Greetings, Update and Drop mechanisms
+    public static HashMap<String, Integer> tokenMap = new HashMap<>(); //Map for Token Counters
 
     /*
     LAST ONE OUT CLOSES THE DOOR: synchronization mechanism to restart Bluetooth Discovery when all
@@ -79,14 +82,75 @@ public class BlueCtrl {
     /*
     DEBUG ONLY
      */
+
+    /*
+    STATIC ADAPTERS
+    To enhance and simplify thread communication, these data structures are shared between interfaces and
+    controllers; update notification is managed via Handler, because only main threads are allowed to
+    manipulate views
+    */
     public final static ArrayList<ChatUser> userList = new ArrayList<>();
-    public static EmoticonAdapter emoticons;
-    public final static RecycleAdapter userAdapt = new RecycleAdapter(userList);        //ChatUser Adapter; initialized on MainActivity creation
-    public static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>();
-    public static int counter = 0;
-    private static BlueDBManager dbManager;          //User and Messages DB Manager
+    public final static RecycleAdapter userAdapt = new RecycleAdapter(userList);
+    //ChatUser RecyclerAdapter; it is only used by ListFragent, therefore it can be initialized as final
+    public static EmoticonAdapter emoticons; //ArrayAdapter used to implement the Emoticons Tab in ChatFragment
+    public static MessageAdapter msgAdapt; //ArrayAdapter used to show and manage message history in ChatFragment
+
+    //DATABASE
+    private static BlueDBManager dbManager; //DB Manager
     private static final String dbname = "bluedb"; //DB name
-    public static MessageAdapter msgAdapt;
+
+    public static int counter = 0;
+
+
+    /*
+    ROUTING AND CONNECTION METHODS
+     */
+
+    public static void sendMsg(BluetoothDevice dvc, byte[] msg, Handler handler) {
+        /*
+        Call this method when you're ready to send a message to a device; MessageThread keeps the message
+        type but is not concerned with its content. The Handler is required to ensure Thread communication
+         */
+
+        System.out.println("sending " + dvc.getAddress());
+        (new MessageThread(dvc, msg, handler)).start();
+        //Interface method, you are not allowed to instantiate a MessageThread object
+    }
+
+    public static void greet(BluetoothDevice dvc, Handler handler) {
+        //Use this method to begin a Greetings routine. It encapsulates both message builder and sender
+
+        byte[] grt = new byte[10], timestamp;
+
+        Cursor cursor = dbManager.fetchTimestamp(BluetoothAdapter.getDefaultAdapter().getAddress());
+        cursor.moveToFirst();
+        //This device persistent information; at least Username and Last Update fields are not null
+        timestamp = longToBytes(cursor.getLong(0)); //last time you updated your profile
+
+        grt[0] = BlueCtrl.GRT_HEADER; //msg header
+        grt[1] = (byte) 1; //user status
+
+        for(int i = 2; i < 10; ++i) {
+            grt[i] = timestamp[i-2];
+        }
+        //8-byte long timestamp
+
+        sendMsg(dvc, grt, handler);
+        //send message to receiver; MAC address is implicit
+    }
+
+    public static void dispatchNews(byte[] msg, BluetoothDevice filter, Handler handler) {
+        //Use this method to dispatch Route information to all your neighbours; it spreads UP and DRP messages
+
+        for(BluetoothDevice dvc : BlueCtrl.closeDvc) {
+
+            if (!dvc.equals(filter)) sendMsg(dvc, msg, handler); //A filter can be specified to avoid redundancy
+        }
+    }
+
+
+
+
 
     public static void fillMsgAdapter(){
 
@@ -102,42 +166,234 @@ public class BlueCtrl {
         }
     }
 
-    public static void sendMsg(BluetoothDevice dvc, byte[] msg) {
 
-        System.out.println("sending " + dvc.getAddress());
-        (new MessageThread(dvc, msg)).start();
-    }
+    //BUILD MESSAGE ROUTINES
 
-    public static void sendMsg(BluetoothDevice dvc, byte[] msg, Handler handler) {
+    public static byte[] buildMsg(byte[] target, byte[] sender, byte[] msg) {
+        /*
+        Use this method to prepare a Text Msg packet to forward to a Bluetooth device.
+        Target param is the MAC address of target device, NOT the Bluetooth device ultimately
+        receiving the packet from this device. Sender param is the sender's MAC address.
+        */
 
-        System.out.println("sending " + dvc.getAddress());
-        (new MessageThread(dvc, msg, handler)).start();
-    }
+        int length = msg.length;
+        /*
+        Total length of the message; it is needed in order to ensure synchronized communication, because
+        text messages have variable size. A receiving device will know exactly how many byte it has to read
+        before communication is over, and it prevents disastrous blocking calls
+         */
 
-    public static void greet(BluetoothDevice dvc, Handler handler) {
-        byte[] grt = new byte[10], timestamp;
-        Cursor cursor = dbManager.fetchTimestamp(BluetoothAdapter.getDefaultAdapter().getAddress());
-        cursor.moveToFirst();
-        timestamp = longToBytes(cursor.getLong(0));
-        grt[0] = BlueCtrl.GRT_HEADER;
-        grt[1] = (byte) 1;//currentUser.getInt("status", 1); //1 = disponibile
+        byte[] pckt = new byte[15 + length];
+        /*
+        Actual number of bytes that forms a Text Msg packet:
+         - 1 byte for MSG_HEADER
+         - 12 bytes for sender and receiver MACs
+         - 1 byte for Message type (in this case, Text Msg)
+         - 1 byte for Length field
+         - the rest are the message bytes
+         */
 
-        for(int i = 2; i < 10; ++i) {
-            grt[i] = timestamp[i-2];
+        pckt[0] = MSG_HEADER; //packet header
+
+        int i = 1;
+        for(byte b : target) {
+            pckt[i] = b;
+            ++i;
         }
+        //Target field
 
-        sendMsg(dvc, grt, handler);
+        for(byte b : sender) {
+            pckt[i] = b;
+            ++i;
+        }
+        //Sender field
+
+        pckt[i] = 0; //Text Msg flag
+        ++i;
+
+        pckt[i] = (byte) (length - 1);
+        ++i;
+        /*
+        Note that empty messages are not forwarded, so the actual message range is from 1 to 256;
+        8-bit representation can only reach 255, therefore range increment is implicit
+         */
+
+        for(byte b : msg) {
+            pckt[i] = b;
+            ++i;
+        }
+        //Actual Text Msg
+
+        return pckt;
     }
-    public static void dispatchNews(byte[] msg, BluetoothDevice filter, ChatUser user) {
-        //dispatch message to all close devices;
-        //used for GRT, UPD, DRP messages
-        for(BluetoothDevice dvc : BlueCtrl.closeDvc) {
-            if (!dvc.equals(filter)) {
-                System.out.println("Dispatching " + user.getMac() + "to " + dvc.getAddress() + "filtering " + filter.getAddress());
-                sendMsg(dvc, msg);
+
+    public static byte[] buildEmoticon(byte[] target, byte[] sender, byte code) {
+        /*
+        Use this method to prepare an Emoticon Msg to forward to a Bluetooth device.
+        All devices shares the emoticon image files, therefore this message only needs to carry
+        the emoticon position into its Adapter.
+         */
+
+        byte[] pckt = new byte[15];
+        /*
+        Actual fixed length for an Emoticon Msg:
+         - 1 byte for MSG_HEADER
+         - 12 bytes for sender and receiver MACs
+         - 1 byte for Message type (in this case, Emoticon Msg)
+         - 1 byte for emoticon Code
+         */
+
+        pckt[0] = MSG_HEADER; //packet header
+
+        int i = 1;
+        for(byte b : target) {
+            pckt[i] = b;
+            ++i;
+        }
+        //Target field
+
+        for(byte b : sender) {
+            pckt[i] = b;
+            ++i;
+        }
+        //Sender field
+
+        pckt[i] = 1; //Msg type (in this case, emoticon)
+        ++i;
+
+        pckt[i] = code; //emoticon code
+
+        return pckt;
+
+    }
+
+    public static byte[] buildUpdMsg(ChatUser user) {
+        /*
+        For DROP REQUEST Instant Reply only: it lacks Number field because these messages are sent
+        one after another and are easily managed by MessageThread
+         */
+
+        byte[] upd = new byte[16], lastUpd;
+
+        upd[0] = BlueCtrl.UPD_HEADER; //packet header
+
+        int i = 1, j;
+        for (j = 0; j < 6; ++j) {
+            upd[i + j] = user.getMacInBytes()[j];
+        }
+        i += j;
+        //Device MAC
+
+        lastUpd = longToBytes(user.getLastUpd());
+        for (j = 0; j < 8; ++j) {
+            upd[i + j] = lastUpd[j];
+        }
+        i += j;
+        //Timestamp of the last time profile was updated
+
+        upd[i] = (byte) (user.getBounces());
+        ++i;
+        //number of devices on the route
+
+        upd[i] = (byte) user.getStatus();
+        //user status
+
+        return upd;
+    }
+
+    public static byte[] buildUpdMsg(List<byte[]> updCascade) {
+        /*
+        Canonical Update Message; it is organized in 16-bytes segments, each one encapsulating information
+        from one user. A Number field follows the UPD_HEADER, in order to ensure synchronization and
+        coherent reading of the message.
+         */
+
+        byte[] upd = new byte[2 + 16 * updCascade.size()];
+        /*
+        Actual size of the message:
+         - 1 byte for the UPD_HEADER
+         - 1 byte for the Number field
+         - Number time 16 bytes for all the segments;
+        Size of a segment:
+         - 6 bytes for device MAC address
+         - 8 bytes for profile timestamp
+         - 1 byte for the number of device on the route
+         - 1 byte for user status
+         */
+
+        upd[0] = BlueCtrl.UPD_HEADER; //packet header
+
+        upd[1] = (byte) updCascade.size(); //number of segments; at least 1
+
+        for (int i = 0; i < updCascade.size(); ++i) {
+            for (int j = 0; j < 16; ++j) {
+                upd[2 + i * 16 + j] = updCascade.get(i)[j];
             }
         }
+        //adding segments previously collected
+
+        return upd;
     }
+
+    public static byte[] buildCard(Cursor info) {
+        /*
+        Use this method to retrieve and encode persistent user information requested by a user.
+        Username and Profile Picture are the only variable size fields; for performance issues,
+        Profile Pictures are only spread out when they actually change, otherwise
+         */
+
+        info.moveToFirst();
+
+        String mac = info.getString(0), username = info.getString(1);
+        long timestamp  = info.getLong(2);
+        String profile_pic = info.getString(5);
+        int country = info.getInt(3), gender = info.getInt(4), age = info.getInt(5);
+
+        byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
+                card = new byte[27 + user.length];
+
+        int i = 0, j;
+        card[i] = BlueCtrl.CRD_HEADER;
+        ++i;
+
+        for (j = 0; j < 6; ++j) {
+            card[i + j] = address[j];
+        }
+        i += j;
+
+        for (j = 0; j < 8; ++j) {
+            card[i + j] = lastUpd[j];
+        }
+        i += j;
+
+        card[i] = (byte) age;
+        ++i;
+        card[i] = (byte) gender;
+        ++i;
+        card[i] = (byte) country;
+        ++i;
+
+        card[i] = (byte) user.length;
+        ++i;
+        for (j = 0; j < user.length; ++j) {
+            card[i + j] = user[j];
+        }
+        i += j;
+
+        long picture = (profile_pic == null) ? 0l : Long.parseLong(profile_pic);
+        byte[] lastPic = longToBytes(picture);
+
+        for (j = 0; j < 8; ++j) {
+            card[i + j] = lastPic[j];
+        }
+
+        return card;
+    }
+
+
+
+
+
 
     public static ChatUser scanUsers(String address) {
 
@@ -165,12 +421,6 @@ public class BlueCtrl {
 
         //TODO: Drop Request management
         return null;
-    }
-
-    public static void addChatUser(byte[] mac, BluetoothDevice next, int bounces, String name, byte status) {
-
-        //TODO: create new ChatUser object and add it to ChatUser Adapter
-
     }
 
     public static boolean awakeUser(String mac, BluetoothDevice manInTheMiddle, byte status, int bounces, long timestamp) {
@@ -207,6 +457,8 @@ public class BlueCtrl {
             }*/
 
     }
+
+    //DEPRECATED
 
     public static boolean addCloseDvc(BluetoothDevice dvc) {
 
@@ -259,162 +511,7 @@ public class BlueCtrl {
         }
     }
 
-    //TODO: Build Message routines
 
-    public static byte[] buildMsg(byte[] target, byte[] sender, byte[] msg) {
-        /*
-        Use this method to prepare the packet to forward to a Bluetooth device.
-        Target param is the MAC address of target device, NOT the Bluetooth device receiving the packet from
-        this device. Sender param is the sender's MAC address.
-        */
-
-        int length = msg.length; //must prevent more than 255 characters long messages
-        byte[] pckt = new byte[15 + length]; //actual bytes packet that has to be sent
-        pckt[0] = MSG_HEADER; //packet header
-
-        int i = 1;
-        for(byte b : target) {
-            pckt[i] = b; //Target field
-            ++i;
-        }
-
-        for(byte b : sender) {
-            pckt[i] = b; //Target field
-            ++i;
-        }
-
-        pckt[i] = 0;
-        ++i;
-        pckt[i] = (byte) (length - 1);
-        ++i;
-
-        for(byte b : msg) {
-            pckt[i] = b;
-            ++i;
-        }
-
-        return pckt;
-    }
-
-    public static byte[] buildEmoticon(byte[] target, byte[] sender, byte code) {
-
-        byte[] pckt = new byte[15]; //actual bytes packet that has to be sent
-        pckt[0] = MSG_HEADER; //packet header
-
-        int i = 1;
-        for(byte b : target) {
-            pckt[i] = b; //Target field
-            ++i;
-        }
-
-        for(byte b : sender) {
-            pckt[i] = b; //Target field
-            ++i;
-        }
-
-        pckt[i] = 1;
-        ++i;
-        pckt[i] = code;
-
-        return pckt;
-
-    }
-
-    public static byte[] buildUpdMsg(ChatUser user) {
-        //For DROP REQUEST Instant Reply only
-
-        byte[] upd = new byte[16], lastUpd;
-
-        upd[0] = BlueCtrl.UPD_HEADER;
-
-        int i = 1, j;
-        for (j = 0; j < 6; ++j) {
-            upd[i + j] = user.getMacInBytes()[j];
-        }
-        i += j;
-
-        lastUpd = longToBytes(user.getLastUpd());
-        for (j = 0; j < 8; ++j) {
-            upd[i + j] = lastUpd[j];
-        }
-        i += j;
-
-        upd[i] = (byte) (user.getBounces());
-        ++i;
-
-        upd[i] = (byte) user.getStatus();
-
-        return upd;
-    }
-
-    public static byte[] buildUpdMsg(List<byte[]> updCascade) {
-        //Multi-user Update Message
-
-        byte[] upd = new byte[2 + 16 * updCascade.size()];
-
-        upd[0] = BlueCtrl.UPD_HEADER;
-        upd[1] = (byte) updCascade.size();
-
-        for (int i = 0; i < updCascade.size(); ++i) {
-            for (int j = 0; j < 16; ++j) {
-                upd[2 + i * 16 + j] = updCascade.get(i)[j];
-            }
-        }
-
-        return upd;
-    }
-
-    public static byte[] buildCard(Cursor info) {
-
-        info.moveToFirst();
-
-        String mac = info.getString(0), username = info.getString(1);
-        System.out.println("building card 1");
-        long timestamp  = info.getLong(2);
-        System.out.println("building card 2");
-        //String profile_pic = info.getString(5);
-        int country = info.getInt(3), gender = info.getInt(4), age = info.getInt(5);
-        System.out.println("building card 3");
-
-        byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
-                /*pic = extractImage(profile_pic),*/ card = new byte[20 + user.length/* + pic.length*/];
-
-        int i = 0, j;
-        card[i] = BlueCtrl.CRD_HEADER;
-        ++i;
-
-        for (j = 0; j < 6; ++j) {
-            card[i + j] = address[j];
-        }
-        i += j;
-
-        for (j = 0; j < 8; ++j) {
-            card[i + j] = lastUpd[j];
-        }
-        i += j;
-
-        card[i] = (byte) age;
-        ++i;
-        card[i] = (byte) gender;
-        ++i;
-        card[i] = (byte) country;
-        ++i;
-
-        card[i] = (byte) user.length;
-        ++i;
-        for (j = 0; j < user.length; ++j) {
-            card[i + j] = user[j];
-        }
-        /*i += j;
-
-        card[i] = (byte) pic.length;
-        ++i;
-        for (j = 0; j < pic.length; ++j) {
-            card[i + j] = pic[j];
-        }*/
-
-        return card;
-    }
 
 
     //TODO: DB Operations
@@ -440,7 +537,7 @@ public class BlueCtrl {
 
     public static void insertMsgTable(String msg, String address, Date time, int emoticon) {
 
-        dbManager.createRecord(1, new Object[] {msg, address, time.getTime(), 0, emoticon});
+        dbManager.createRecord(1, new Object[]{msg, address, time.getTime(), 0, emoticon});
     }
 
     public static void updateUserTable(String mac, long timestamp, String username, int age, int gender, int country){
@@ -567,11 +664,16 @@ public class BlueCtrl {
         return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 
-    public static Collection dropUsers(BluetoothDevice dvc) {
-        return userAdapt.dropUsers(dvc);
+    public static Collection dropUsers(String address) {
+        return userAdapt.dropUsers(address);
     }
 
     public static Cursor fetchMsgHistory(String address, long timestamp){
         return dbManager.fetchMsgHistory(address, timestamp);
+    }
+
+    public static boolean validatePicture(String address, long timestamp) {
+
+        return (dbManager.fetchProfilePicCode(address) == timestamp);
     }
 }

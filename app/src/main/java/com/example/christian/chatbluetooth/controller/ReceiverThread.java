@@ -23,6 +23,7 @@ public class ReceiverThread extends Thread {
     private OutputStream out;     //OutputStream object from which reading ACK messages
     private BluetoothDevice rmtDvc;        //MAC address of communicating Bluetooth device
     private Handler handler;
+    private Message mail;
 
     public void setSckt(BluetoothSocket sckt) {
         this.sckt = sckt;
@@ -46,6 +47,11 @@ public class ReceiverThread extends Thread {
         out = tmp1; //OutputStream for Instant Reply or ACK forwarding
 
         rmtDvc = sckt.getRemoteDevice(); //communicating device
+
+        mail = new Message();
+        Bundle bundle = new Bundle();
+        bundle.putString("MAC", rmtDvc.getAddress());
+        mail.setData(bundle);
     }
 
     public void run() {
@@ -60,8 +66,6 @@ public class ReceiverThread extends Thread {
             BlueCtrl.lockDiscoverySuspension();
 
             do {
-
-                while (BluetoothAdapter.getDefaultAdapter().isDiscovering()) System.out.println("Discovery: " + BluetoothAdapter.getDefaultAdapter().isDiscovering());
 
                 System.out.println("leggo");
                 byte flag = (byte) in.read();
@@ -98,7 +102,7 @@ public class ReceiverThread extends Thread {
                             j = in.read(bytes, i, 8 - i);
                             if (j < 0) {
                                 System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
+                                throw new IOException();
                             }
                             i += j;
                         } while (i < 8);
@@ -107,7 +111,6 @@ public class ReceiverThread extends Thread {
                         long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
 
                         if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0, lastUpd)) {
-                            handler.sendEmptyMessage(BlueCtrl.GRT_HEADER);
                             System.out.println(rmtDvc.getAddress() + " summoned");
                         }
                         /*
@@ -117,6 +120,8 @@ public class ReceiverThread extends Thread {
 
                         if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
                             out.write(BlueCtrl.ACK); //ACKed
+                            mail.what = BlueCtrl.GRT_HEADER;
+                            handler.sendMessage(mail);
                             System.out.println("ACKED");
                             connected = false;
                         } else {
@@ -126,6 +131,7 @@ public class ReceiverThread extends Thread {
                             System.out.println("requesting information");
                             out.write(BlueCtrl.RQS_HEADER);
                             out.write(BlueCtrl.macToBytes(rmtDvc.getAddress()));
+                            out.write(0);
                         }
 
                         break;
@@ -160,7 +166,7 @@ public class ReceiverThread extends Thread {
                                 j = in.read(segment, i, 16 - i);
                                 if (j < 0) {
                                     System.out.println("Premature EOF, message misunderstanding");
-                                    //TODO: throw something
+                                    throw new IOException();
                                 }
                                 i += j;
                             } while (i < 16);
@@ -184,8 +190,11 @@ public class ReceiverThread extends Thread {
                             String address = BlueCtrl.bytesToMAC(buffer);
                             long timestamp = BlueCtrl.rebuildTimestamp(lastUpd);
 
-                            if (bool = BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1, timestamp))
-                                handler.sendEmptyMessage(BlueCtrl.UPD_HEADER);
+                            if (bool = BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1, timestamp)) {
+
+                                mail.what = BlueCtrl.UPD_HEADER;
+                                handler.sendMessage(mail);
+                            }
                             //show new ChatUser regardless of coherent information; that will be updated if needed
 
                             if (BlueCtrl.validateUser(address, timestamp)) {
@@ -213,6 +222,7 @@ public class ReceiverThread extends Thread {
 
                                 out.write(BlueCtrl.RQS_HEADER); //Info Request
                                 out.write(buffer);
+                                out.write(0);
                             }
                         }
 
@@ -231,42 +241,49 @@ public class ReceiverThread extends Thread {
 
                     case BlueCtrl.CRD_HEADER: {
                     /*
-                    A Card message is a heavy message containing persistent size-variable fields of a
+                    A Card message is a message containing persistent size-variable fields of a
                     ChatUser; it allows for profile customization and is only sent to create a new
                     Users table entry or update an existing one when DB contains out-of-date information.
-                    Username and Profile Pic fields are preceded by a length byte, indicating
-                    the field length in bytes and allowing for streamer consistent reading.
-                    [3][   MAC   ][last update][ age ][gender][nationality][length][  username  ][pic size (q + r)][profile pic]
-                       | 6 bytes |   8 bytes  |1 byte|1 byte |   1 byte   |1 byte |length bytes |2 bytes + 1 byte ||size bytes |
+                    Username is preceded by a length byte, indicating the field length in bytes and
+                    allowing for streamer consistent reading. Last 8 bytes represents Profile Picture
+                    last update: if this field has not changed, this device needs not to download a new
+                    picture, therefore enhancing performance and avoiding heavy unnecessary message exchange.
+                    Card Message can be up to 47 bytes long.
+                    [3][   MAC   ][last update][ age ][gender][nationality][length][  username  ][Profile Picture Last Upd]
+                       | 6 bytes |   8 bytes  |1 byte|1 byte |   1 byte   |1 byte |length bytes |        8 bytes          |
                      */
                         final byte[] buffer = new byte[6],
                                lastUpd = new byte[8],
-                               username, pic;
+                               username, lastPic = new byte[8];
                         final int age, gender, country;
                         int length;
 
-                        //BlueCtrl.lockDiscoverySuspension(); //heavy message, needs fast download
+                        System.out.println("Give me your card");
                         i = 0;
                         do {
                             j = in.read(buffer, i, 6 - i);
                             if (j < 0) {
                                 System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
+                                throw new IOException();
                             }
                             i += j;
                         } while (i < 6);
                         //read MAC address
+
+                        System.out.println("Your MAC is " + BlueCtrl.bytesToMAC(buffer));
 
                         i = 0;
                         do {
                             j = in.read(lastUpd, i, 8 - i);
                             if (j < 0) {
                                 System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
+                                throw new IOException();
                             }
                             i += j;
                         } while (i < 8);
                         //read LastUpd field
+
+                        System.out.println("Last time was " + BlueCtrl.rebuildTimestamp(lastUpd));
 
                         age = in.read();
                         gender = in.read();
@@ -281,34 +298,21 @@ public class ReceiverThread extends Thread {
                             j = in.read(username, i, length - i);
                             if (j < 0) {
                                 System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
+                                throw new IOException();
                             }
                             i += j;
                         } while (i < length);
                         //read username
 
-                        /*i = 0;
-                        length = 0;
+                        i = 0;
                         do {
-                            length = (length * 256) + in.read();
-                            ++i;
-                        } while (i < 3);
-
-
-                        if (length > 0) {
-                            pic = new byte[length];
-
-                            i = 0;
-                            do {
-                                j = in.read(pic, i, length - i);
-                                if (j < 0) {
-                                    System.out.println("Premature EOF, message misunderstanding");
-                                    //TODO: throw something
-                                }
-                                i += j;
-                            } while (i < length);
-                            //download profile image as a byte sequence
-                        }*/
+                            j = in.read(lastPic, i, 8 - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                throw new IOException();
+                            }
+                            i += j;
+                        } while (i < 8);
 
                         (new Thread(new Runnable() {
                             @Override
@@ -318,14 +322,8 @@ public class ReceiverThread extends Thread {
                                         new String(username), age, gender, country);
                                 //consistent information inserted into DB
 
-                                BlueCtrl.updateQueue.add(address); //ChatUser object updated
-
-                                Message crd = new Message();
-                                crd.what = BlueCtrl.CRD_HEADER;
-                                Bundle bundle = new Bundle();
-                                bundle.putString("MAC", address);
-                                crd.setData(bundle);
-                                handler.sendMessage(crd);
+                                mail.what = BlueCtrl.CRD_HEADER;
+                                handler.sendMessage(mail);
                                 //update and show user information
 
                                 //TODO: image updating
@@ -333,12 +331,59 @@ public class ReceiverThread extends Thread {
                             }
                         })).start();
 
-                        out.write(BlueCtrl.ACK); //ACKed
-                        connected = false;
+                        long picture = BlueCtrl.rebuildTimestamp(lastPic);
+
+                        if (picture == 0 || BlueCtrl.validatePicture(BlueCtrl.bytesToMAC(buffer), picture)) {
+
+                            out.write(BlueCtrl.ACK); //ACKed
+                            connected = false;
+                        }
+                        else {
+
+                            out.write(BlueCtrl.RQS_HEADER);
+                            out.write(buffer);
+                            out.write(1);
+                        }
 
                         break;
 
                     }
+
+                    case BlueCtrl.PIC_HEADER:
+                        /*
+                        A Picture Message is an heavy kind of message which wraps up an updated profile
+                        picture. Following the header, 3 bytes decoded as a 24-bit integer represent
+                        the picture size (for a maximum of 16 MB circa) for a streamer safe reading.
+                        [4][picture length][    PICTURE    ]
+                           |   3 bytes    |  length bytes  |
+                         */
+
+                        i = 0;
+                        int length = 0;
+                        do {
+                            length = (length * 256) + in.read();
+                            ++i;
+                        } while (i < 3);
+
+                        byte[] pic = new byte[length];
+
+                        i = 0;
+                        do {
+                            j = in.read(pic, i, length - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                throw new IOException();
+                            }
+                            i += j;
+                        } while (i < length);
+                        //download profile image as a byte sequence
+
+                        //TODO: new Thread(new Runnable() {...})
+
+                        out.write(BlueCtrl.ACK); //ACKed
+                        connected = false;
+
+                        break;
 
                     case BlueCtrl.MSG_HEADER: {
                     /*
@@ -350,11 +395,11 @@ public class ReceiverThread extends Thread {
                     fields have fixed length instead. A length byte precedes the Message field, indicating
                     the message length in bytes; a message cannot exceed 255 characters in length, therefore
                     1 byte is enough to represent the length field.
-                    [4][Target MAC][Sender MAC][Emoticon][Msg length][  Message field  ]
+                    [5][Target MAC][Sender MAC][Emoticon][Msg length][  Message field  ]
                        | 6 bytes  |  6 bytes  | 1 byte  |  1 byte   | Msg length bytes |
                      */
                         byte[] buffer = new byte[6], sender = new byte[6];
-                        int length;
+
                         i = 0;
 
                         do {
@@ -401,12 +446,14 @@ public class ReceiverThread extends Thread {
 
                                     System.out.println("SHOWING OFF");
                                     BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date(), true);
-                                    handler.sendEmptyMessage(BlueCtrl.MSG_HEADER);
+
+                                    mail.what = BlueCtrl.MSG_HEADER;
+                                    handler.sendMessage(mail);
                                 }
                                 else {
 
                                     BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
-                                            BlueCtrl.buildMsg(buffer, sender, msgBuffer));
+                                            BlueCtrl.buildMsg(buffer, sender, msgBuffer), handler);
                                     /*
                                     if this device is not the target device, message has to be forwarded to the next node
                                     on the route leading to the target; it is wrapped again in a packet and sent as a
@@ -423,12 +470,13 @@ public class ReceiverThread extends Thread {
 
                                     System.out.println("SHOWING OFF");
                                     BlueCtrl.showEmo(BlueCtrl.bytesToMAC(sender), code, new Date(), true);
-                                    handler.sendEmptyMessage(BlueCtrl.MSG_HEADER);
+                                    mail.what = BlueCtrl.MSG_HEADER;
+                                    handler.sendMessage(mail);
                                 }
                                 else {
 
                                     BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
-                                            BlueCtrl.buildEmoticon(buffer, sender, (byte) code));
+                                            BlueCtrl.buildEmoticon(buffer, sender, (byte) code), handler);
                                 }
                         }
 
@@ -445,7 +493,7 @@ public class ReceiverThread extends Thread {
                     It contains a list of MACs of devices no longer reachable by this device due to
                     the fact that their routes passed through the exiting node. No divider is needed because
                     every MAC address is made up of 6 bytes.
-                    [5][MAC][MAC]...
+                    [6][MAC][MAC]...
                     */
                         byte[] buffer = new byte[6];
                         boolean breakFree = true;
@@ -480,18 +528,40 @@ public class ReceiverThread extends Thread {
 
                         break;
                     }
-                    case -1:
+
+                    case BlueCtrl.ACK:
+                        /*
+                        Drop-Awareness mechanism: when a device receives an ACK, it sends an ACK as well
+                        to signal its presence. A Bluetooth Socket can be busy sending or receiving another
+                        message; therefore, a Token Counter is assigned to every reachable close device and is
+                        decremented every time a connectino fails; if instead an ACK is sent back,
+                        Tocken Counter is restored to its maximum.
+                         */
+
+                        if (BlueCtrl.closeDvc.contains(rmtDvc)) {
+                            out.write(BlueCtrl.ACK);
+                            BlueCtrl.tokenMap.put(rmtDvc.getAddress(), BlueCtrl.TKN);
+                        }
+                        else {
+                            throw new IOException(); //force this device drop
+                        }
+                        connected = false;
+
+                        break;
+
+                    default:
+                        //Misunderstanding
                         connected = false;
                 }
             } while(connected);
 
-            System.out.println("Unlocking discovery");
             BlueCtrl.unlockDiscoverySuspension();
-            handler.sendEmptyMessage(BlueCtrl.ACK);
+            mail.what = BlueCtrl.ACK;
+            handler.sendMessage(mail);
 
-            /*if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {
-                BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(filteredUpdCascade), rmtDvc);
-            }*/
+            if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {
+                BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(filteredUpdCascade), rmtDvc, handler);
+            }
             in.close();
             out.close();
         }

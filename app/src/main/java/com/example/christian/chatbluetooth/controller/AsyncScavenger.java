@@ -7,7 +7,7 @@ import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 
 import java.util.ArrayList;
 
-public class AsyncScavenger extends AsyncTask<Void, Void, Void> {
+public class AsyncScavenger extends AsyncTask<String, Void, Void> {
 
     private ArrayList<byte[]> macs= new ArrayList<>();
 
@@ -28,13 +28,12 @@ public class AsyncScavenger extends AsyncTask<Void, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(Void... params) {
+    protected Void doInBackground(String... params) {
 
-        BluetoothDevice dvc;
-        while ((dvc = BlueCtrl.cleanCloseDvc()) != null) {
-            macs.addAll(BlueCtrl.dropUsers(dvc));
+        for(String address : params) {
+            macs.addAll(BlueCtrl.dropUsers(address));
         }
-        BlueCtrl.counter = 0;
+
         return null;
     }
 

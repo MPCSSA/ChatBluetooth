@@ -73,27 +73,23 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 case BluetoothDevice.ACTION_FOUND:
 
                     BluetoothDevice dvc = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    System.out.println(dvc.getAddress() + " found");
 
-                    if (!BlueCtrl.closeDvc.contains(dvc) /*&& !dvc.getAddress().equals("64:77:91:D5:7A:B9") /*!dvc.getAddress().equals("1C:B7:2C:0C:60:C6") /!dvc.getAddress().equals("14:DD:A9:3B:53:E3")*/) {
+                    if (!BlueCtrl.closeDvc.contains(dvc)) {
                         System.out.println("greetings");
                         BlueCtrl.greet(dvc, handler);
                     }
                     else {
-                        //TODO: DRP Mechanism
+
+                        BlueCtrl.sendMsg(dvc, new byte[] {BlueCtrl.ACK}, handler);
                     }
 
                     break;
 
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
                     if (!BlueCtrl.DISCOVERY_SUSPENDED) {
-                        System.out.println("scavenging");
                         //(new AsyncScavenger()).execute();
-                        if (!BluetoothAdapter.getDefaultAdapter().startDiscovery()) {
-                            System.out.println("Discovery failed");
-                            //TODO: discovery recovery
-                        }
-                        else System.out.println("Discovering");
+                        while (!BluetoothAdapter.getDefaultAdapter().startDiscovery()) { }
+                        System.out.println("Discovering");
                     }
                     else System.out.println("Suspended");
                     break;
@@ -110,19 +106,34 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         /* NEW PART */
 
         handler = new Handler() {
+            /*
+            This is the brains behind the app; everytime a connection Thread ends, be it naturally or
+            caused by an exception, a Message is sent to this Handler in order to manage data and
+            network.
+             */
             @Override
             public void handleMessage(Message msg) {
 
                 ChatUser user;
 
                 switch (msg.what) {
+                    //Switch Message Ack
 
                     case BlueCtrl.GRT_HEADER:
+                        //Some device successfully submitted himself to this device
 
                         user = BlueCtrl.userQueue.remove(0);
 
                         if (BlueCtrl.version) BlueCtrl.userAdapt.add(user);
                         else BlueCtrl.userNomat.add(user);
+
+                        BlueCtrl.tokenMap.put(user.getMac(), BlueCtrl.TKN);
+                        System.out.println("TOKEN " + BlueCtrl.TKN);
+
+                        if (!BlueCtrl.closeDvc.contains(user.getNextNode())) {
+                            BlueCtrl.greet(user.getNextNode(), handler);
+                            System.out.println("Instant Greetings");
+                        }
 
                         ArrayList<byte[]> updCascade = new ArrayList<>();
                         for (ChatUser ch : BlueCtrl.userList) {
@@ -132,17 +143,20 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         }
 
                         if (updCascade.size() > 0) {
-                            BlueCtrl.sendMsg(user.getNextNode(), BlueCtrl.buildUpdMsg(updCascade));
+                            BlueCtrl.sendMsg(user.getNextNode(), BlueCtrl.buildUpdMsg(updCascade), handler);
                             System.out.println("UPDATE CASCADE");
                         }
 
                         ArrayList<byte[]> singleupd = new ArrayList<>();
                         singleupd.add(user.getSegment());
 
-                        BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(singleupd), user.getNextNode(), user);
+                        BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(singleupd), user.getNextNode(), handler);
                         break;
 
                     case BlueCtrl.UPD_HEADER:
+
+                        BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
+                        System.out.println("TOKEN " + BlueCtrl.TKN);
                         if (BlueCtrl.userQueue.size() > 0) {
                             if (BlueCtrl.version)
                                 BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
@@ -151,32 +165,59 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         break;
 
                     case BlueCtrl.CRD_HEADER:
+
+                        BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
+                        System.out.println("TOKEN " + BlueCtrl.TKN);
                         BlueCtrl.cardUpdate(msg.getData().getString("MAC"));
                         if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
                         else BlueCtrl.userNomat.notifyDataSetChanged();
                         break;
 
+                    case BlueCtrl.PIC_HEADER:
+
+                        //TODO: Thread for picking and resizing the image for Thumbnail
+                        break;
+
                     case BlueCtrl.MSG_HEADER: //new msg received
+
+                        BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
+                        System.out.println("TOKEN " + BlueCtrl.TKN);
                         if (!BlueCtrl.msgBuffer.isEmpty()) {
                             BlueCtrl.msgAdapt.add(BlueCtrl.msgBuffer.remove(0));
                         }
                         break;
 
 
-                    case -1:
-                        BlueCtrl.newcomers.remove(msg.getData().getString("MAC"));
-                        if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
-                        else BlueCtrl.userNomat.notifyDataSetChanged();
-                        break;
+                    case BlueCtrl.NAK:
 
-                    case -2:
-                        user = BlueCtrl.scanUsers(msg.getData().getString("dvc"));
-                        if (user != null)  {
-                            BlueCtrl.sendMsg(user.getNextNode(), msg.getData().getByteArray("msg"));
+                        String mac = msg.getData().getString("dvc");
+
+                        Integer counter = BlueCtrl.tokenMap.get(mac);
+                        if (counter == null) {
+
+                            System.out.println("NO TOKEN");
+                            break;
+                        }
+
+                        if (counter < 1) {
+
+                            BlueCtrl.tokenMap.remove(mac);
+                            BlueCtrl.closeDvc.remove(mac);
+                            BlueCtrl.userList.remove(mac);
                         }
                         else {
-                            System.out.println("could not re-send message");
+
+                            BlueCtrl.tokenMap.put(mac, --counter);
+                            System.out.println("TOKEN " + BlueCtrl.tokenMap.get(mac));
+
+                            user = BlueCtrl.scanUsers(msg.getData().getString("dvc"));
+                            byte[] mail = msg.getData().getByteArray("msg");
+                            System.out.println("RE-SENDING MESSAGE NUMBER " + mail[0]);
+                            if (user != null) {
+                                BlueCtrl.sendMsg(user.getNextNode(), mail, handler);
+                            }
                         }
+                        //if user == null it is no longer reachable, so resend chain ends
                         break;
                 }
 

@@ -136,10 +136,12 @@ public class MessageThread extends Thread {
                     /*
                     An Info Request is a special request sent by a node which received a reachable MAC
                     address through an Update Msg, but no results were found in the Users table. It
-                    contains MAC address of unknown device. A Card Msg follows, containing persistent user
-                    information about it.
+                    contains MAC address of unknown device and a RQS identifier (0). A Card Msg follows,
+                    containing persistent user information about it.
+                    A second check is performed to establish if a picture update is also needed. The remote
+                    device will send another request, this time with the identifier set to 1.
                     No divider is needed, because every MAC address is made up of exactly 6 bytes.
-                    [2][MAC]
+                    [2][MAC][id]
                      */
 
                         System.out.println("information requested");
@@ -153,12 +155,18 @@ public class MessageThread extends Thread {
                             i += j;
                         } while (i < 6);
 
-                        address = BlueCtrl.bytesToMAC(buffer);
-                        System.out.println("requested card MAC is this: " + address);
+                        if (in.read() == 0) {
 
-                        byte[] card = BlueCtrl.buildCard(BlueCtrl.fetchPersistentInfo(address));
-                        out.write(card);
-                        System.out.println("card sent to " + rmtDvc.getAddress());
+                            address = BlueCtrl.bytesToMAC(buffer);
+
+                            byte[] card = BlueCtrl.buildCard(BlueCtrl.fetchPersistentInfo(address));
+                            out.write(card);
+                            System.out.println(address + " CARD SENT TO " + rmtDvc.getAddress());
+                        }
+                        else {
+
+                            //TODO: fetch profile picture
+                        }
 
                         break;
 
@@ -239,7 +247,7 @@ public class MessageThread extends Thread {
 
             if (handler != null) {
 
-                handler.sendEmptyMessage(type + 7); //ACK values are 7 digits shifted
+                handler.sendEmptyMessage(type + 8); //ACK values are 8 digits shifted
             }
             if (type == BlueCtrl.GRT_HEADER) {
                 BlueCtrl.closeDvc.add(rmtDvc);
@@ -259,11 +267,11 @@ public class MessageThread extends Thread {
             if (handler != null) {
 
                 Message error = new Message();
-                error.what = -2;
+                error.what = BlueCtrl.NAK;
                 Bundle bundle = new Bundle();
                 bundle.putString("dvc", rmtDvc.getAddress());
                 bundle.putByteArray("msg", getMsg());
-                bundle.putInt("errorcode", type - 7);
+                bundle.putInt("errorcode", type - 8);
                 error.setData(bundle);
 
                 handler.sendMessage(error);
