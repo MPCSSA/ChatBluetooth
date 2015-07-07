@@ -67,6 +67,8 @@ public class ReceiverThread extends Thread {
 
             do {
 
+                while (BluetoothAdapter.getDefaultAdapter().isDiscovering()) System.out.println("Discovery: " + BluetoothAdapter.getDefaultAdapter().isDiscovering());
+
                 System.out.println("leggo");
                 byte flag = (byte) in.read();
                 System.out.println("ho letto " + flag);

@@ -123,17 +123,22 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //Some device successfully submitted himself to this device
 
                         user = BlueCtrl.userQueue.remove(0);
+                        //take ChatUser object from Buffer
 
                         if (BlueCtrl.version) BlueCtrl.userAdapt.add(user);
                         else BlueCtrl.userNomat.add(user);
+                        //Add found user in the user list
 
                         BlueCtrl.tokenMap.put(user.getMac(), BlueCtrl.TKN);
                         System.out.println("TOKEN " + BlueCtrl.TKN);
+                        //Every time a message is successfully received restore Token
 
                         if (!BlueCtrl.closeDvc.contains(user.getNextNode())) {
                             BlueCtrl.greet(user.getNextNode(), handler);
                             System.out.println("Instant Greetings");
                         }
+                        //Instant greeting: instead of waiting for the discovery, this device takes
+                        //a BluetoothDevice object from this ChatUser and greets it
 
                         ArrayList<byte[]> updCascade = new ArrayList<>();
                         for (ChatUser ch : BlueCtrl.userList) {
@@ -146,31 +151,41 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             BlueCtrl.sendMsg(user.getNextNode(), BlueCtrl.buildUpdMsg(updCascade), handler);
                             System.out.println("UPDATE CASCADE");
                         }
+                        //Send an Update Cascade to the newly found device, in order to connect it to the network
 
                         ArrayList<byte[]> singleupd = new ArrayList<>();
                         singleupd.add(user.getSegment());
 
                         BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(singleupd), user.getNextNode(), handler);
+                        //send the greeted user segment information to all reachable devices
+
                         break;
 
                     case BlueCtrl.UPD_HEADER:
+                        //Some device has successfully notified the existence of other devices to this device
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
                         System.out.println("TOKEN " + BlueCtrl.TKN);
+                        //Restore Token
+
                         if (BlueCtrl.userQueue.size() > 0) {
                             if (BlueCtrl.version)
                                 BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
                             else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
                         }
+                        //Pop ChatUser from Buffer
                         break;
 
                     case BlueCtrl.CRD_HEADER:
+                        //some device has successfully sent up to date information on a certain user
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
                         System.out.println("TOKEN " + BlueCtrl.TKN);
+                        //Restore Token
+
                         BlueCtrl.cardUpdate(msg.getData().getString("MAC"));
-                        if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
-                        else BlueCtrl.userNomat.notifyDataSetChanged();
+                        //fetch new user information and update the list
+
                         break;
 
                     case BlueCtrl.PIC_HEADER:
@@ -178,28 +193,40 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //TODO: Thread for picking and resizing the image for Thumbnail
                         break;
 
-                    case BlueCtrl.MSG_HEADER: //new msg received
+                    case BlueCtrl.MSG_HEADER:
+                        //Some device successfully sent a chat message to this device
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
                         System.out.println("TOKEN " + BlueCtrl.TKN);
+                        //Restore Token
+
                         if (!BlueCtrl.msgBuffer.isEmpty()) {
                             BlueCtrl.msgAdapt.add(BlueCtrl.msgBuffer.remove(0));
                         }
+                        //New message could be from a chat currently opened, therefore it could require update
                         break;
 
 
                     case BlueCtrl.NAK:
+                        //This device failed to deliver a message to another device; there is need for a message recovery
 
                         String mac = msg.getData().getString("dvc");
+                        //MAC address of the wannabe receiver
 
                         Integer counter = BlueCtrl.tokenMap.get(mac);
+                        //Tokens left
                         if (counter == null) {
 
                             System.out.println("NO TOKEN");
+                            //The remote user has not been registered yet; Handler usually goes here when a greetings fails.
+                            //No further action is required
                             break;
                         }
 
                         if (counter < 1) {
+
+                            //The remote device ran out of Tokens and is likely that is no longer reachable; it is deleted
+                            //from all lists; if it shows up again, it must first greet again
 
                             BlueCtrl.tokenMap.remove(mac);
                             BlueCtrl.closeDvc.remove(mac);
@@ -207,22 +234,31 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         }
                         else {
 
+                            //Connection failed, but the remote device could be simply busy;
+                            //a Token is taken from him, and this device tries to contact it again
+
                             BlueCtrl.tokenMap.put(mac, --counter);
                             System.out.println("TOKEN " + BlueCtrl.tokenMap.get(mac));
 
                             user = BlueCtrl.scanUsers(msg.getData().getString("dvc"));
+                            //Find the next node from ChatUser information
                             byte[] mail = msg.getData().getByteArray("msg");
+                            //get back the unsent message
                             System.out.println("RE-SENDING MESSAGE NUMBER " + mail[0]);
                             if (user != null) {
                                 BlueCtrl.sendMsg(user.getNextNode(), mail, handler);
+                                //re-send
                             }
+                            //if no user was found it probabily is no longer reachable, and
+                            //there's no point in forwarding the message again
+                            //END OF RESEND CHAIN
                         }
-                        //if user == null it is no longer reachable, so resend chain ends
                         break;
                 }
 
                 if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
                 else BlueCtrl.userNomat.notifyDataSetChanged();
+                //notify any changes to the List Adapter
 
             }
         };
