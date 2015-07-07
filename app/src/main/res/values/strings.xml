@@ -12,6 +12,7 @@
     <string name="male" translatable="false">M</string>
     <string name="female" translatable="false">F</string>
     <string name="state">Set visibility: </string>
+    <string name="hint_nick_mod">New nickname</string>
 
     <!-- BUTTONS -->
     <string name="login_btn">Login</string>
@@ -26,6 +27,9 @@
     <string name="setting_mod_image">Modify profile image</string>
     <string name="setting_mod_nick">Modify nickname</string>
     <string name="setting_mod_history">Delete history message</string>
+    <string name="sure_to_delete">Delete history?</string>
+    <string name="mod_popup">Modify</string>
+    <string name="canc_popup">Cancel</string>
 
     <!-- ACTION BAR TITLES -->
     <string name="profile_activity">Profile</string>

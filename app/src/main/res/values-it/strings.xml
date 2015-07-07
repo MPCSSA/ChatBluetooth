@@ -11,10 +11,15 @@
     <string name="registration_btn">Registrati</string>
     <string name="signup_btn">Registrati</string>
     <string name="state">Visibilità: </string>
+    <string name="hint_nick_mod">Nuovo nickname</string>
 
     <string name="setting_mod_image">Modifica immagine profilo</string>
     <string name="setting_mod_nick">Modifica nickname</string>
     <string name="setting_mod_history">Cancella cronologia</string>
+
+    <string name="sure_to_delete">Cancellare la cronologia?</string>
+    <string name="mod_popup">Modifica</string>
+    <string name="canc_popup">Cancella</string>
 
     <string name="profile_activity">Profilo</string>
     <string name="setting_activity">Impostazioni</string>
