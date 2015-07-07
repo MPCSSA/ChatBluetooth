@@ -250,7 +250,7 @@ public class MessageThread extends Thread {
 
 
         }
-        catch(IOException e) {
+        catch(Exception e) {
 
             e.printStackTrace();
             System.out.println("alimortaccitua " + rmtDvc.getAddress());

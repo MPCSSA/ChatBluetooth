@@ -145,10 +145,12 @@ public class BlueCtrl {
 
     public static void fillMsgAdapter(){
 
-        Cursor cursor = fetchMsgHistory(msgAdapt.getAddress());
+        msgAdapt.add(null);
+
+        Cursor cursor = fetchMsgHistory(msgAdapt.getAddress(), (new Date()).getTime());
         if (cursor.getCount() > 0){
             cursor.moveToLast();
-            do{
+            do {
                 msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2) == 1, cursor.getLong(1), cursor.getInt(3) == 1));
             } while(cursor.moveToPrevious());
         }
@@ -624,7 +626,7 @@ public class BlueCtrl {
         return userAdapt.dropUsers(dvc);
     }
 
-    public static Cursor fetchMsgHistory(String address){
-        return dbManager.fetchMsgHistory(address);
+    public static Cursor fetchMsgHistory(String address, long timestamp){
+        return dbManager.fetchMsgHistory(address, timestamp);
     }
 }

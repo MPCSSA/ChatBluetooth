@@ -134,10 +134,11 @@ public class BlueDBManager {
 
     }
 
-    public Cursor fetchMsgHistory(String address) {
+    public Cursor fetchMsgHistory(String address, long timestamp) {
 
-        return db.query(tables[1], new String [] {historyTable[0], historyTable[1], historyTable[3], historyTable[4]}, historyTable[1] + " = \'" + address + "\'", null, null, null
-                        , historyTable[2] + " DESC", "25");
+        return db.query(tables[1], new String [] {historyTable[0], historyTable[2], historyTable[3], historyTable[4]},
+                historyTable[1] + " = \'" + address + "\' AND " + historyTable[2] + " < " + timestamp,
+                null, null, null, historyTable[2] + " DESC", "25");
 
     }
 

@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
@@ -20,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -31,7 +33,9 @@ import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
+import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 
@@ -155,8 +159,49 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
         msgText = (EditText) getActivity().findViewById(R.id.etMsg);
 
-        ListView listView = (ListView) getActivity().findViewById(R.id.msgList);
+        final ListView listView = (ListView) getActivity().findViewById(R.id.msgList);
         listView.setAdapter(BlueCtrl.msgAdapt);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if (i == 0 && adapterView.getAdapter().getItem(0) == null) {
+
+                    Cursor cursor = BlueCtrl.fetchMsgHistory(user.getMac(), ((ChatMessage) adapterView.getAdapter().getItem(1)).getDate().getTime());
+                    int pos = 0;
+
+                    if (cursor.getCount() > 0) {
+
+                        ArrayList<ChatMessage> adapt = new ArrayList<>();
+
+                        for (int _ = 1; _ < BlueCtrl.msgAdapt.getCount(); ++_) {
+
+                            adapt.add(BlueCtrl.msgAdapt.getItem(_));
+                        }
+                        BlueCtrl.msgAdapt.clear();
+
+                        BlueCtrl.msgAdapt.add(null);
+
+                        if (cursor.getCount() > 0) {
+                            cursor.moveToLast();
+                            do {
+                                BlueCtrl.msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2) == 1, cursor.getLong(1), cursor.getInt(3) == 1));
+                                ++pos;
+                            } while (cursor.moveToPrevious());
+                        }
+
+                        BlueCtrl.msgAdapt.addAll(adapt);
+                    }
+                    else BlueCtrl.msgAdapt.remove(null);
+
+                        listView.setStackFromBottom(false);
+                        listView.setSelection(pos);
+
+                        BlueCtrl.msgAdapt.notifyDataSetChanged();
+
+                        listView.setStackFromBottom(true);
+                }
+            }
+        });
 
         ImageButton sendBtn = (ImageButton) getActivity().findViewById(R.id.sendBtn);
         sendBtn.setOnClickListener(this);

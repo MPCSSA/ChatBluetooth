@@ -166,7 +166,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                     case BlueCtrl.MSG_HEADER: //new msg received
                         if (!BlueCtrl.msgBuffer.isEmpty()) {
                             BlueCtrl.msgAdapt.add(BlueCtrl.msgBuffer.remove(0));
-                            BlueCtrl.msgAdapt.notifyDataSetChanged();
                         }
                         break;
 
@@ -181,6 +180,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         user = BlueCtrl.scanUsers(msg.getData().getString("dvc"));
                         if (user != null)  {
                             BlueCtrl.sendMsg(user.getNextNode(), msg.getData().getByteArray("msg"));
+                        }
+                        else {
+                            System.out.println("could not re-send message");
                         }
                         break;
                 }

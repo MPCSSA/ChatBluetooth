@@ -44,8 +44,18 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage>{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
+        if (position == 0 && getItem(position) == null) {
+
+            int layout = (BlueCtrl.version) ? R.layout.item_more_history : R.layout.item_more_history_nomat;
+            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View view = inflater.inflate(layout, parent, false);
+
+            return view;
+        }
+
         View view;
         ChatMessage message = getItem(position);
+        System.out.println("THIS IS NUMBER " + position);
 
         int layout = (BlueCtrl.version) ? R.layout.listitem_discuss : R.layout.listitem_discuss_nomat;
         int item = (message.isEmo()) ? R.layout.item_emoticon : layout;

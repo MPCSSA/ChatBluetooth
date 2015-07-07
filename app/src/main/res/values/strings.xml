@@ -47,4 +47,7 @@
     <string name="title_activity_history" translatable="false">HistoryActivity</string>
 
 
+    <string name="more_history">Tap for more&#8230;</string>
+
+
 </resources>
