@@ -205,7 +205,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
             LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
             drawerLayout = (DrawerLayout) inflater.inflate(R.layout.nav_drawer, null);
-
             ViewGroup decor = (ViewGroup) getWindow().getDecorView();
             View child = decor.getChildAt(0);
             decor.removeView(child);

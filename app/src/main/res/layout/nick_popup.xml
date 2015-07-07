@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/popup_nick"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:background="#444444"
+    android:orientation="vertical"
+    android:padding="10sp"
+    android:gravity="center">
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@+id/nickModText"
+        android:gravity="center"
+        android:hint="@string/hint_nick_mod" />
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+        <Button
+            android:id="@+id/btn_mod_popup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/mod_popup"
+            android:layout_marginLeft="8dp"/>
+
+
+        <Button
+            android:id="@+id/btn_canc_popup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/canc_popup"
+            android:layout_marginRight="8dp"
+            android:layout_toRightOf="@+id/btn_mod_popup"
+            android:layout_toEndOf="@+id/btn_mod_popup"/>
+    </RelativeLayout>
+
+</LinearLayout>
