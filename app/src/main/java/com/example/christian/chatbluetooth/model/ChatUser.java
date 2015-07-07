@@ -29,7 +29,21 @@ public class ChatUser {
     public void setLastUpd(Date date) { this.lastUpd = date; }
 
     public byte[] getSegment() { return this.updSegment; }
-    public void setSegment(byte[] segment) { this.updSegment = segment; }
+    public void setSegment(byte[] updSegment) { this.updSegment = updSegment; }
+    private void setSegment() {
+
+        byte[] segment = new byte[16];
+
+        for (int _ = 0; _ < 6; ++_) segment[_] = bMAC[_];
+
+        byte[] timestamp = BlueCtrl.longToBytes(lastUpd.getTime());
+        for (int _ = 0; _ < 8; ++_) segment[_ + 6] = timestamp[_];
+
+        segment[14] = (byte) bounces;
+        segment[15] = (byte) status;
+
+        setSegment(segment);
+    }
 
 
     //volatile information
@@ -71,13 +85,18 @@ public class ChatUser {
     public String getProfilePic() { return this.profilePic; }
     public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
 
-    public ChatUser(String mac, BluetoothDevice nextNode, int bounces, int status, Cursor cursor) {
+    public ChatUser(String mac, BluetoothDevice nextNode, int bounces, int status, long timestamp, Cursor cursor) {
 
         setMac(mac);
         setMac(BlueCtrl.macToBytes(mac));
         setNextNode(nextNode);
+        setLastUpd(timestamp);
         setBounces(bounces);
         setStatus(status);
+        //initialize fundamental user information
+
+        setSegment();
+        //build segment for update requests
 
         if (cursor != null && cursor.getCount() > 0) {
             addPersistentInfo(cursor);
@@ -85,21 +104,13 @@ public class ChatUser {
     }
 
     public void addPersistentInfo(Cursor profileInfo) {
+        //add persistent profile information
+
         profileInfo.moveToFirst();
         setName(profileInfo.getString(1));
-        setLastUpd(profileInfo.getLong(2));
         setCountry(profileInfo.getInt(3));
         setGender(profileInfo.getInt(4));
         setAge(profileInfo.getInt(5));
-
-        byte[] segment = new byte[16];
-        for (int _ = 0; _ < 6; ++_) segment[_] = bMAC[_];
-        byte[] timestamp = BlueCtrl.longToBytes(lastUpd.getTime());
-        for (int _ = 0; _ < 8; ++_) segment[_ + 6] = timestamp[_];
-        segment[14] = (byte) bounces;
-        segment[15] = (byte) status;
-
-        setSegment(segment);
     }
 
     public boolean updateUser(BluetoothDevice dvc, int bnc, int sts) {

@@ -3,10 +3,13 @@ package com.example.christian.chatbluetooth.controller;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 
 import com.example.christian.chatbluetooth.model.ChatUser;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -83,7 +86,10 @@ public class ReceiverThread extends Thread {
                        |1 byte|   8 byte  |
                     */
 
-                        System.out.println("piacere pippo");
+                        /*BlueCtrl.newcomers.put(rmtDvc.getAddress(), rmtDvc);
+
+                        BlueCtrl.greet(rmtDvc, handler);*/
+
                         byte status = (byte) in.read(); //read Status
                         byte[] bytes = new byte[8];
                         i = 0;
@@ -96,15 +102,14 @@ public class ReceiverThread extends Thread {
                             }
                             i += j;
                         } while (i < 8);
-                        //read timestamp
+                        //read last profile update timestamp
 
                         long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
 
-                        System.out.println("summoning");
-                        if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0)) {
+                        if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0, lastUpd)) {
                             handler.sendEmptyMessage(BlueCtrl.GRT_HEADER);
+                            System.out.println(rmtDvc.getAddress() + " summoned");
                         }
-                        System.out.println("summoned");
                         /*
                         New ChatUser object is created regardless of incoherent or non-existent persistent information;
                         if needed, an update will be requested and the object will be updated
@@ -177,11 +182,13 @@ public class ReceiverThread extends Thread {
                             //recreate fields information from segment
 
                             String address = BlueCtrl.bytesToMAC(buffer);
-                            bool = BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1);
-                            if (bool) handler.sendEmptyMessage(BlueCtrl.UPD_HEADER);
+                            long timestamp = BlueCtrl.rebuildTimestamp(lastUpd);
 
+                            if (bool = BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1, timestamp))
+                                handler.sendEmptyMessage(BlueCtrl.UPD_HEADER);
                             //show new ChatUser regardless of coherent information; that will be updated if needed
-                            if (BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
+
+                            if (BlueCtrl.validateUser(address, timestamp)) {
 
                                 if (bool) {
 
@@ -229,8 +236,8 @@ public class ReceiverThread extends Thread {
                     Users table entry or update an existing one when DB contains out-of-date information.
                     Username and Profile Pic fields are preceded by a length byte, indicating
                     the field length in bytes and allowing for streamer consistent reading.
-                    [3][   MAC   ][last update][ age ][gender][nationality][length][  username  ][length][profile pic]
-                       | 6 bytes |   8 bytes  |1 byte|1 byte |   1 byte   |1 byte |length bytes |1 byte |length bytes|
+                    [3][   MAC   ][last update][ age ][gender][nationality][length][  username  ][pic size (q + r)][profile pic]
+                       | 6 bytes |   8 bytes  |1 byte|1 byte |   1 byte   |1 byte |length bytes |2 bytes + 1 byte ||size bytes |
                      */
                         final byte[] buffer = new byte[6],
                                lastUpd = new byte[8],
@@ -280,22 +287,28 @@ public class ReceiverThread extends Thread {
                         } while (i < length);
                         //read username
 
-                        /*length = in.read();
-                        pic = new byte[length];
-                        //TODO: images are too big; length field as a int or final character?
-
-                        i = 0;
+                        /*i = 0;
+                        length = 0;
                         do {
-                            j = in.read(pic, i, length - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
-                            }
-                            i += j;
-                        } while (i < length);*/
-                        //download profile image as a byte sequence
+                            length = (length * 256) + in.read();
+                            ++i;
+                        } while (i < 3);
 
-                        //BlueCtrl.unlockDiscoverySuspension(); //end of discovery suspension
+
+                        if (length > 0) {
+                            pic = new byte[length];
+
+                            i = 0;
+                            do {
+                                j = in.read(pic, i, length - i);
+                                if (j < 0) {
+                                    System.out.println("Premature EOF, message misunderstanding");
+                                    //TODO: throw something
+                                }
+                                i += j;
+                            } while (i < length);
+                            //download profile image as a byte sequence
+                        }*/
 
                         (new Thread(new Runnable() {
                             @Override
@@ -307,9 +320,16 @@ public class ReceiverThread extends Thread {
 
                                 BlueCtrl.updateQueue.add(address); //ChatUser object updated
 
-                                handler.sendEmptyMessage(BlueCtrl.CRD_HEADER);
+                                Message crd = new Message();
+                                crd.what = BlueCtrl.CRD_HEADER;
+                                Bundle bundle = new Bundle();
+                                bundle.putString("MAC", address);
+                                crd.setData(bundle);
+                                handler.sendMessage(crd);
+                                //update and show user information
+
                                 //TODO: image updating
-                                //
+
                             }
                         })).start();
 
@@ -330,8 +350,8 @@ public class ReceiverThread extends Thread {
                     fields have fixed length instead. A length byte precedes the Message field, indicating
                     the message length in bytes; a message cannot exceed 255 characters in length, therefore
                     1 byte is enough to represent the length field.
-                    [4][Target MAC][Sender MAC][Msg length][  Message field  ]
-                       | 6 bytes  |  6 bytes  |   1 byte  | Msg length bytes |
+                    [4][Target MAC][Sender MAC][Emoticon][Msg length][  Message field  ]
+                       | 6 bytes  |  6 bytes  | 1 byte  |  1 byte   | Msg length bytes |
                      */
                         byte[] buffer = new byte[6], sender = new byte[6];
                         int length;
@@ -356,36 +376,62 @@ public class ReceiverThread extends Thread {
                             i += j;
                         } while (i < 6);
 
-                        if ((length = in.read()) < 0) {
-                            System.out.println("Read Error");
-                            //TODO: optional read exception
+                        switch(in.read()) {
+
+                            case 0:
+
+                                if ((length = in.read()) < 0) {
+                                    System.out.println("Read Error");
+                                    //TODO: optional read exception
+                                }
+
+                                ++length; //you cannot send empty messages, so message length is between 1 and 256
+                                byte[] msgBuffer = new byte[length];
+                                i = 0;
+                                do {
+                                    j = in.read(msgBuffer, i, length - i);
+                                    if (j < 0) {
+                                        System.out.println("Premature EOF, message misunderstanding");
+                                        //TODO: throw something
+                                    }
+                                    i += j;
+                                } while (i < length);
+
+                                if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
+
+                                    System.out.println("SHOWING OFF");
+                                    BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date(), true);
+                                    handler.sendEmptyMessage(BlueCtrl.MSG_HEADER);
+                                }
+                                else {
+
+                                    BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
+                                            BlueCtrl.buildMsg(buffer, sender, msgBuffer));
+                                    /*
+                                    if this device is not the target device, message has to be forwarded to the next node
+                                    on the route leading to the target; it is wrapped again in a packet and sent as a
+                                    */
+                                }
+
+                                break;
+
+                            case 1:
+
+                                int code = in.read();
+
+                                if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
+
+                                    System.out.println("SHOWING OFF");
+                                    BlueCtrl.showEmo(BlueCtrl.bytesToMAC(sender), code, new Date(), true);
+                                    handler.sendEmptyMessage(BlueCtrl.MSG_HEADER);
+                                }
+                                else {
+
+                                    BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
+                                            BlueCtrl.buildEmoticon(buffer, sender, (byte) code));
+                                }
                         }
 
-                        byte[] msgBuffer = new byte[length];
-                        i = 0;
-                        do {
-                            j = in.read(msgBuffer, i, length - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
-                            }
-                            i += j;
-                        } while (i < length);
-
-                        if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
-
-                            System.out.println("SHOWING OFF");
-                            BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date(), 1);
-                            handler.sendEmptyMessage(BlueCtrl.MSG_HEADER);
-                        } else {
-
-                            BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
-                                             BlueCtrl.buildMsg(buffer, sender, msgBuffer));
-                        /*
-                        if this device is not the target device, message has to be forwarded to the next node
-                        on the route leading to the target; it is wrapped again in a packet and sent as a
-                         */
-                        }
 
                         out.write(BlueCtrl.ACK); //ACKed
                         connected = false;

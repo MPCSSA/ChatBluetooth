@@ -17,19 +17,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
-import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
-import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
-import com.example.christian.chatbluetooth.view.RecyclerItemClickListener;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.example.christian.chatbluetooth.view.Watchers.RecyclerItemClickListener;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -172,9 +166,6 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
                     ChatFragment chatFragment = new ChatFragment();
 
                     chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
-                    /*chatFragment.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
-                    chatFragment.setDevice(BlueCtrl.userAdapt.getItem(position).getNextNode());
-                    chatFragment.setMac(BlueCtrl.userAdapt.getItem(position).getMacInBytes());*/
 
                     FragmentManager fragmentManager = getFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

@@ -1,4 +1,4 @@
-package com.example.christian.chatbluetooth.view;
+package com.example.christian.chatbluetooth.view.Watchers;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

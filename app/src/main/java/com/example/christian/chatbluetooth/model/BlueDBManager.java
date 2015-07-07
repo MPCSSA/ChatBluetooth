@@ -16,7 +16,7 @@ public class BlueDBManager {
     private SQLiteDatabase db;
     private final String[] tables = {"user", "history"};
     private final String[] userTable = {"mac","username","last_upd","isFav","profile_pic","nationality","gender","age"}; //field User Table
-    private final String[] historyTable ={"msg","user","date","sent_by"}; //field Hystory Table
+    private final String[] historyTable ={"msg","user","date","sent_by", "is_emo"}; //field Hystory Table
 
     public Context getContext() { return context; }
 
@@ -51,7 +51,8 @@ public class BlueDBManager {
         if (!db.rawQuery(query, null).moveToFirst()) {
             query = "CREATE TABLE " + tables[1] + "(_id integer primary key autoincrement, " +
                     historyTable[0] + " text not null, " + historyTable[1] + " integer not null, " +
-                    historyTable[2] + " text not null, " + historyTable[3] + " integer not null)";
+                    historyTable[2] + " text not null, " + historyTable[3] + " integer not null, " +
+                    historyTable[4] + " integer not null)";
             db.execSQL(query);
         }
 
@@ -76,7 +77,7 @@ public class BlueDBManager {
         return values;
     }
 
-    private ContentValues createCV(String msg, String user, long timestamp, int sent_by) {
+    private ContentValues createCV(String msg, String user, long timestamp, int sent_by, int is_emoticon) {
 
         ContentValues values = new ContentValues();
 
@@ -84,6 +85,7 @@ public class BlueDBManager {
         values.put(historyTable[1], user);
         values.put(historyTable[2], timestamp);
         values.put(historyTable[3], sent_by);
+        values.put(historyTable[4], is_emoticon);
 
         return values;
     }
@@ -104,7 +106,7 @@ public class BlueDBManager {
 
             case 1:
                 id = db.insertWithOnConflict(tables[table], null,
-                        createCV((String) attrs[0], (String) attrs[1], (long) attrs[2], (int) attrs[3]),
+                        createCV((String) attrs[0], (String) attrs[1], (long) attrs[2], (int) attrs[3], (int) attrs[4]),
                         SQLiteDatabase.CONFLICT_REPLACE);
                 break;
 
@@ -134,7 +136,7 @@ public class BlueDBManager {
 
     public Cursor fetchMsgHistory(String address) {
 
-        return db.query(tables[1], new String [] {historyTable[0], historyTable[1], historyTable[3]}, historyTable[1] + " = \'" + address + "\'", null, null, null
+        return db.query(tables[1], new String [] {historyTable[0], historyTable[1], historyTable[3], historyTable[4]}, historyTable[1] + " = \'" + address + "\'", null, null, null
                         , historyTable[2] + " DESC", "25");
 
     }

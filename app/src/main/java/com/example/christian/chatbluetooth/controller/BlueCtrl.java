@@ -8,10 +8,12 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
+import android.os.Handler;
 
 import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
+import com.example.christian.chatbluetooth.view.Adapters.EmoticonAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
@@ -40,6 +42,18 @@ public class BlueCtrl {
     public static final byte DRP_HEADER = (byte) 5; //header for Drop Request
     public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
     public static final byte    ACK_GRT = (byte) 7;
+    public static final byte    ACK_UPD = (byte) 8;
+    public static final byte    ACK_RQS = (byte) 9;
+    public static final byte    ACK_CRD = (byte) 10;
+    public static final byte    ACK_MSG = (byte) 11;
+    public static final byte    ACK_DRP = (byte) 12;
+    public static final byte    NAC_GRT = (byte) -7;
+    public static final byte    NAC_UPD = (byte) -6;
+    public static final byte    NAC_RQS = (byte) -5;
+    public static final byte    NAC_CRD = (byte) -4;
+    public static final byte    NAC_MSG = (byte) -3;
+    public static final byte    NAC_DRP = (byte) -2;
+    public static final byte        NAC = (byte) -1;
 
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
     public static File appFolder;
@@ -109,6 +123,7 @@ public class BlueCtrl {
     DEBUG ONLY
      */
     public final static ArrayList<ChatUser> userList = new ArrayList<>();
+    public static EmoticonAdapter emoticons;
     public final static RecycleAdapter userAdapt = new RecycleAdapter(userList);        //ChatUser Adapter; initialized on MainActivity creation
     public static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>();
     public static int counter = 0;
@@ -134,7 +149,7 @@ public class BlueCtrl {
         if (cursor.getCount() > 0){
             cursor.moveToLast();
             do{
-                msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2), cursor.getLong(1)));
+                msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2) == 1, cursor.getLong(1), cursor.getInt(3) == 1));
             } while(cursor.moveToPrevious());
         }
     }
@@ -145,7 +160,13 @@ public class BlueCtrl {
         (new MessageThread(dvc, msg)).start();
     }
 
-    public static void greet(BluetoothDevice dvc) {
+    public static void sendMsg(BluetoothDevice dvc, byte[] msg, Handler handler) {
+
+        System.out.println("sending " + dvc.getAddress());
+        (new MessageThread(dvc, msg, handler)).start();
+    }
+
+    public static void greet(BluetoothDevice dvc, Handler handler) {
         byte[] grt = new byte[10], timestamp;
         Cursor cursor = dbManager.fetchTimestamp(BluetoothAdapter.getDefaultAdapter().getAddress());
         cursor.moveToFirst();
@@ -157,7 +178,7 @@ public class BlueCtrl {
             grt[i] = timestamp[i-2];
         }
 
-        sendMsg(dvc, grt);
+        sendMsg(dvc, grt, handler);
     }
     public static void dispatchNews(byte[] msg, BluetoothDevice filter, ChatUser user) {
         //dispatch message to all close devices;
@@ -204,22 +225,24 @@ public class BlueCtrl {
 
     }
 
-    public static boolean awakeUser(String mac, BluetoothDevice manInTheMiddle, byte status, int bounces) {
+    public static boolean awakeUser(String mac, BluetoothDevice manInTheMiddle, byte status, int bounces, long timestamp) {
+        //creates or update a ChatUser object to add to RecyclerAdapter; boolean return enables object fetching from buffer
 
         ChatUser user = scanUsers(mac);
-        return (user == null || user.updateUser(manInTheMiddle, bounces, (int) status)) && userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, fetchPersistentInfo(mac)));
 
+        if (user == null) return userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, timestamp, fetchPersistentInfo(mac)));
+        return user.updateUser(manInTheMiddle, bounces, (int) status);
     }
 
-    public static void cardUpdate(String address/*, byte[] image*/) {
+    public static void cardUpdate(String address) {
 
         Cursor info = fetchPersistentInfo(address);
-        System.out.println("fetching new info");
+        System.out.println("fetching " + address + " new info");
         ChatUser user = scanUsers(address);
 
         if (user != null) {
             user.addPersistentInfo(info);
-            System.out.println("info added");
+            System.out.println(address + " info added");
         }
 
 
@@ -270,11 +293,21 @@ public class BlueCtrl {
         return null;
     }
 
-    public static void showMsg(String from, String msg, Date time, int sentBy){
+    public static void showMsg(String from, String msg, Date time, boolean sentBy){
 
-        dbManager.createRecord(1, new Object[] {msg, from, time.getTime(), sentBy});
+        int i = (sentBy) ? 1 : 0;
+        dbManager.createRecord(1, new Object[] {msg, from, time.getTime(), i, 0});
         if (from.equals(msgAdapt.getAddress())){
-            msgBuffer.add(new ChatMessage(msg, sentBy, time));
+            msgBuffer.add(new ChatMessage(msg, sentBy, time, false));
+        }
+    }
+
+    public static void showEmo(String from, int code, Date time, boolean sentBy){
+
+        int i = (sentBy) ? 1 : 0;
+        dbManager.createRecord(1, new Object[] {String.valueOf(code), from, time.getTime(), i, 1});
+        if (from.equals(msgAdapt.getAddress())){
+            msgBuffer.add(new ChatMessage(String.valueOf(code), sentBy, time, true));
         }
     }
 
@@ -288,7 +321,7 @@ public class BlueCtrl {
         */
 
         int length = msg.length; //must prevent more than 255 characters long messages
-        byte[] pckt = new byte[14 + length]; //actual bytes packet that has to be sent
+        byte[] pckt = new byte[15 + length]; //actual bytes packet that has to be sent
         pckt[0] = MSG_HEADER; //packet header
 
         int i = 1;
@@ -302,7 +335,9 @@ public class BlueCtrl {
             ++i;
         }
 
-        pckt[i] = (byte) length;
+        pckt[i] = 0;
+        ++i;
+        pckt[i] = (byte) (length - 1);
         ++i;
 
         for(byte b : msg) {
@@ -311,6 +346,30 @@ public class BlueCtrl {
         }
 
         return pckt;
+    }
+
+    public static byte[] buildEmoticon(byte[] target, byte[] sender, byte code) {
+
+        byte[] pckt = new byte[15]; //actual bytes packet that has to be sent
+        pckt[0] = MSG_HEADER; //packet header
+
+        int i = 1;
+        for(byte b : target) {
+            pckt[i] = b; //Target field
+            ++i;
+        }
+
+        for(byte b : sender) {
+            pckt[i] = b; //Target field
+            ++i;
+        }
+
+        pckt[i] = 1;
+        ++i;
+        pckt[i] = code;
+
+        return pckt;
+
     }
 
     public static byte[] buildUpdMsg(ChatUser user) {
@@ -432,9 +491,9 @@ public class BlueCtrl {
 
     }
 
-    public static void insertMsgTable(String msg, String address, Date time) {
+    public static void insertMsgTable(String msg, String address, Date time, int emoticon) {
 
-        dbManager.createRecord(1, new Object[] {msg, address, time.getTime(), 0});
+        dbManager.createRecord(1, new Object[] {msg, address, time.getTime(), 0, emoticon});
     }
 
     public static void updateUserTable(String mac, long timestamp, String username, int age, int gender, int country){

@@ -46,6 +46,7 @@ import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.MessageThread;
 import com.example.christian.chatbluetooth.controller.ServerThread;
 import com.example.christian.chatbluetooth.model.ChatUser;
+import com.example.christian.chatbluetooth.view.Adapters.EmoticonAdapter;
 import com.example.christian.chatbluetooth.view.Fragments.ChatFragment;
 import com.example.christian.chatbluetooth.view.Fragments.ListFragment;
 import com.example.christian.chatbluetooth.view.Adapters.MenuAdapter;
@@ -61,12 +62,12 @@ import java.util.UUID;
 
 public class ChatActivity extends Activity implements ListFragment.OnFragmentInteractionListener,
                                                       ChatFragment.OnFragmentInteractionListener,
-    /*DEBUG ONLY*/                                    NoMaterialNavDrawerFragment.OnFragmentInteractionListener{
+    /*DEBUG ONLY*/                                    NoMaterialNavDrawerFragment.OnFragmentInteractionListener {
 
     private DrawerLayout drawerLayout;
     private ListView listViewMenu;
     private Switch switchVisibility;
-    public static Handler handler;
+    private Handler handler;
     public boolean state = false;
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
@@ -82,7 +83,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                     if (!BlueCtrl.closeDvc.contains(dvc) /*&& !dvc.getAddress().equals("64:77:91:D5:7A:B9") /*!dvc.getAddress().equals("1C:B7:2C:0C:60:C6") /!dvc.getAddress().equals("14:DD:A9:3B:53:E3")*/) {
                         System.out.println("greetings");
-                        BlueCtrl.greet(dvc);
+                        BlueCtrl.greet(dvc, handler);
                     }
                     else {
                         //TODO: DRP Mechanism
@@ -123,11 +124,11 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 switch (msg.what) {
 
                     case BlueCtrl.GRT_HEADER:
+
                         user = BlueCtrl.userQueue.remove(0);
+
                         if (BlueCtrl.version) BlueCtrl.userAdapt.add(user);
                         else BlueCtrl.userNomat.add(user);
-                        if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
-                        else BlueCtrl.userNomat.notifyDataSetChanged();
 
                         ArrayList<byte[]> updCascade = new ArrayList<>();
                         for (ChatUser ch : BlueCtrl.userList) {
@@ -149,12 +150,15 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         break;
 
                     case BlueCtrl.UPD_HEADER:
-                        if (BlueCtrl.version) BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
-                        else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
+                        if (BlueCtrl.userQueue.size() > 0) {
+                            if (BlueCtrl.version)
+                                BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
+                            else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
+                        }
                         break;
 
                     case BlueCtrl.CRD_HEADER:
-                        BlueCtrl.cardUpdate(BlueCtrl.updateQueue.remove(0));
+                        BlueCtrl.cardUpdate(msg.getData().getString("MAC"));
                         if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
                         else BlueCtrl.userNomat.notifyDataSetChanged();
                         break;
@@ -165,6 +169,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             BlueCtrl.msgAdapt.notifyDataSetChanged();
                         }
                         break;
+
 
                     case -1:
                         BlueCtrl.newcomers.remove(msg.getData().getString("MAC"));
@@ -275,13 +280,13 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
             switchVisibility = (Switch) findViewById(R.id.switch_state);
 
-            ((ImageView) findViewById(R.id.image_switch)).setBackground(getDrawable(R.mipmap.visibility));
-
+            (findViewById(R.id.image_switch)).setBackground(getDrawable(R.mipmap.visibility));
 
         /* END NEW PART */
 
         }
 
+        BlueCtrl.emoticons = new EmoticonAdapter(this, R.layout.item_emoticon_picker);
 
         BlueCtrl.openDatabase(this);
         if (getIntent().getBooleanExtra("newbie", false)) {

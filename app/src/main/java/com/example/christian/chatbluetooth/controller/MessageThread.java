@@ -21,6 +21,7 @@ public class MessageThread extends Thread {
     private BluetoothDevice rmtDvc;
     private InputStream in;
     private OutputStream out;
+    private Handler handler = null;
 
     public BluetoothSocket getSckt() {
         return sckt;
@@ -53,6 +54,17 @@ public class MessageThread extends Thread {
     }
     public void setOut(OutputStream out) {
         this.out = out;
+    }
+
+    public Handler getHandler() { return this.handler; }
+    public void setHandler(Handler handler) { this.handler = handler; }
+
+    public MessageThread(BluetoothDevice dvc, byte[] msg, Handler handler) {
+        this(dvc, msg);
+
+        setHandler(handler);
+
+
     }
 
     public MessageThread(BluetoothDevice dvc, byte[] msg) {
@@ -119,6 +131,7 @@ public class MessageThread extends Thread {
                 String address;
 
                 switch(ack) {
+
                     case BlueCtrl.RQS_HEADER:
                     /*
                     An Info Request is a special request sent by a node which received a reachable MAC
@@ -141,7 +154,7 @@ public class MessageThread extends Thread {
                         } while (i < 6);
 
                         address = BlueCtrl.bytesToMAC(buffer);
-                        System.out.println("requested card mac is this: " + address);
+                        System.out.println("requested card MAC is this: " + address);
 
                         byte[] card = BlueCtrl.buildCard(BlueCtrl.fetchPersistentInfo(address));
                         out.write(card);
@@ -191,9 +204,12 @@ public class MessageThread extends Thread {
                             } while (i < 8);
 
                             address = BlueCtrl.bytesToMAC(buffer);
-                            if (BlueCtrl.validateUser(address, BlueCtrl.rebuildTimestamp(lastUpd))) {
+                            long timestamp = BlueCtrl.rebuildTimestamp(lastUpd);
 
-                                BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1);
+                            if (BlueCtrl.validateUser(address, timestamp)) {
+
+                                if (BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1, timestamp))
+                                    handler.sendEmptyMessage(BlueCtrl.ACK_UPD);
                             /*
                             New route to address target
                             */
@@ -221,6 +237,10 @@ public class MessageThread extends Thread {
 
             BlueCtrl.unlockDiscoverySuspension();
 
+            if (handler != null) {
+
+                handler.sendEmptyMessage(type + 7); //ACK values are 7 digits shifted
+            }
             if (type == BlueCtrl.GRT_HEADER) {
                 BlueCtrl.closeDvc.add(rmtDvc);
             }
@@ -236,15 +256,8 @@ public class MessageThread extends Thread {
             System.out.println("alimortaccitua " + rmtDvc.getAddress());
             BlueCtrl.unlockDiscoverySuspension();
 
-            if (type != BlueCtrl.GRT_HEADER) {
-                Message msg = new Message();
-                Bundle bundle = new Bundle();
-                msg.setTarget(ChatActivity.handler);
-                msg.what = -2;
-                bundle.putString("dvc", rmtDvc.getAddress());
-                bundle.putByteArray("msg", getMsg());
-                msg.setData(bundle);
-                msg.sendToTarget();
+            if (handler != null) {
+                handler.sendEmptyMessage(type - 7);
             }
             try {
                 sckt.close();

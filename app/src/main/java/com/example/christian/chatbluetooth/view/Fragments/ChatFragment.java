@@ -6,19 +6,32 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
+import android.os.Message;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
@@ -51,11 +64,9 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     private OnFragmentInteractionListener mListener;
 
     private EditText msgText;
-
     private ChatUser user;
-    /*private String user;
-    private BluetoothDevice dvc;
-    private byte[] mac;*/
+    private Handler handler;
+
 
     public void setUser(ChatUser chatUser) {
         this.user = chatUser;
@@ -157,22 +168,85 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
         ImageButton sendBtn = (ImageButton) getActivity().findViewById(R.id.sendBtn);
         sendBtn.setOnClickListener(this);
+
+        (getActivity().findViewById(R.id.emoBtn)).setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
-        String msg = msgText.getText().toString();
-        if (!msg.equals("")){
-            Date time = new Date();
-            (new MessageThread(user.getNextNode(), BlueCtrl.buildMsg(user.getMacInBytes(),
-                    BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
-                    msg.getBytes()))).start();
 
-            BlueCtrl.insertMsgTable(msg, user.getMac(), time);
-            BlueCtrl.msgAdapt.add(new ChatMessage(msg, 0, time.getTime()));
-            BlueCtrl.msgAdapt.notifyDataSetChanged();
-            msgText.setText(null);
-            msgText.requestFocus();
+        switch (v.getId()) {
+
+            case R.id.sendBtn:
+
+                String msg = msgText.getText().toString();
+                if (!msg.equals("")) {
+                    Date time = new Date();
+                    BlueCtrl.sendMsg(user.getNextNode(),
+                            BlueCtrl.buildMsg(user.getMacInBytes(),
+                                    BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
+                                    msg.getBytes()),
+                            handler);
+
+                    BlueCtrl.insertMsgTable(msg, user.getMac(), time, 0);
+                    BlueCtrl.msgAdapt.add(new ChatMessage(msg, false, time.getTime(), false));
+                    BlueCtrl.msgAdapt.notifyDataSetChanged();
+                    msgText.setText(null);
+                    msgText.requestFocus();
+
+                }
+                break;
+
+            case R.id.emoBtn:
+
+                LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                int layout = (BlueCtrl.version) ? R.layout.emoticon_layout : R.layout.emoticon_layout_nomat;
+                View view = inflater.inflate(layout, (ViewGroup) getActivity().findViewById(R.id.emoticons));
+
+                GridView grid = (GridView) view.findViewById(R.id.emo_grid);
+                grid.setAdapter(BlueCtrl.emoticons);
+                BlueCtrl.emoticons.clear();
+
+                Bitmap emoBitmap = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.red_emoticons);
+                emoBitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+
+                int w = emoBitmap.getWidth() / 5, h = emoBitmap.getHeight() / 5;
+                for (int y = 0; y < 5; ++y) {
+                    for (int x = 0; x < 5; ++x) {
+
+                        Bitmap single = Bitmap.createScaledBitmap(Bitmap.createBitmap(emoBitmap, x * w, y * h, w, h), w / 2, h / 2, false);
+                        BlueCtrl.emoticons.add(single);
+
+                    }
+                }
+
+                grid.setHorizontalSpacing(0);
+                grid.setVerticalSpacing(0);
+
+                final PopupWindow popupWindow = new PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+                popupWindow.setHeight((h / 2) * 5);
+                popupWindow.setWidth((w / 2) * 5);
+                popupWindow.showAtLocation(view, Gravity.BOTTOM | Gravity.END, 16, 80);
+                if (BlueCtrl.version) popupWindow.setElevation(8f);
+
+                grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                        System.out.println("HEYOH!");
+                        Date time = new Date();
+                        BlueCtrl.sendMsg(user.getNextNode(),
+                                BlueCtrl.buildEmoticon(user.getMacInBytes(),
+                                        BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
+                                        (byte) i), handler);
+
+                        BlueCtrl.insertMsgTable(String.valueOf(i), user.getMac(), time, 1);
+                        BlueCtrl.msgAdapt.add(new ChatMessage(String.valueOf(i), false, time.getTime(), true));
+                        BlueCtrl.msgAdapt.notifyDataSetChanged();
+
+                        popupWindow.dismiss();
+                    }
+                });
         }
     }
 

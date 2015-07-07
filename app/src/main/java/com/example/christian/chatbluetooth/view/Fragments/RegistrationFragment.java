@@ -28,8 +28,8 @@ import android.widget.Toast;
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Activities.MainActivity;
-import com.example.christian.chatbluetooth.view.ConfirmationWatcher;
-import com.example.christian.chatbluetooth.view.PasswordWatcher;
+import com.example.christian.chatbluetooth.view.Watchers.ConfirmationWatcher;
+import com.example.christian.chatbluetooth.view.Watchers.PasswordWatcher;
 
 import java.util.ArrayList;
 import java.util.Date;
