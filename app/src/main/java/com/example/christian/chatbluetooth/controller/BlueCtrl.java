@@ -54,47 +54,7 @@ public class BlueCtrl {
     public static final byte    NAC_MSG = (byte) -3;
     public static final byte    NAC_DRP = (byte) -2;
     public static final byte        NAC = (byte) -1;
-
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
-    public static File appFolder;
-    private static byte[] defaultCrd;
-
-    private static byte[] getDefaultCrd() {
-
-        if (defaultCrd == null) {
-            defaultCrd = new byte[20 + "pippobaudo94".getBytes().length];
-            defaultCrd[0] = BlueCtrl.CRD_HEADER;
-            int i = 1, j;
-            byte[] mac = macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress());
-
-            for (j = 0; j < 6; ++j) {
-                defaultCrd[i + j] = mac[j];
-            }
-            i += j;
-
-            byte[] lastUpd = longToBytes((new Date()).getTime());
-            for (j = 0; j < 8; ++j) {
-                defaultCrd[i + j] = lastUpd[j];
-            }
-            i += j;
-
-            defaultCrd[i] = (byte) 21;
-            ++i;
-            defaultCrd[i] = (byte) 1;
-            ++i;
-            defaultCrd[i] = (byte) 0;
-            ++i;
-
-            byte[] user = "pippobaudo94".getBytes();
-            defaultCrd[i] = (byte) user.length;
-            ++i;
-            for (j = 0; j < user.length; ++j) {
-                defaultCrd[i + j] = user[j];
-            }
-        }
-
-        return defaultCrd;
-    }
 
     /*
     DEBUG ONLY
@@ -420,7 +380,6 @@ public class BlueCtrl {
 
     public static byte[] buildCard(Cursor info) {
 
-        if (info.getCount() < 1) return getDefaultCrd();
         info.moveToFirst();
 
         String mac = info.getString(0), username = info.getString(1);
