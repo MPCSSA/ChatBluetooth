@@ -69,7 +69,7 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage>{
                 int w = emoBitmap.getWidth() / 5, h = emoBitmap.getHeight() / 5;
 
                 ImageView emoticon = (ImageView) view.findViewById(R.id.emoticon);
-                emoticon.setBackground(new BitmapDrawable(Bitmap.createBitmap(emoBitmap, (i / 5) * w, (i % 5) * h, w, h)));
+                emoticon.setBackground(new BitmapDrawable(Bitmap.createBitmap(emoBitmap, (i % 5) * w, (i / 5) * h, w, h)));
 
                 date.setGravity(Gravity.END);
                 if (BlueCtrl.version)
@@ -87,7 +87,7 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage>{
                 int w = emoBitmap.getWidth() / 5, h = emoBitmap.getHeight() / 5;
 
                 ImageView emoticon = (ImageView) view.findViewById(R.id.emoticon);
-                emoticon.setBackground(new BitmapDrawable(Bitmap.createBitmap(emoBitmap, (i / 5) * w, (i % 5) * h, w, h)));
+                emoticon.setBackground(new BitmapDrawable(Bitmap.createBitmap(emoBitmap, (i % 5) * w, (i / 5) * h, w, h)));
 
                 date.setGravity(Gravity.START);
                 if (BlueCtrl.version)

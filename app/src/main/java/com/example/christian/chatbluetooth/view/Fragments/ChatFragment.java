@@ -227,14 +227,16 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 popupWindow.setHeight((h / 2) * 5);
                 popupWindow.setWidth((w / 2) * 5);
                 popupWindow.setBackgroundDrawable(new BitmapDrawable());
+                if (BlueCtrl.version) {
+                    popupWindow.setElevation(8f);
+                    popupWindow.setAnimationStyle(R.anim.abc_slide_in_bottom);
+                }
                 popupWindow.showAtLocation(view, Gravity.BOTTOM | Gravity.END, 16, 80);
-                if (BlueCtrl.version) popupWindow.setElevation(8f);
 
                 grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                        System.out.println("HEYOH!");
                         Date time = new Date();
                         BlueCtrl.sendMsg(user.getNextNode(),
                                 BlueCtrl.buildEmoticon(user.getMacInBytes(),
@@ -245,6 +247,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                         BlueCtrl.msgAdapt.add(new ChatMessage(String.valueOf(i), false, time.getTime(), true));
                         BlueCtrl.msgAdapt.notifyDataSetChanged();
 
+                        popupWindow.setAnimationStyle(R.anim.abc_slide_out_bottom);
                         popupWindow.dismiss();
                     }
                 });

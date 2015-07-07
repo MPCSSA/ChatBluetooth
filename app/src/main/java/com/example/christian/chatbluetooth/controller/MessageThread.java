@@ -257,7 +257,16 @@ public class MessageThread extends Thread {
             BlueCtrl.unlockDiscoverySuspension();
 
             if (handler != null) {
-                handler.sendEmptyMessage(type - 7);
+
+                Message error = new Message();
+                error.what = -2;
+                Bundle bundle = new Bundle();
+                bundle.putString("dvc", rmtDvc.getAddress());
+                bundle.putByteArray("msg", getMsg());
+                bundle.putInt("errorcode", type - 7);
+                error.setData(bundle);
+
+                handler.sendMessage(error);
             }
             try {
                 sckt.close();

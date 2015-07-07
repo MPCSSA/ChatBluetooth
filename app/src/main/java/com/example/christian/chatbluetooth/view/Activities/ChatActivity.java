@@ -180,7 +180,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                     case -2:
                         user = BlueCtrl.scanUsers(msg.getData().getString("dvc"));
                         if (user != null)  {
-                            System.out.println("I am sending a MESSAGE");
                             BlueCtrl.sendMsg(user.getNextNode(), msg.getData().getByteArray("msg"));
                         }
                         break;
