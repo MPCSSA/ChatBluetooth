@@ -56,7 +56,7 @@ public class ReceiverThread extends Thread {
 
     public void run() {
 
-        System.out.println("sto ricevendo");
+        System.out.println("RECEIVING");
         try {
 
             int i, j; //counters
@@ -67,11 +67,9 @@ public class ReceiverThread extends Thread {
 
             do {
 
-                while (BluetoothAdapter.getDefaultAdapter().isDiscovering()) System.out.println("Discovery: " + BluetoothAdapter.getDefaultAdapter().isDiscovering());
-
-                System.out.println("leggo");
+                System.out.println("READING");
                 byte flag = (byte) in.read();
-                System.out.println("ho letto " + flag);
+                System.out.println("READ " + flag + " TYPE MESSAGE");
             /*
             incoming message flag;
             0: Greetings Message; a newly connected device is sending information about itself.
@@ -82,6 +80,62 @@ public class ReceiverThread extends Thread {
             4: Chat Message; if this device is the target, show message in chat; else, forward the message on the route.
             5: Drop Request; a list of devices no longer reachable due to one device disconnection.
             */
+
+                if (flag != BlueCtrl.GRT_HEADER && BlueCtrl.tokenMap.get(rmtDvc.getAddress()) == null) {
+                    /*
+                    A busy device could have been deleted after a series of unanswered connections;
+                    before this device can accept messages the remote device must send a Greetings
+                    message and restore this device route.
+                    */
+                    out.write(BlueCtrl.GRT_HEADER);
+
+                    int skip, k, l;
+                    switch (flag) {
+                        case BlueCtrl.UPD_HEADER:
+                            skip = in.read() * 16; //UPD MSG length without header and number fields
+                            break;
+                        case BlueCtrl.CRD_HEADER:
+                            k = 0;
+                            do {
+                                l = (int) in.skip(17 - k);
+                                k += l;
+                            } while(k < 17);
+                            //skip first 17 bytes of the message; after that, skipping username requires reading length field
+                            skip = in.read() + 8; //skip username and picture timestamp fields
+                            break;
+                        case BlueCtrl.PIC_HEADER:
+                            skip = 0;
+                            for (int _ = 0; _ < 3; ++_) {
+                                skip = skip * 256 + in.read(); //skip the whole picture
+                            }
+                            break;
+                        case BlueCtrl.MSG_HEADER:
+                            k = 0;
+                            do {
+                                l = (int) in.skip(12 - k);
+                                k += l;
+                            } while(k < 12);
+                            //skip MAC addresses
+                            if (in.read() == 0) skip = in.read(); //skip a text message
+                            else skip = 1; //skip an emoticon code
+                            break;
+                        case BlueCtrl.DRP_HEADER:
+                            skip = in.read() * 6; //skip MACs
+                            break;
+                        default: skip = 0; //skip nothing
+                    }
+
+                    in.skip(skip);
+
+                    mail.getData().putBoolean("ENABLED", false);
+                    /*
+                    next accepted message would be a GRT one; main thread communication automatically
+                    initiate a Greet Back routine
+                     */
+
+                    continue;
+                }
+
                 switch (flag) {
                     case BlueCtrl.GRT_HEADER: {
                     /*
@@ -91,10 +145,6 @@ public class ReceiverThread extends Thread {
                     [0][status][last update]
                        |1 byte|   8 byte  |
                     */
-
-                        /*BlueCtrl.newcomers.put(rmtDvc.getAddress(), rmtDvc);
-
-                        BlueCtrl.greet(rmtDvc, handler);*/
 
                         byte status = (byte) in.read(); //read Status
                         byte[] bytes = new byte[8];
@@ -113,7 +163,7 @@ public class ReceiverThread extends Thread {
                         long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
 
                         if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0, lastUpd)) {
-                            System.out.println(rmtDvc.getAddress() + " summoned");
+                            System.out.println(rmtDvc.getAddress() + " SUMMONED");
                         }
                         /*
                         New ChatUser object is created regardless of incoherent or non-existent persistent information;
@@ -122,9 +172,8 @@ public class ReceiverThread extends Thread {
 
                         if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
                             out.write(BlueCtrl.ACK); //ACKed
-                            mail.what = BlueCtrl.GRT_HEADER;
-                            handler.sendMessage(mail);
-                            System.out.println("ACKED");
+                            System.out.println("MESSAGE ACKED");
+
                             connected = false;
                         } else {
                             /*
@@ -135,6 +184,14 @@ public class ReceiverThread extends Thread {
                             out.write(BlueCtrl.macToBytes(rmtDvc.getAddress()));
                             out.write(0);
                         }
+
+                        if (BlueCtrl.tokenMap.get(rmtDvc.getAddress()) != null) mail.what = BlueCtrl.ACK;
+                        else mail.what = BlueCtrl.GRT_HEADER;
+                        handler.sendMessage(mail);
+                        /*
+                        It there is an entry in the Tokens Map, this device already received a Greeting from the
+                        remote device and it does not need to pic a new object from the buffer
+                         */
 
                         break;
                     }
@@ -198,6 +255,12 @@ public class ReceiverThread extends Thread {
                                 handler.sendMessage(mail);
                             }
                             //show new ChatUser regardless of coherent information; that will be updated if needed
+                            else {
+
+                                mail.what = BlueCtrl.ACK;
+                                handler.sendMessage(mail);
+                                //No new ChatUser to pop from the buffer, but message received nonetheless
+                            }
 
                             if (BlueCtrl.validateUser(address, timestamp)) {
 
@@ -237,8 +300,7 @@ public class ReceiverThread extends Thread {
                         //You should not be able to send these as actual messages
 
                         System.out.println("This message should not be captured here");
-                        //TODO: Misunderstanding management
-                        break;
+                        throw new IOException();
                     }
 
                     case BlueCtrl.CRD_HEADER: {
@@ -397,8 +459,12 @@ public class ReceiverThread extends Thread {
                     fields have fixed length instead. A length byte precedes the Message field, indicating
                     the message length in bytes; a message cannot exceed 255 characters in length, therefore
                     1 byte is enough to represent the length field.
-                    [5][Target MAC][Sender MAC][Emoticon][Msg length][  Message field  ]
-                       | 6 bytes  |  6 bytes  | 1 byte  |  1 byte   | Msg length bytes |
+                    Text Message:
+                    [5][Target MAC][Sender MAC][0][Msg length][  Message field  ]
+                       | 6 bytes  |  6 bytes  |   |  1 byte  | Msg length bytes |
+                    Emoticon Message:
+                    [5][Target MAC][Sender MAC][1][Emoticon]
+                       | 6 bytes  |  6 bytes  |   | 1 byte |
                      */
                         byte[] buffer = new byte[6], sender = new byte[6];
 
@@ -494,28 +560,21 @@ public class ReceiverThread extends Thread {
                     A Drop Request is sent when a device closes its connection and is no longer reachable.
                     It contains a list of MACs of devices no longer reachable by this device due to
                     the fact that their routes passed through the exiting node. No divider is needed because
-                    every MAC address is made up of 6 bytes.
-                    [6][MAC][MAC]...
+                    every MAC address is made up of 6 bytes. A number field preceeds MACs, indicating
+                    the message length.
+                    [6][number][MAC][MAC]...
                     */
                         byte[] buffer = new byte[6];
-                        boolean breakFree = true;
+                        int number = in.read();
 
-                        while (breakFree) {
+                        for (int _ = 0; _ < number; ++_) {
 
                             i = 0;
                             do {
                                 j = in.read(buffer, i, 6 - i);
                                 if (j < 0) {
-                                    switch (i) {
-                                        case 0:
-                                            breakFree = false; //EOF reached
-                                            break;
-                                        default:
-                                            System.out.println("Premature EOF, message misunderstanding");
-                                            //TODO: throw something
-                                    }
-
-                                    break;
+                                    System.out.println("Premature EOF, message misunderstanding");
+                                    throw new IOException();
                                 }
                                 i += j;
                             } while (i < 6);
@@ -540,7 +599,7 @@ public class ReceiverThread extends Thread {
                         Tocken Counter is restored to its maximum.
                          */
 
-                        if (BlueCtrl.closeDvc.contains(rmtDvc)) {
+                        if (BlueCtrl.closeDvc.containsValue(rmtDvc)) {
                             out.write(BlueCtrl.ACK);
                             BlueCtrl.tokenMap.put(rmtDvc.getAddress(), BlueCtrl.TKN);
                         }
@@ -571,6 +630,9 @@ public class ReceiverThread extends Thread {
 
             e.printStackTrace();
             BlueCtrl.unlockDiscoverySuspension();
+
+            mail.what = BlueCtrl.LST;
+            handler.sendMessage(mail);
             cancel();
         }
         catch (Exception e) {

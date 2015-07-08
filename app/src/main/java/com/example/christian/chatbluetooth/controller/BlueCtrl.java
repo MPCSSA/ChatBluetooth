@@ -42,7 +42,6 @@ public class BlueCtrl {
     public static final byte    ACK_CRD = (byte) 11;
     public static final byte    ACK_MSG = (byte) 12;
     public static final byte    ACK_DRP = (byte) 13;
-    public static final byte    NAK_GRT = (byte) -8;
     public static final byte    NAK_UPD = (byte) -7;
     public static final byte    NAK_RQS = (byte) -6;
     public static final byte    NAK_CRD = (byte) -5;
@@ -50,7 +49,8 @@ public class BlueCtrl {
     public static final byte    NAK_MSG = (byte) -3;
     public static final byte    NAK_DRP = (byte) -2;
     public static final byte        NAK = (byte) -1;
-    public static final int         TKN = 25;       //Token assigne to a greeted device
+    public static final byte        LST = (byte) -2;
+    public static final int         TKN = 25;       //Tokens assigned to an alive device
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
 
     /*
@@ -64,7 +64,7 @@ public class BlueCtrl {
     //BUFFERS
     public static ArrayList<ChatUser> userQueue = new ArrayList<>(); //ChatUser Buffer to store users to show in ListFragment
     public static ArrayList<ChatMessage> msgBuffer = new ArrayList<>(); //ChatMessage Buffer to store messages to show in ChatFragment
-    public static ArrayList<BluetoothDevice> closeDvc = new ArrayList<>(); //Close Devices Buffer; it makes possible Greetings, Update and Drop mechanisms
+    public static HashMap<String, BluetoothDevice> closeDvc = new HashMap<>(); //Close Devices Buffer; it makes possible Greetings, Update and Drop mechanisms
     public static HashMap<String, Integer> tokenMap = new HashMap<>(); //Map for Token Counters
 
     /*
@@ -117,32 +117,10 @@ public class BlueCtrl {
         //Interface method, you are not allowed to instantiate a MessageThread object
     }
 
-    public static void greet(BluetoothDevice dvc, Handler handler) {
-        //Use this method to begin a Greetings routine. It encapsulates both message builder and sender
-
-        byte[] grt = new byte[10], timestamp;
-
-        Cursor cursor = dbManager.fetchTimestamp(BluetoothAdapter.getDefaultAdapter().getAddress());
-        cursor.moveToFirst();
-        //This device persistent information; at least Username and Last Update fields are not null
-        timestamp = longToBytes(cursor.getLong(0)); //last time you updated your profile
-
-        grt[0] = BlueCtrl.GRT_HEADER; //msg header
-        grt[1] = (byte) 1; //user status
-
-        for(int i = 2; i < 10; ++i) {
-            grt[i] = timestamp[i-2];
-        }
-        //8-byte long timestamp
-
-        sendMsg(dvc, grt, handler);
-        //send message to receiver; MAC address is implicit
-    }
-
     public static void dispatchNews(byte[] msg, BluetoothDevice filter, Handler handler) {
         //Use this method to dispatch Route information to all your neighbours; it spreads UP and DRP messages
 
-        for(BluetoothDevice dvc : BlueCtrl.closeDvc) {
+        for(BluetoothDevice dvc : BlueCtrl.closeDvc.values()) {
 
             if (!dvc.equals(filter)) sendMsg(dvc, msg, handler); //A filter can be specified to avoid redundancy
         }
@@ -168,6 +146,26 @@ public class BlueCtrl {
 
 
     //BUILD MESSAGE ROUTINES
+
+    public static byte[] buildGrtMsg() {
+
+        byte[] grt = new byte[10], timestamp;
+
+        Cursor cursor = dbManager.fetchTimestamp(BluetoothAdapter.getDefaultAdapter().getAddress());
+        cursor.moveToFirst();
+        //This device persistent information; at least Username and Last Update fields are not null
+        timestamp = longToBytes(cursor.getLong(0)); //last time you updated your profile
+
+        grt[0] = BlueCtrl.GRT_HEADER; //msg header
+        grt[1] = (byte) 1; //user status
+
+        for(int i = 2; i < 10; ++i) {
+            grt[i] = timestamp[i-2];
+        }
+        //8-byte long timestamp
+
+        return grt;
+    }
 
     public static byte[] buildMsg(byte[] target, byte[] sender, byte[] msg) {
         /*
@@ -338,28 +336,41 @@ public class BlueCtrl {
     public static byte[] buildCard(Cursor info) {
         /*
         Use this method to retrieve and encode persistent user information requested by a user.
-        Username and Profile Picture are the only variable size fields; for performance issues,
-        Profile Pictures are only spread out when they actually change, otherwise
+        Username is the only variable size field; for performance issues, Profile Pictures are
+        not dispatched, but the last field of this message contains a long value referring to the
+        instant the last picture was taken; if an user requests this picture, it is sent via Picture Message
          */
 
         info.moveToFirst();
+        //fetched info
 
         String mac = info.getString(0), username = info.getString(1);
         long timestamp  = info.getLong(2);
-        String profile_pic = info.getString(5);
-        int country = info.getInt(3), gender = info.getInt(4), age = info.getInt(5);
+        String profile_pic = info.getString(4);
+        int country = info.getInt(5), gender = info.getInt(6), age = info.getInt(7);
 
         byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
                 card = new byte[27 + user.length];
+        /*
+        Actual size of a CRD header varies depending on the Username field.
+         - 1 byte for the header
+         - 6 bytes for MAC address
+         - 8 bytes for Last Update timestamp
+         - 1 byte for age, gender and country for a total of 3 bytes
+         - 1 byte for the Username length field
+         - length bytes for Username
+         - 8 bytes for picture timestamp
+         */
 
         int i = 0, j;
-        card[i] = BlueCtrl.CRD_HEADER;
+        card[i] = BlueCtrl.CRD_HEADER; //packet header
         ++i;
 
         for (j = 0; j < 6; ++j) {
             card[i + j] = address[j];
         }
         i += j;
+        //MAC address
 
         for (j = 0; j < 8; ++j) {
             card[i + j] = lastUpd[j];
@@ -381,6 +392,7 @@ public class BlueCtrl {
         i += j;
 
         long picture = (profile_pic == null) ? 0l : Long.parseLong(profile_pic);
+        //if the user did not choose a new Profile Picture, a value of 0 indicates default image
         byte[] lastPic = longToBytes(picture);
 
         for (j = 0; j < 8; ++j) {
@@ -429,7 +441,10 @@ public class BlueCtrl {
         ChatUser user = scanUsers(mac);
 
         if (user == null) return userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, timestamp, fetchPersistentInfo(mac)));
-        return user.updateUser(manInTheMiddle, bounces, (int) status);
+        else {
+            user.updateUser(manInTheMiddle, bounces, (int) status);
+            return false;
+        }
     }
 
     public static void cardUpdate(String address) {
@@ -460,7 +475,7 @@ public class BlueCtrl {
 
     //DEPRECATED
 
-    public static boolean addCloseDvc(BluetoothDevice dvc) {
+    /*public static boolean addCloseDvc(BluetoothDevice dvc) {
 
         boolean newcomer;
         int pos;
@@ -472,20 +487,20 @@ public class BlueCtrl {
                 closeDvc.set(pos, closeDvc.get(counter));
                 closeDvc.set(counter, dvc);
             }*/
-            newcomer = false;
+            /*newcomer = false;
         }
         //insert into position
         else {
             System.out.println("adding");
             System.out.println("pippo: " + counter);
-            closeDvc.add(/*counter, */dvc);
+            //closeDvc.add(/*counter, *//*dvc);
             newcomer = true;
         }
 
         ++counter;
         System.out.println("pippo: " + counter);
         return newcomer;
-    }
+    }*/
 
     public static BluetoothDevice cleanCloseDvc() {
 
@@ -675,5 +690,12 @@ public class BlueCtrl {
     public static boolean validatePicture(String address, long timestamp) {
 
         return (dbManager.fetchProfilePicCode(address) == timestamp);
+    }
+
+    public static BluetoothDevice scanUsersForDvc(String address) {
+
+        ChatUser user = scanUsers(address);
+        if (user != null) return user.getNextNode();
+        else return null;
     }
 }

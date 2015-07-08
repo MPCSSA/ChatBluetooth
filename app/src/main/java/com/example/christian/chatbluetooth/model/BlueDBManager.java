@@ -128,9 +128,7 @@ public class BlueDBManager {
 
     public Cursor fetchUserInfo(String address) {
 
-        return db.query(tables[0], new String[] {userTable[0], userTable[1], userTable[2],
-                                                 userTable[5], userTable[6], userTable[7]},
-                        userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
+        return db.query(tables[0], null, userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
 
     }
 
