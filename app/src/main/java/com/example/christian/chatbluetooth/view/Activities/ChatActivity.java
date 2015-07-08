@@ -112,6 +112,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             @Override
             public void handleMessage(Message msg) {
 
+                obtainMessage();
+
                 ChatUser user;
                 BluetoothDevice dvc;
                 String mac;
@@ -245,7 +247,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                             BlueCtrl.tokenMap.remove(mac);
                             BlueCtrl.closeDvc.remove(mac);
-                            BlueCtrl.userList.remove(mac);
+                            BlueCtrl.userAdapt.remove(mac);
                         }
                         else {
 
@@ -270,7 +272,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         }
                         break;
 
-                    case BlueCtrl.LST:
+                    /*case BlueCtrl.LST:
                         //Lost connection while receiving a message
 
                         mac = msg.getData().getString("MAC");
@@ -285,9 +287,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             to prove its existence. If the device is unknown, however, it does nothing
                              */
 
-                            BlueCtrl.sendMsg(BlueCtrl.scanUsersForDvc(mac), new byte[] {BlueCtrl.ACK}, handler);
+/*                            BlueCtrl.sendMsg(BlueCtrl.scanUsersForDvc(mac), new byte[] {BlueCtrl.ACK}, handler);
                             break;
-                        }
+                        }*/
                 }
 
                 if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();

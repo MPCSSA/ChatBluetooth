@@ -265,6 +265,7 @@ public class MessageThread extends Thread {
 
             if (type == BlueCtrl.GRT_HEADER) {
                 BlueCtrl.closeDvc.put(rmtDvc.getAddress(), rmtDvc);
+                BlueCtrl.tokenMap.put(rmtDvc.getAddress(), BlueCtrl.TKN);
             }
 
             mail.what = BlueCtrl.ACK;

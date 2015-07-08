@@ -20,7 +20,6 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
 
     private List<ChatUser> userList;
 
-
     public RecycleAdapter(List<ChatUser> userList){
         this.userList = userList;
     }
@@ -47,6 +46,20 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
                     inflate(R.layout.card_layout, viewGroup, false);
 
         return new UserViewHolder(itemView);
+    }
+
+    public void remove(String mac) {
+
+        int position = 0;
+
+        for (ChatUser u : userList) {
+            if (u.getMac().equals(mac)) {
+                userList.remove(u);
+                notifyItemRemoved(position);
+                return;
+            }
+            ++position;
+        }
     }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {

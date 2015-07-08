@@ -108,9 +108,9 @@ public class ChatUser {
 
         profileInfo.moveToFirst();
         setName(profileInfo.getString(1));
-        setCountry(profileInfo.getInt(3));
-        setGender(profileInfo.getInt(4));
-        setAge(profileInfo.getInt(5));
+        setCountry(profileInfo.getInt(5));
+        setGender(profileInfo.getInt(6));
+        setAge(profileInfo.getInt(7));
     }
 
     public boolean updateUser(BluetoothDevice dvc, int bnc, int sts) {

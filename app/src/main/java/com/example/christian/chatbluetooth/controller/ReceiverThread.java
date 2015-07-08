@@ -164,7 +164,11 @@ public class ReceiverThread extends Thread {
 
                         if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0, lastUpd)) {
                             System.out.println(rmtDvc.getAddress() + " SUMMONED");
+                            mail.what = BlueCtrl.GRT_HEADER;
+
                         }
+                        else mail.what = BlueCtrl.ACK;
+                        handler.sendMessage(mail);
                         /*
                         New ChatUser object is created regardless of incoherent or non-existent persistent information;
                         if needed, an update will be requested and the object will be updated
@@ -185,9 +189,6 @@ public class ReceiverThread extends Thread {
                             out.write(0);
                         }
 
-                        if (BlueCtrl.tokenMap.get(rmtDvc.getAddress()) != null) mail.what = BlueCtrl.ACK;
-                        else mail.what = BlueCtrl.GRT_HEADER;
-                        handler.sendMessage(mail);
                         /*
                         It there is an entry in the Tokens Map, this device already received a Greeting from the
                         remote device and it does not need to pic a new object from the buffer

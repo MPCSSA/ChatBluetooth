@@ -50,7 +50,7 @@ public class BlueCtrl {
     public static final byte    NAK_DRP = (byte) -2;
     public static final byte        NAK = (byte) -1;
     public static final byte        LST = (byte) -2;
-    public static final int         TKN = 25;       //Tokens assigned to an alive device
+    public static final int         TKN = 100;       //Tokens assigned to an alive device
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
 
     /*
