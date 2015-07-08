@@ -23,7 +23,6 @@ public class ReceiverThread extends Thread {
     private OutputStream out;     //OutputStream object from which reading ACK messages
     private BluetoothDevice rmtDvc;        //MAC address of communicating Bluetooth device
     private Handler handler;
-    private Message mail;
 
     public void setSckt(BluetoothSocket sckt) {
         this.sckt = sckt;
@@ -48,10 +47,6 @@ public class ReceiverThread extends Thread {
 
         rmtDvc = sckt.getRemoteDevice(); //communicating device
 
-        mail = new Message();
-        Bundle bundle = new Bundle();
-        bundle.putString("MAC", rmtDvc.getAddress());
-        mail.setData(bundle);
     }
 
     public void run() {
@@ -127,7 +122,6 @@ public class ReceiverThread extends Thread {
 
                     in.skip(skip);
 
-                    mail.getData().putBoolean("ENABLED", false);
                     /*
                     next accepted message would be a GRT one; main thread communication automatically
                     initiate a Greet Back routine
@@ -162,12 +156,18 @@ public class ReceiverThread extends Thread {
 
                         long lastUpd = BlueCtrl.rebuildTimestamp(bytes);
 
+                        Message mail = new Message();
+                        Bundle bundle = new Bundle();
+                        bundle.putString("MAC", rmtDvc.getAddress());
+                        mail.setData(bundle);
+
                         if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0, lastUpd)) {
                             System.out.println(rmtDvc.getAddress() + " SUMMONED");
                             mail.what = BlueCtrl.GRT_HEADER;
 
                         }
                         else mail.what = BlueCtrl.ACK;
+
                         handler.sendMessage(mail);
                         /*
                         New ChatUser object is created regardless of incoherent or non-existent persistent information;
@@ -250,18 +250,23 @@ public class ReceiverThread extends Thread {
                             String address = BlueCtrl.bytesToMAC(buffer);
                             long timestamp = BlueCtrl.rebuildTimestamp(lastUpd);
 
+                            Message mail = new Message();
+                            Bundle bundle = new Bundle();
+                            bundle.putString("MAC", rmtDvc.getAddress());
+                            mail.setData(bundle);
+
                             if (bool = BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1, timestamp)) {
 
                                 mail.what = BlueCtrl.UPD_HEADER;
-                                handler.sendMessage(mail);
                             }
                             //show new ChatUser regardless of coherent information; that will be updated if needed
                             else {
 
                                 mail.what = BlueCtrl.ACK;
-                                handler.sendMessage(mail);
                                 //No new ChatUser to pop from the buffer, but message received nonetheless
                             }
+
+                            handler.sendMessage(mail);
 
                             if (BlueCtrl.validateUser(address, timestamp)) {
 
@@ -387,7 +392,11 @@ public class ReceiverThread extends Thread {
                                         new String(username), age, gender, country);
                                 //consistent information inserted into DB
 
+                                Message mail = new Message();
                                 mail.what = BlueCtrl.CRD_HEADER;
+                                Bundle bundle = new Bundle();
+                                bundle.putString("MAC", rmtDvc.getAddress());
+                                mail.setData(bundle);
                                 handler.sendMessage(mail);
                                 //update and show user information
 
@@ -516,7 +525,11 @@ public class ReceiverThread extends Thread {
                                     System.out.println("SHOWING OFF");
                                     BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date(), true);
 
+                                    Message mail = new Message();
                                     mail.what = BlueCtrl.MSG_HEADER;
+                                    Bundle bundle = new Bundle();
+                                    bundle.putString("MAC", rmtDvc.getAddress());
+                                    mail.setData(bundle);
                                     handler.sendMessage(mail);
                                 }
                                 else {
@@ -539,7 +552,11 @@ public class ReceiverThread extends Thread {
 
                                     System.out.println("SHOWING OFF");
                                     BlueCtrl.showEmo(BlueCtrl.bytesToMAC(sender), code, new Date(), true);
+                                    Message mail = new Message();
                                     mail.what = BlueCtrl.MSG_HEADER;
+                                    Bundle bundle = new Bundle();
+                                    bundle.putString("MAC", rmtDvc.getAddress());
+                                    mail.setData(bundle);
                                     handler.sendMessage(mail);
                                 }
                                 else {
@@ -618,7 +635,12 @@ public class ReceiverThread extends Thread {
             } while(connected);
 
             BlueCtrl.unlockDiscoverySuspension();
+
+            Message mail = new Message();
             mail.what = BlueCtrl.ACK;
+            Bundle bundle = new Bundle();
+            bundle.putString("MAC", rmtDvc.getAddress());
+            mail.setData(bundle);
             handler.sendMessage(mail);
 
             if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {
@@ -632,7 +654,11 @@ public class ReceiverThread extends Thread {
             e.printStackTrace();
             BlueCtrl.unlockDiscoverySuspension();
 
+            Message mail = new Message();
             mail.what = BlueCtrl.LST;
+            Bundle bundle = new Bundle();
+            bundle.putString("MAC", rmtDvc.getAddress());
+            mail.setData(bundle);
             handler.sendMessage(mail);
             cancel();
         }
