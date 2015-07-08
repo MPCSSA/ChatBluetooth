@@ -567,6 +567,44 @@ public class BlueCtrl {
 
     }
 
+    public static List<ChatMessage> fetchHistory(String quote, int mode) {
+
+        ArrayList<ChatMessage> msgList = new ArrayList<ChatMessage>();
+        String search;
+
+        if (quote == null) search = null;
+        else {
+
+            switch (mode) {
+                case 0:
+                    search = dbManager.historyTable[0] + " LIKE '%" + quote + "%'";
+                    break;
+                case 1:
+                    search = dbManager.historyTable[5] + " LIKE '%" + quote + "%'";
+                    break;
+                default:
+                    search = dbManager.historyTable[0] + " LIKE '%" + quote + "%' AND " +
+                            dbManager.historyTable[5] + " LIKE '%" + quote + "%'";
+            }
+        }
+
+        Cursor cursor = dbManager.fetchQuotes(search);
+        if (cursor != null && cursor.moveToFirst()) {
+
+            do {
+
+                msgList.add(new ChatMessage(cursor.getString(0), cursor.getString(1), cursor.getInt(4), false, new Date(cursor.getLong(2)), cursor.getInt(3) == 1));
+            } while(cursor.moveToNext());
+        }
+
+        return msgList;
+    }
+
+    public static void remove(ChatMessage message) {
+
+        dbManager.removeMessage(message.getId());
+    }
+
     //TODO: Utils
 
     public static byte[] macToBytes(String address) {

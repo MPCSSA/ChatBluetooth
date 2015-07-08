@@ -5,7 +5,13 @@ import java.text.DateFormat;
 import java.util.Date;
 
 public class ChatMessage {
-    private String msg;
+    //This class encapsulates all information required to properly manage the GUI and the DB
+
+    private Integer id;
+    //id of the record in the database; required to properly delete the message; can be null, because
+    //it is not needed most of the time
+    private String msg; //Actual Text Message or Emoticon code
+    private String username; //Username of
     private boolean sentBy;
     private Date date;
     private boolean isEmo;
@@ -15,7 +21,18 @@ public class ChatMessage {
     }
 
     public ChatMessage(String msg, boolean sentBy, Date date, boolean isEmo){
+        this(msg, null, sentBy, date, isEmo);
+    }
+
+    public ChatMessage(String msg, String username, boolean sentBy, Date date, boolean isEmo) {
+        this(msg, username, null, sentBy, date, isEmo);
+    }
+
+    public ChatMessage(String msg, String username, Integer id, boolean sentBy, Date date, boolean isEmo) {
+
         this.msg = msg;
+        this.username = username;
+        this.id = id;
         this.sentBy = sentBy;
         this.date = date;
         this.isEmo = isEmo;
@@ -24,6 +41,11 @@ public class ChatMessage {
     public String getMsg(){
         return this.msg;
     }
+
+    public String getUsername() { return this.username; }
+
+    public Integer getId() { return this.id; }
+    public void setId(Integer id) { this.id = id; }
 
     public boolean getSender(){
         return this.sentBy;

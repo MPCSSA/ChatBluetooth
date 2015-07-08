@@ -27,4 +27,8 @@
     <string name="reg_frag">Registrazione</string>
     <string name="list_frag">Lista contatti</string>
     <string name="more_history">Altri messaggi</string>
+    <string name="history_btn">Tutti i messaggi</string>
+    <string name="all">Entrambi</string>
+    <string name="in_message">Solo messaggi</string>
+    <string name="in_user">Solo contatti</string>
 </resources>

@@ -48,6 +48,10 @@
 
 
     <string name="more_history">Tap for more&#8230;</string>
+    <string name="history_btn">Search All</string>
+    <string name="in_message">In messages</string>
+    <string name="in_user">username</string>
+    <string name="all">All</string>
 
 
 </resources>

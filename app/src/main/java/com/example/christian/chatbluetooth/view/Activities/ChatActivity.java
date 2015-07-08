@@ -58,7 +58,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
     private DrawerLayout drawerLayout;
     private Switch switchVisibility;
-    private Handler handler;
+    private static Handler handler;
     public boolean state = false;
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
@@ -428,7 +428,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-        BluetoothAdapter.getDefaultAdapter().startDiscovery();
+        //BluetoothAdapter.getDefaultAdapter().startDiscovery();
     }
 
     @Override

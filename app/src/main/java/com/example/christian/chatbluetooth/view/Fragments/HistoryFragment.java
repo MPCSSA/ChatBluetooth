@@ -2,14 +2,28 @@ package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.model.ChatMessage;
+import com.example.christian.chatbluetooth.view.Adapters.HistoryAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -19,7 +33,7 @@ import com.example.christian.chatbluetooth.R;
  * Use the {@link HistoryFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class HistoryFragment extends Fragment {
+public class HistoryFragment extends Fragment implements TextWatcher, View.OnClickListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -28,6 +42,11 @@ public class HistoryFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    private RadioGroup historyGroup;
+    EditText searchBar;
+    ListView historyList;
+    HistoryAdapter adapter;
 
     private OnFragmentInteractionListener mListener;
 
@@ -99,6 +118,112 @@ public class HistoryFragment extends Fragment {
 
         ActionBar actionBar = getActivity().getActionBar();
         actionBar.setTitle(getString(R.string.history_activity));
+
+        historyList = (ListView) getActivity().findViewById(R.id.listHistory);
+        adapter = new HistoryAdapter(getActivity(), R.layout.item_history);
+        historyList.setAdapter(adapter);
+        historyList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                CheckBox box = (CheckBox) view.findViewById(R.id.cboxSelect);
+                box.setChecked(!box.isChecked());
+                adapter.notifyDataSetChanged();
+            }
+        });
+
+        historyGroup = (RadioGroup) getActivity().findViewById(R.id.historyGroup);
+
+        Button searchBtn = (Button) getActivity().findViewById(R.id.btnHistory);
+        searchBtn.setOnClickListener(this);
+
+        searchBar = (EditText) getActivity().findViewById(R.id.etHistory);
+        searchBar.addTextChangedListener(this);
+
+        CheckBox boxAll = (CheckBox) getActivity().findViewById(R.id.cboxAll);
+        boxAll.setOnClickListener(this);
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        adapter.clear();
+    }
+
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+
+        String str = editable.toString();
+
+        if (str.equals("")) return;
+
+        int mode;
+        switch(historyGroup.getCheckedRadioButtonId()) {
+
+            case R.id.in_message:
+
+                mode = 0;
+                break;
+
+            case R.id.in_user:
+
+                mode = 1;
+                break;
+
+            default:
+
+                mode = 2;
+                break;
+        }
+
+        adapter.addAll(BlueCtrl.fetchHistory(str, mode));
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onClick(View view) {
+
+        ChatMessage message;
+
+        switch (view.getId()) {
+
+            case R.id.btnHistory:
+
+                adapter.clear();
+
+                adapter.addAll(BlueCtrl.fetchHistory(null, 0));
+                break;
+
+            case R.id.fabHistory:
+
+                for (View v : historyList.getTouchables()) {
+
+                    if (((CheckBox) v.findViewById(R.id.cboxSelect)).isChecked()) {
+
+                        message = adapter.remove(v.getVerticalScrollbarPosition());
+                        BlueCtrl.remove(message);
+                    }
+                }
+
+                break;
+
+            case R.id.cboxAll:
+
+                for (int p = 0; p < historyList.getCount(); ++p) {
+
+                    ((CheckBox) historyList.getChildAt(p).findViewById(R.id.cboxSelect))
+                            .setChecked(((CheckBox) view).isChecked());
+                    //sets all checkboxes to the value of the checkbox selector
+                }
+        }
+
+        adapter.notifyDataSetChanged();
     }
 
     /**
