@@ -54,7 +54,7 @@ public class MessageThread extends Thread {
 
         setHandler(handler); //Set up main thread communication service
 
-        mail = this.handler.obtainMessage();
+        mail = new Message();
         Bundle bundle = new Bundle();
         bundle.putString("MAC", rmtDvc.getAddress());
         mail.setData(bundle);

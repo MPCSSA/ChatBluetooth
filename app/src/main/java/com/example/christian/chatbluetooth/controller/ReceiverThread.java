@@ -48,7 +48,7 @@ public class ReceiverThread extends Thread {
 
         rmtDvc = sckt.getRemoteDevice(); //communicating device
 
-        mail = handler.obtainMessage();
+        mail = new Message();
         Bundle bundle = new Bundle();
         bundle.putString("MAC", rmtDvc.getAddress());
         mail.setData(bundle);
