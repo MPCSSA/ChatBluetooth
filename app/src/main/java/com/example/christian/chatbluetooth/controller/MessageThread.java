@@ -5,10 +5,23 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Base64;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class MessageThread extends Thread {
 
@@ -19,6 +32,7 @@ public class MessageThread extends Thread {
     private InputStream in; //InputStream for ACK listening
     private OutputStream out; //OutputStream for message delivery
     private Handler handler = null; //Handler for main thread communication service
+
 
     public void setSckt(BluetoothSocket sckt) {
         this.sckt = sckt;

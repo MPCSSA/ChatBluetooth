@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Base64;
 
 import com.example.christian.chatbluetooth.model.ChatUser;
 
@@ -13,8 +14,17 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 public class ReceiverThread extends Thread {
 
@@ -23,6 +33,7 @@ public class ReceiverThread extends Thread {
     private OutputStream out;     //OutputStream object from which reading ACK messages
     private BluetoothDevice rmtDvc;        //MAC address of communicating Bluetooth device
     private Handler handler;
+    private static byte[] key = {'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y', 'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y'};
 
     public void setSckt(BluetoothSocket sckt) {
         this.sckt = sckt;
@@ -508,7 +519,7 @@ public class ReceiverThread extends Thread {
                                     //TODO: optional read exception
                                 }
 
-                                ++length; //you cannot send empty messages, so message length is between 1 and 256
+                                //d++length; //you cannot send empty messages, so message length is between 1 and 256
                                 byte[] msgBuffer = new byte[length];
                                 i = 0;
                                 do {
@@ -522,8 +533,10 @@ public class ReceiverThread extends Thread {
 
                                 if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
-                                    System.out.println("SHOWING OFF");
-                                    BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date(), true);
+                                    System.out.println("VAFFANCULO");
+                                    byte tmpMsg[] = BlueCtrl.decrypt(msgBuffer);
+                                    System.out.println("DECRIPTATO: " + (new String(tmpMsg)));
+                                    BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(tmpMsg), new Date(), true);
 
                                     Message mail = new Message();
                                     mail.what = BlueCtrl.MSG_HEADER;

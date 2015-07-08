@@ -58,7 +58,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
     private DrawerLayout drawerLayout;
     private Switch switchVisibility;
-    private Handler handler;
+    public Handler handler;
     public boolean state = false;
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
@@ -111,8 +111,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
              */
             @Override
             public void handleMessage(Message msg) {
-
-                obtainMessage();
 
                 ChatUser user;
                 BluetoothDevice dvc;
@@ -257,7 +255,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             BlueCtrl.tokenMap.put(mac, --counter);
                             System.out.println(mac + " TOKEN " + BlueCtrl.tokenMap.get(mac));
 
-                            dvc = BlueCtrl.scanUsersForDvc(msg.getData().getString("MAC"));
+                            dvc = BlueCtrl.closeDvc.get(msg.getData().getString("MAC"));
                             //Find the device
                             byte[] mail = msg.getData().getByteArray("MSG");
                             //get back the unsent message
@@ -272,7 +270,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         }
                         break;
 
-                    /*case BlueCtrl.LST:
+                    case BlueCtrl.LST:
                         //Lost connection while receiving a message
 
                         mac = msg.getData().getString("MAC");
@@ -287,9 +285,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             to prove its existence. If the device is unknown, however, it does nothing
                              */
 
-/*                            BlueCtrl.sendMsg(BlueCtrl.scanUsersForDvc(mac), new byte[] {BlueCtrl.ACK}, handler);
+                            BlueCtrl.sendMsg(BlueCtrl.scanUsersForDvc(mac), new byte[] {BlueCtrl.ACK}, handler);
                             break;
-                        }*/
+                        }
                 }
 
                 if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();

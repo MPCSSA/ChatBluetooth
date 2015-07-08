@@ -170,6 +170,8 @@ public class SettingsFragment extends Fragment {
                     win_width = (point.x)*2/3;
                     win_height = (point.y)/3;
                     pwindo = new PopupWindow(layout, win_width, win_height, true);
+                    pwindo.setBackgroundDrawable(new BitmapDrawable());
+                    pwindo.setAnimationStyle(R.style.SettingsPopup);
                     pwindo.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
                     final EditText nickEditText = (EditText) layout.findViewById(R.id.nickModText);
@@ -205,6 +207,8 @@ public class SettingsFragment extends Fragment {
                     win_width = (point.x)*2/3;
                     win_height = (point.y)/3;
                     pwindo = new PopupWindow(layout, win_width, win_height, true);
+                    pwindo.setBackgroundDrawable(new BitmapDrawable());
+                    pwindo.setAnimationStyle(R.style.SettingsPopup);
                     pwindo.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
                     Button btnYes = (Button) layout.findViewById(R.id.btn_yes_popup);
