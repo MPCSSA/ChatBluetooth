@@ -2,11 +2,13 @@ package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,27 +16,26 @@ import android.app.Fragment;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Adapters.SettingAdapter;
 import com.melnykov.fab.FloatingActionButton;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -60,8 +61,6 @@ public class SettingsFragment extends Fragment {
     private String mCurrentPhotoPath;
     private String imageNameFile;
     private File image;
-
-    private PopupWindow pwindo;
 
     private OnFragmentInteractionListener mListener;
 
@@ -150,83 +149,88 @@ public class SettingsFragment extends Fragment {
         ImageView imageView = (ImageView) getActivity().findViewById(R.id.setting_image);
         imageView.setImageDrawable(new BitmapDrawable(bmp));
 
-        settingList.setAdapter(new SettingAdapter(getActivity(), R.layout.setting_item));
+        SettingAdapter adapt = new SettingAdapter(getActivity(), R.layout.setting_item);
+        settingList.setAdapter(adapt);
 
-        ((ArrayAdapter<String>)settingList.getAdapter()).add(getString(R.string.setting_mod_nick));
-        ((ArrayAdapter<String>)settingList.getAdapter()).add(getString(R.string.setting_mod_history));
+        adapt.add(getString(R.string.setting_mod_nick));
+        adapt.add(getString(R.string.setting_mod_country));
+        adapt.add(getString(R.string.setting_mod_age));
+        adapt.add(getString(R.string.setting_mod_gender));
 
         settingList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 0){
-                    LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    View layout = inflater.inflate(R.layout.nick_popup,
-                            (ViewGroup) getActivity().findViewById(R.id.popup_nick));
-                    int win_width;
-                    int win_height;
-                    Point point = new Point();
-                    getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
+                switch (position) {
 
-                    win_width = (point.x)*2/3;
-                    win_height = (point.y)/3;
-                    pwindo = new PopupWindow(layout, win_width, win_height, true);
-                    pwindo.setBackgroundDrawable(new BitmapDrawable());
-                    pwindo.setAnimationStyle(R.style.SettingsPopup);
-                    pwindo.showAtLocation(layout, Gravity.CENTER, 0, 0);
+                    case 0: //Modify username
 
-                    final EditText nickEditText = (EditText) layout.findViewById(R.id.nickModText);
-                    Button btnNickConfirm = (Button) layout.findViewById(R.id.btn_mod_popup);
-                    Button btnNickCanc = (Button) layout.findViewById(R.id.btn_canc_popup);
+                        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                        View layout = inflater.inflate(R.layout.popup_username,
+                                (ViewGroup) getActivity().findViewById(R.id.popup_nick));
 
-                    btnNickConfirm.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            String newNick = nickEditText.getText().toString();
-                            System.out.println(newNick);
-                            pwindo.dismiss();
-                        }
-                    });
+                        int win_width;
+                        int win_height;
+                        Point point = new Point();
+                        getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
 
-                    btnNickCanc.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            pwindo.dismiss();
-                        }
-                    });
-                }
+                        win_width = (point.x) * 2 / 3;
+                        win_height = (point.y) / 3;
 
-                if (position == 1){
-                    LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    View layout = inflater.inflate(R.layout.history_popup,
-                            (ViewGroup) getActivity().findViewById(R.id.popup_element));
-                    int win_width;
-                    int win_height;
-                    Point point = new Point();
-                    getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
+                        final PopupWindow usernamePopup = new PopupWindow(layout, win_width, win_height, true);
+                        usernamePopup.setBackgroundDrawable(new BitmapDrawable());
+                        usernamePopup.setAnimationStyle(R.style.SettingsPopup);
+                        usernamePopup.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
-                    win_width = (point.x)*2/3;
-                    win_height = (point.y)/3;
-                    pwindo = new PopupWindow(layout, win_width, win_height, true);
-                    pwindo.setBackgroundDrawable(new BitmapDrawable());
-                    pwindo.setAnimationStyle(R.style.SettingsPopup);
-                    pwindo.showAtLocation(layout, Gravity.CENTER, 0, 0);
+                        final EditText nickEditText = (EditText) layout.findViewById(R.id.nickModText);
+                        Button btnNameConfirm = (Button) layout.findViewById(R.id.btn_mod_popup);
+                        Button btnNameCanc = (Button) layout.findViewById(R.id.btn_canc_popup);
 
-                    Button btnYes = (Button) layout.findViewById(R.id.btn_yes_popup);
-                    Button btnNo = (Button) layout.findViewById(R.id.btn_yes_popup);
+                        btnNameConfirm.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                String newNick = nickEditText.getText().toString();
+                                System.out.println(newNick);
+                                usernamePopup.dismiss();
+                            }
+                        });
 
-                    btnYes.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            pwindo.dismiss();
-                        }
-                    });
+                        btnNameCanc.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                usernamePopup.dismiss();
+                            }
+                        });
 
-                    btnNo.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            pwindo.dismiss();
-                        }
-                    });
+                        break;
+
+                    case 1:
+
+                        inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                        layout = inflater.inflate(R.layout.popup_countries,
+                                (ViewGroup) getActivity().findViewById(R.id.country_layout));
+
+                        point = new Point();
+                        getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
+
+                        win_width = (point.x) * 2 / 3;
+                        win_height = (point.y) / 3;
+
+                        final PopupWindow countryPopup = new PopupWindow(layout, win_width, win_height, true);
+                        countryPopup.setBackgroundDrawable(new BitmapDrawable());
+                        countryPopup.setAnimationStyle(R.style.SettingsPopup);
+                        countryPopup.showAtLocation(layout, Gravity.CENTER, 0, 0);
+
+
+                        break;
+
+                    case 2:
+
+                        DateDialog();
+
+                        break;
+
+                    case 3: //TODO GENDER
+
                 }
             }
         });
@@ -294,6 +298,42 @@ public class SettingsFragment extends Fragment {
             imageView.setImageBitmap(bitmap);
         }
     }
+
+    public void DateDialog() {
+
+        DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
+
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+
+                TextView tv = ((TextView) view.findViewById(R.id.set_item));
+
+                //prima di mandare il tutto alla textview aggiusto i parametri in modo da essere uniformi a gg/mm/aaaa
+                String Toset = "";
+                if (dayOfMonth < 10)
+                    Toset = "0";
+                Toset = Toset + dayOfMonth + "/";
+                if (monthOfYear < 10)
+                    Toset = Toset + "0";
+                Toset = Toset + (monthOfYear + 1) + "/" + year;
+
+                tv.setText(Toset);
+
+                //DEBUG ONLY
+                if (BlueCtrl.version) {
+                    tv.setTextColor(getResources().getColor(R.color.primary_text));
+                    tv.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf"));
+                }
+                //DEBUG ONLY
+
+                tv.clearFocus();
+
+                getActivity().findViewById(R.id.setting_layout).requestFocus();
+            }
+        };
+    }
+
+
 
     /**
      * This interface must be implemented by activities that contain this

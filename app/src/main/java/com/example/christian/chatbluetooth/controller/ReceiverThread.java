@@ -172,7 +172,13 @@ public class ReceiverThread extends Thread {
                         bundle.putString("MAC", rmtDvc.getAddress());
                         mail.setData(bundle);
 
-                        if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0, lastUpd)) {
+                        if (status == 0) {
+
+                            mail.what = BlueCtrl.INVISIBLE;
+                            //Invisible user, but nonetheless a reachable user
+                        }
+
+                        else if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0, lastUpd)) {
                             System.out.println(rmtDvc.getAddress() + " SUMMONED");
                             mail.what = BlueCtrl.GRT_HEADER;
 

@@ -49,22 +49,13 @@ public class BlueCtrl {
     public static final byte MSG_HEADER = (byte) 5; //header for Chat Message
     public static final byte DRP_HEADER = (byte) 6; //header for Drop Request
     public static final byte        ACK = (byte) 7; //ACKnowledge Message for communication synchronization
-    public static final byte    ACK_GRT = (byte) 8;
-    public static final byte    ACK_UPD = (byte) 9;
-    public static final byte    ACK_RQS = (byte) 10;
-    public static final byte    ACK_CRD = (byte) 11;
-    public static final byte    ACK_MSG = (byte) 12;
-    public static final byte    ACK_DRP = (byte) 13;
-    public static final byte    NAK_UPD = (byte) -7;
-    public static final byte    NAK_RQS = (byte) -6;
-    public static final byte    NAK_CRD = (byte) -5;
-    public static final byte    NAK_PIC = (byte) -4;
-    public static final byte    NAK_MSG = (byte) -3;
-    public static final byte    NAK_DRP = (byte) -2;
+    public static final byte  INVISIBLE = (byte) 8;
     public static final byte        NAK = (byte) -1;
     public static final byte        LST = (byte) -2;
     public static final int         TKN = 20;       //Tokens assigned to an alive device
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
+
+    public static byte STS = 1;
 
     /*
     DEBUG ONLY
@@ -170,7 +161,7 @@ public class BlueCtrl {
         timestamp = longToBytes(cursor.getLong(0)); //last time you updated your profile
 
         grt[0] = BlueCtrl.GRT_HEADER; //msg header
-        grt[1] = (byte) 1; //user status
+        grt[1] = BlueCtrl.STS; //user status
 
         for(int i = 2; i < 10; ++i) {
             grt[i] = timestamp[i-2];

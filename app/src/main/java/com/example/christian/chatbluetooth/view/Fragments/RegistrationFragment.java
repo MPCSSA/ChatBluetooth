@@ -19,6 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -61,7 +62,7 @@ public class RegistrationFragment extends Fragment {
     private EditText passw;
     private EditText confirmPassw;
     private TextView date;
-    private RadioGroup gender;
+    private ImageView calendar;
     private RadioButton male;
     private RadioButton female;
 
@@ -152,9 +153,13 @@ public class RegistrationFragment extends Fragment {
         name = (EditText) getActivity().findViewById(R.id.et_reg_username);
         passw = (EditText) getActivity().findViewById(R.id.et_reg_password);
         confirmPassw = (EditText) getActivity().findViewById(R.id.et_confirm);
+
         date = (TextView) getActivity().findViewById(R.id.tv_birth);
+        calendar = (ImageView) getActivity().findViewById(R.id.calendar);
+
         male = (RadioButton) getActivity().findViewById(R.id.rbtn_male);
         female = (RadioButton) getActivity().findViewById(R.id.rbtn_fem);
+
         registration = (Button) getActivity().findViewById(R.id.btn_signup);
 
         name.setTypeface(type);
@@ -183,7 +188,7 @@ public class RegistrationFragment extends Fragment {
         ArrayAdapter<String> dataAdapter= new ArrayAdapter<String>(getActivity(), spinner_item, list);
         nations.setAdapter(dataAdapter);
 
-        date.setOnClickListener(new View.OnClickListener() {
+        calendar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DateDialog();

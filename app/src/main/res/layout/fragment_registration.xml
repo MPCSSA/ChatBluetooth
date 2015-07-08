@@ -39,6 +39,7 @@
             android:cursorVisible="true"
             android:layout_below="@+id/et_reg_username"
             android:layout_centerHorizontal="true"
+            android:layout_marginTop="4dp"
             android:maxLength="20"
             android:hint="@string/password"
             android:backgroundTint="@color/accent"
@@ -60,6 +61,7 @@
             android:ems="10"
             android:id="@+id/et_confirm"
             android:hint="@string/confirm"
+            android:layout_marginTop="4dp"
             android:cursorVisible="true"
             android:layout_below="@+id/et_reg_password"
             android:layout_alignStart="@+id/et_reg_password"
@@ -81,32 +83,40 @@
             android:layout_alignParentStart="true"
             android:layout_marginBottom="20dp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:ems="10"
-            android:id="@+id/tv_birth"
-            android:layout_below="@+id/et_confirm"
-            android:layout_alignParentStart="true"
-            android:hint="@string/birth"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="4dp"
-            android:textSize="18sp"
-            android:textCursorDrawable="@drawable/edit_cursor" />
 
-        <View
-            android:layout_width="fill_parent"
-            android:layout_height="1dp"
-            android:background="@color/text"
-            android:backgroundTint="@color/accent"
-            android:layout_below="@+id/tv_birth"
-            android:layout_alignEnd="@+id/tv_birth"
-            android:layout_marginLeft="4dp" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/birth_layout"
+            android:layout_marginTop="16dp"
+            android:layout_below="@+id/et_confirm" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:ems="10"
+                android:id="@+id/tv_birth"
+                android:hint="@string/birth"
+                android:layout_toRightOf="@+id/calendar"
+                android:layout_marginStart="8dp"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/calendar"
+                android:background="@drawable/calendar"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                />
+
+        </RelativeLayout>
 
         <RadioGroup
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/radioGroup_reg"
+            android:orientation="horizontal"
             android:layout_centerVertical="true"
             android:layout_alignParentStart="true">
 
@@ -119,8 +129,7 @@
                 android:id="@+id/rbtn_male"
                 android:checked="false"
                 android:textSize="18dp"
-                android:elevation="8dp"
-                android:tag="@string/male"/>
+                android:elevation="8dp"/>
 
             <RadioButton
                 android:layout_width="wrap_content"
@@ -132,7 +141,7 @@
                 android:checked="false"
                 android:textSize="18dp"
                 android:elevation="8dp"
-                android:tag="@string/female"/>
+                android:layout_marginStart="20dp"/>
         </RadioGroup>
 
         <Spinner
@@ -143,7 +152,8 @@
             android:backgroundTint="@color/accent"
             android:layout_below="@+id/radioGroup_reg"
             android:layout_alignParentStart="true"
-            android:spinnerMode="dialog" />
+            android:spinnerMode="dialog"
+            android:layout_marginTop="20dp"/>
 
     </RelativeLayout>
 </FrameLayout>

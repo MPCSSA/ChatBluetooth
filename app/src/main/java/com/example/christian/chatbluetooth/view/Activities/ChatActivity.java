@@ -216,6 +216,16 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //New message could be from a chat currently opened, therefore it could require update
                         break;
 
+                    case BlueCtrl.INVISIBLE:
+
+                        BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
+                        System.out.println("TOKEN " + BlueCtrl.TKN);
+                        //Restore Token
+
+                        BlueCtrl.userAdapt.remove(msg.getData().getString("MAC"));
+
+                        break;
+
                     case BlueCtrl.ACK:
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
@@ -385,8 +395,16 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bmp));
 
             switchVisibility = (Switch) findViewById(R.id.switch_state);
-
             (findViewById(R.id.image_switch)).setBackground(getDrawable(R.mipmap.visibility));
+
+            switchVisibility.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    BlueCtrl.STS = (byte) ((switchVisibility.isChecked()) ? 1 : 0);
+                    BlueCtrl.dispatchNews(BlueCtrl.buildGrtMsg(), null, handler);
+                }
+            });
 
         /* END NEW PART */
 

@@ -8,7 +8,7 @@
     <string name="username" translatable="false">Username</string>
     <string name="password" translatable="false">Password</string>
     <string name="confirm">Confirm password</string>
-    <string name="birth">Date of birth</string>
+    <string name="birth">I was born in...</string>
     <string name="male" translatable="false">M</string>
     <string name="female" translatable="false">F</string>
     <string name="state">Set visibility: </string>
@@ -25,11 +25,10 @@
 
     <!-- ITEM -->
     <string name="setting_mod_image">Modify profile image</string>
-    <string name="setting_mod_nick">Modify nickname</string>
-    <string name="setting_mod_history">Delete history message</string>
-    <string name="sure_to_delete">Delete history?</string>
-    <string name="mod_popup">Modify</string>
-    <string name="canc_popup">Cancel</string>
+    <string name="setting_mod_nick">Modify username</string>
+    <string name="setting_mod_age">Modify birth date</string>
+    <string name="setting_mod_country">Modify country</string>
+    <string name="setting_mod_gender">Modify gender</string>
 
     <!-- ACTION BAR TITLES -->
     <string name="profile_activity">Profile</string>
