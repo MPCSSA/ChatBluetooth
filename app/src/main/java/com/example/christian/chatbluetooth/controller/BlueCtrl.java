@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Base64;
 
 import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatMessage;
@@ -20,13 +21,25 @@ import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+
 public class BlueCtrl {
+
+    private static byte[] key = {'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y', 'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y'};
+    private static String keyString = "KEYKEYEYKEYKEYEY";
 
     public static final byte GRT_HEADER = (byte) 0; //header for Greetings Message
     public static final byte UPD_HEADER = (byte) 1; //header for Update Message
@@ -50,7 +63,7 @@ public class BlueCtrl {
     public static final byte    NAK_DRP = (byte) -2;
     public static final byte        NAK = (byte) -1;
     public static final byte        LST = (byte) -2;
-    public static final int         TKN = 100;       //Tokens assigned to an alive device
+    public static final int         TKN = 20;       //Tokens assigned to an alive device
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
 
     /*
@@ -209,7 +222,7 @@ public class BlueCtrl {
         pckt[i] = 0; //Text Msg flag
         ++i;
 
-        pckt[i] = (byte) (length - 1);
+        pckt[i] = (byte) (length);
         ++i;
         /*
         Note that empty messages are not forwarded, so the actual message range is from 1 to 256;
@@ -735,5 +748,63 @@ public class BlueCtrl {
         ChatUser user = scanUsers(address);
         if (user != null) return user.getNextNode();
         else return null;
+    }
+
+    public static byte[] encrypt(byte encrypt[]){
+
+        try {
+
+            SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            String encrypted = Base64.encodeToString(cipher.doFinal(encrypt), Base64.DEFAULT);
+            System.out.println("Encrypted: " + encrypted);
+
+            return encrypted.getBytes();
+
+        }
+
+        catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static byte[] decrypt(byte[] encrypted){
+        try {
+            Key k = new SecretKeySpec(key, "AES");
+            Cipher c = Cipher.getInstance("AES");
+            c.init(Cipher.DECRYPT_MODE, k);
+            byte[] ciao = Base64.decode(encrypted, Base64.DEFAULT);
+            byte[] decValue = c.doFinal(ciao);
+            String decryptedValue = new String(decValue);
+
+            System.out.println("Decrypted: " + decryptedValue);
+
+            return decValue;
+        }
+
+        catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

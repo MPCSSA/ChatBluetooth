@@ -61,7 +61,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
     private EditText msgText;
     private ChatUser user;
-    private Handler handler;
 
 
     public void setUser(ChatUser chatUser) {
@@ -222,8 +221,8 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                     BlueCtrl.sendMsg(user.getNextNode(),
                             BlueCtrl.buildMsg(user.getMacInBytes(),
                                     BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
-                                    msg.getBytes()),
-                            handler);
+                                    BlueCtrl.encrypt(msg.getBytes())),
+                            ((ChatActivity)getActivity()).handler);
 
                     BlueCtrl.insertMsgTable(msg, user.getMac(), time, 0);
                     BlueCtrl.msgAdapt.add(new ChatMessage(msg, false, time.getTime(), false));
@@ -277,7 +276,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                         BlueCtrl.sendMsg(user.getNextNode(),
                                 BlueCtrl.buildEmoticon(user.getMacInBytes(),
                                         BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
-                                        (byte) i), handler);
+                                        (byte) i), ((ChatActivity)getActivity()).handler);
 
                         BlueCtrl.insertMsgTable(String.valueOf(i), user.getMac(), time, 1);
                         BlueCtrl.msgAdapt.add(new ChatMessage(String.valueOf(i), false, time.getTime(), true));

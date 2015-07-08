@@ -5,10 +5,23 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Base64;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class MessageThread extends Thread {
 
@@ -19,7 +32,7 @@ public class MessageThread extends Thread {
     private InputStream in; //InputStream for ACK listening
     private OutputStream out; //OutputStream for message delivery
     private Handler handler = null; //Handler for main thread communication service
-    private Message mail;
+
 
     public void setSckt(BluetoothSocket sckt) {
         this.sckt = sckt;
@@ -53,11 +66,6 @@ public class MessageThread extends Thread {
         this(dvc, msg); //Set up socket communication da structures
 
         setHandler(handler); //Set up main thread communication service
-
-        mail = new Message();
-        Bundle bundle = new Bundle();
-        bundle.putString("MAC", rmtDvc.getAddress());
-        mail.setData(bundle);
     }
 
     //CONSTRUCTOR
@@ -233,6 +241,10 @@ public class MessageThread extends Thread {
 
                             if (BlueCtrl.awakeUser(address, rmtDvc, status, bounces + 1, timestamp)) {
 
+                                Message mail = new Message();
+                                Bundle bundle = new Bundle();
+                                bundle.putString("MAC", rmtDvc.getAddress());
+                                mail.setData(bundle);
                                 mail.what = BlueCtrl.UPD_HEADER;
                                 handler.sendMessage(mail);
                             }
@@ -268,6 +280,10 @@ public class MessageThread extends Thread {
                 BlueCtrl.tokenMap.put(rmtDvc.getAddress(), BlueCtrl.TKN);
             }
 
+            Message mail = new Message();
+            Bundle bundle = new Bundle();
+            bundle.putString("MAC", rmtDvc.getAddress());
+            mail.setData(bundle);
             mail.what = BlueCtrl.ACK;
             handler.sendMessage(mail); //ACK values are 8 digits shifted
 
@@ -283,7 +299,11 @@ public class MessageThread extends Thread {
 
             if (type != BlueCtrl.ACK) BlueCtrl.unlockDiscoverySuspension();
 
-            mail.what = BlueCtrl.NAK;
+
+            Message mail = new Message();
+            Bundle bundle = new Bundle();
+            bundle.putString("MAC", rmtDvc.getAddress());
+            mail.setData(bundle);mail.what = BlueCtrl.NAK;
             mail.getData().putByteArray("MSG", getMsg());
             mail.getData().putInt("ERRORCODE", type);
 

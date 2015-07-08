@@ -28,4 +28,9 @@
         <item name="android:windowExitAnimation">@anim/abc_slide_out_bottom</item>
     </style>
 
+    <style name="SettingsPopup">
+        <item name="android:windowEnterAnimation">@anim/abc_fade_in</item>
+        <item name="android:windowExitAnimation">@anim/abc_fade_out</item>
+    </style>
+
 </resources>

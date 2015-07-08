@@ -3,7 +3,7 @@
     android:id="@+id/popup_nick"
     android:layout_width="match_parent"
     android:layout_height="fill_parent"
-    android:background="#444444"
+    android:background="@color/light_primary"
     android:orientation="vertical"
     android:padding="10sp"
     android:gravity="center">
@@ -14,7 +14,9 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/nickModText"
         android:gravity="center"
-        android:hint="@string/hint_nick_mod" />
+        android:hint="@string/hint_nick_mod"
+        android:textColorHint="@color/divider"
+        android:backgroundTint="@color/accent"/>
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -26,7 +28,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/mod_popup"
-            android:layout_marginLeft="8dp"/>
+            android:layout_marginLeft="8dp"
+            style="?android:attr/borderlessButtonStyle"/>
 
 
         <Button
@@ -37,7 +40,8 @@
             android:text="@string/canc_popup"
             android:layout_marginRight="8dp"
             android:layout_toRightOf="@+id/btn_mod_popup"
-            android:layout_toEndOf="@+id/btn_mod_popup"/>
+            android:layout_toEndOf="@+id/btn_mod_popup"
+            style="?android:attr/borderlessButtonStyle"/>
     </RelativeLayout>
 
 </LinearLayout>
