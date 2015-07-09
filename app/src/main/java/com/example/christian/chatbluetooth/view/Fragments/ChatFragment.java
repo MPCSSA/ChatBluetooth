@@ -236,6 +236,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                     msgText.setText(null);
                     msgText.requestFocus();
 
+
                 }
                 break;
 
