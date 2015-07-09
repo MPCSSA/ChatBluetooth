@@ -6,25 +6,14 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Base64;
 
 import com.example.christian.chatbluetooth.model.ChatUser;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
 
 public class ReceiverThread extends Thread {
 
@@ -542,7 +531,7 @@ public class ReceiverThread extends Thread {
                                     System.out.println("VAFFANCULO");
                                     byte tmpMsg[] = BlueCtrl.decrypt(msgBuffer);
                                     System.out.println("DECRIPTATO: " + (new String(tmpMsg)));
-                                    BlueCtrl.showMsg(BlueCtrl.bytesToMAC(sender), new String(tmpMsg), new Date(), true);
+                                    BlueCtrl.showReceivedMsg(BlueCtrl.bytesToMAC(sender), new String(tmpMsg), new Date());
 
                                     Message mail = new Message();
                                     mail.what = BlueCtrl.MSG_HEADER;
@@ -570,7 +559,7 @@ public class ReceiverThread extends Thread {
                                 if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
                                     System.out.println("SHOWING OFF");
-                                    BlueCtrl.showEmo(BlueCtrl.bytesToMAC(sender), code, new Date(), true);
+                                    BlueCtrl.showReceivedEmo(BlueCtrl.bytesToMAC(sender), code, new Date());
                                     Message mail = new Message();
                                     mail.what = BlueCtrl.MSG_HEADER;
                                     Bundle bundle = new Bundle();

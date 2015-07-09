@@ -1,6 +1,7 @@
 package com.example.christian.chatbluetooth.view.Activities;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
@@ -62,6 +63,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     private static Handler handler;
     public boolean state = false;
 
+    public Handler getHandler() { return ChatActivity.handler; }
+
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -91,6 +94,26 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         System.out.println("Discovering");
                     }
                     else System.out.println("Suspended");
+                    break;
+
+                case BluetoothAdapter.ACTION_STATE_CHANGED:
+
+                    System.out.println("TURNING OFF");
+
+                    switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
+                        case BluetoothAdapter.STATE_ON:
+                            BluetoothAdapter.getDefaultAdapter().startDiscovery();
+                            break;
+                        case BluetoothAdapter.STATE_TURNING_OFF:
+                            startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+                            break;
+                        case BluetoothAdapter.STATE_OFF:
+                            unregisterReceiver(this);
+                            Intent close = new Intent(Intent.ACTION_MAIN);
+                            intent.addCategory(Intent.CATEGORY_HOME);
+                            startActivity(close);
+                    }
+
                     break;
 
             }
@@ -330,7 +353,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-        fragmentTransaction.add(R.id.containerChat, listFragment);
+        fragmentTransaction.add(R.id.containerChat, listFragment, "LIST_FRAGMENT");
         fragmentTransaction.commit();
 
         /* NEW PART */
@@ -463,15 +486,34 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        registerReceiver(this.blueReceiver, new IntentFilter(String.valueOf(BluetoothAdapter.ACTION_STATE_CHANGED)));
         BluetoothAdapter.getDefaultAdapter().startDiscovery();
     }
 
     @Override
     public void onBackPressed() {
 
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_HOME);
-        startActivity(intent);
+        Fragment fragment = getFragmentManager().findFragmentByTag("LIST_FRAGMENT");
+
+        if (fragment != null) {
+
+            if(fragment.isVisible()) {
+
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_HOME);
+                startActivity(intent);
+            }
+            else {
+
+                ListFragment listFragment = new ListFragment();
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                fragmentTransaction.add(R.id.containerChat, listFragment, "LIST_FRAGMENT");
+                fragmentTransaction.commit();
+            }
+        }
+
     }
 
     @Override

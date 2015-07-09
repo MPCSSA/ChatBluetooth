@@ -38,9 +38,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class BlueCtrl {
 
-    private static byte[] key = {'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y', 'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y'};
-    private static String keyString = "KEYKEYEYKEYKEYEY";
-
     public static final byte GRT_HEADER = (byte) 0; //header for Greetings Message
     public static final byte UPD_HEADER = (byte) 1; //header for Update Message
     public static final byte RQS_HEADER = (byte) 2; //header for Info Request
@@ -55,7 +52,10 @@ public class BlueCtrl {
     public static final int         TKN = 20;       //Tokens assigned to an alive device
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
 
-    public static byte STS = 1;
+    public static byte STS = 1; //User status: visible 1 invisible 0
+
+    private static byte[] key = {'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y', 'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y'};
+    private static String keyString = "KEYKEYEYKEYKEYEY";
 
     /*
     DEBUG ONLY
@@ -406,6 +406,83 @@ public class BlueCtrl {
         return card;
     }
 
+    public byte[] buildPicture() {
+
+        //TODO
+        return null;
+    }
+
+
+    //GUI COMMUNICATION METHODS
+
+    public static boolean awakeUser(String mac, BluetoothDevice manInTheMiddle, byte status, int bounces, long timestamp) {
+        /*
+        This method is called when a ReceiverThread successfully receives information through GRT MSG
+        and needs to forward it to the main thread; because no threads apart from the main one have
+        permission to manipulate views, if needed this method will create a new ChatUser instance and add it
+        to a ChatUser Buffer, where it will wait to be taken and added to the ChatUser Adapter. If creation is
+        not needed, this method returns false, enabling a view update in case user information have been
+        changed.
+        */
+
+        ChatUser user = scanUsers(mac); //Is the user already in the list?
+
+        if (user == null)
+            return userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, timestamp, fetchPersistentInfo(mac)));
+            //if add method failed it is not recommended to access the buffer
+
+        else {
+            user.updateUser(manInTheMiddle, bounces, (int) status);
+            //force user information update; regardless of the result, a view update will be done in the main thread
+            return false;
+        }
+    }
+
+    public static void cardUpdate(String address) {
+        /*
+        This method is in charge of keeping up to date persistent user information in the Database.
+        Upon CRD MSG receiving, this method is called from a parallel thread and performs Database transactions
+        and ChatUser instance update.
+         */
+
+        Cursor info = fetchPersistentInfo(address);
+        ChatUser user = scanUsers(address);
+
+        if (user != null) user.addPersistentInfo(info);
+    }
+
+    public static void showReceivedMsg(String from, String msg, Date time) {
+        /*
+        This method is called from a ReceiverThread upon successfully receiving a Text Message from a remote
+        device, but only if the receiver field matches this device MAC address. A record is created in
+        the Database and a ChatMessage instance added to a buffer, so that main thread can update the Chat
+        view after receiving a message via Handler.
+         */
+
+        insertMsgTable(msg, from, time, 1, 0); //DB transition routine
+
+        if (from.equals(msgAdapt.getAddress())){
+            msgBuffer.add(new ChatMessage(msg, true, time, false));
+        }
+    }
+
+    public static void showReceivedEmo(String from, int code, Date time){
+
+        /*
+        This method is called from a ReceiverThread upon successfully receiving an Emoticon Message from a remote
+        device, but only if the receiver field matches this device MAC address. Emoticon and Text messages
+        generate different views, and they have to be managed separately. A record is created in
+        the Database and a ChatMessage instance added to a buffer, so that main thread can update the Chat
+        view after receiving a message via Handler.
+         */
+
+        insertMsgTable(String.valueOf(code), from, time, 1, 1); //DB transition routine
+
+        if (from.equals(msgAdapt.getAddress())){
+            msgBuffer.add(new ChatMessage(String.valueOf(code), true, time, true));
+        }
+    }
+
 
 
 
@@ -439,43 +516,6 @@ public class BlueCtrl {
         return null;
     }
 
-    public static boolean awakeUser(String mac, BluetoothDevice manInTheMiddle, byte status, int bounces, long timestamp) {
-        //creates or update a ChatUser object to add to RecyclerAdapter; boolean return enables object fetching from buffer
-
-        ChatUser user = scanUsers(mac);
-
-        if (user == null) return userQueue.add(new ChatUser(mac, manInTheMiddle, bounces, status, timestamp, fetchPersistentInfo(mac)));
-        else {
-            user.updateUser(manInTheMiddle, bounces, (int) status);
-            return false;
-        }
-    }
-
-    public static void cardUpdate(String address) {
-
-        Cursor info = fetchPersistentInfo(address);
-        System.out.println("fetching " + address + " new info");
-        ChatUser user = scanUsers(address);
-
-        if (user != null) {
-            user.addPersistentInfo(info);
-            System.out.println(address + " info added");
-        }
-
-
-            /*if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-
-                String pic = info.getString(5);
-                if (pic == null) {
-                    dbManager.updatePicture(address);
-                }
-                File directory = new File(BlueCtrl.appFolder, Environment.DIRECTORY_PICTURES);
-                OutputStream outputStream = new FileOutputStream(directory.getAbsolutePath() + "/IMG_" + address);
-                outputStream.write(image);
-
-            }*/
-
-    }
 
     //DEPRECATED
 
@@ -506,132 +546,154 @@ public class BlueCtrl {
         return newcomer;
     }*/
 
+    /*if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+
+    String pic = info.getString(5);
+    if (pic == null) {
+        dbManager.updatePicture(address);
+    }
+    File directory = new File(BlueCtrl.appFolder, Environment.DIRECTORY_PICTURES);
+    OutputStream outputStream = new FileOutputStream(directory.getAbsolutePath() + "/IMG_" + address);
+    outputStream.write(image);
+
+}*/
+
     public static BluetoothDevice cleanCloseDvc() {
 
         if (closeDvc.size() > counter) return closeDvc.remove(counter);
         return null;
     }
 
-    public static void showMsg(String from, String msg, Date time, boolean sentBy){
 
-        int i = (sentBy) ? 1 : 0;
-        dbManager.createRecord(1, new Object[] {msg, from, time.getTime(), i, 0});
-        if (from.equals(msgAdapt.getAddress())){
-            msgBuffer.add(new ChatMessage(msg, sentBy, time, false));
-        }
-    }
-
-    public static void showEmo(String from, int code, Date time, boolean sentBy){
-
-        int i = (sentBy) ? 1 : 0;
-        dbManager.createRecord(1, new Object[] {String.valueOf(code), from, time.getTime(), i, 1});
-        if (from.equals(msgAdapt.getAddress())){
-            msgBuffer.add(new ChatMessage(String.valueOf(code), sentBy, time, true));
-        }
-    }
-
-
-
-
-    //TODO: DB Operations
+    //DB OPERATIONS
+        //INITIALIZATION
 
     public static void openDatabase(Context context) {
+        /*
+        A Database is opened or created from scratches; it will contain an User Table for persistent
+        user information and a History Table for messages storing. A reference to this instante is
+        saved into the static field dbManager.
+        */
 
         dbManager = new BlueDBManager(context, dbname);
-
     }
 
-    public static boolean validateUser(String address, long timestamp) {
+        //RECORD MANAGEMENT
 
-        Cursor cursor = dbManager.fetchTimestamp(address);
-        if (cursor == null || cursor.getCount() != 1) return false;
-        return (cursor.moveToFirst() && cursor.getLong(0) == timestamp);
-    }
-
-    public static void insertUserTable(String mac, long timestamp, String username, int age, int gender, int country){
+    public static void insertUserTable(String mac, long timestamp, String username, int age, int gender, int country) {
+        //This method performs record creation or record replacing of persistent user information
 
         dbManager.createRecord(0, new Object[]{mac, username, timestamp, false, null, country, gender, age});
-
     }
 
-    public static void insertMsgTable(String msg, String address, Date time, int emoticon) {
+    public static void insertMsgTable(String msg, String address, Date time, int sentBy, int emoticon) {
+        //This method performs record creation in the Message Table
 
-        dbManager.createRecord(1, new Object[]{msg, address, time.getTime(), 0, emoticon});
+        dbManager.createRecord(1, new Object[]{msg, address, time.getTime(), sentBy, emoticon});
     }
 
-    public static void updateUserTable(String mac, long timestamp, String username, int age, int gender, int country){
+    public static void remove(ChatMessage message) {
+        //This method removes the selected record from the Message Table
 
-        dbManager.updateUserInfo(mac, username, null, country, gender, age, timestamp);
-
+        dbManager.removeMessage(message.getId());
     }
+
+        //FETCH INFORMATION
 
     public static Cursor fetchPersistentInfo(String address) {
+        //Interface method for fetching persistent user information routine
 
         return dbManager.fetchUserInfo(address);
-
     }
 
     public static List<ChatMessage> fetchHistory(String quote, int mode) {
+        /*
+        Interface method for message history fetching, given a keyword and a where clause; it returns
+        the cursor records unpacked into an ArrayList containing ChatMessage instances
+        */
 
-        ArrayList<ChatMessage> msgList = new ArrayList<ChatMessage>();
+        ArrayList<ChatMessage> msgList = new ArrayList<>();
         String search;
 
-        if (quote == null) search = null;
+        if (quote == null) search = null; //Abort fetch
         else {
 
             switch (mode) {
                 case 0:
+                    //Search into messages only
                     search = dbManager.historyTable[0] + " LIKE '%" + quote + "%'";
                     break;
                 case 1:
+                    //Search by username only
                     search = dbManager.historyTable[5] + " LIKE '%" + quote + "%'";
                     break;
                 default:
+                    //Both
                     search = dbManager.historyTable[0] + " LIKE '%" + quote + "%' AND " +
                             dbManager.historyTable[5] + " LIKE '%" + quote + "%'";
             }
         }
 
-        Cursor cursor = dbManager.fetchQuotes(search);
+        Cursor cursor = dbManager.fetchQuotes(search); //DB transaction
         if (cursor != null && cursor.moveToFirst()) {
 
             do {
 
-                msgList.add(new ChatMessage(cursor.getString(0), cursor.getString(1), cursor.getInt(4), false, new Date(cursor.getLong(2)), cursor.getInt(3) == 1));
+                msgList.add(new ChatMessage(cursor.getString(0), cursor.getString(1),
+                        cursor.getInt(4), false, new Date(cursor.getLong(2)), cursor.getInt(3) == 1));
+                //Records unpacking
             } while(cursor.moveToNext());
         }
 
         return msgList;
     }
 
-    public static void remove(ChatMessage message) {
+        //UTILITY
 
-        dbManager.removeMessage(message.getId());
+    public static boolean validateUser(String address, long timestamp) {
+        /*
+        This method is called when application needs to compare user information timestamps; it returns
+        true if information is up to date, false if it is out of date, the record is empty or absent
+         */
+
+        Cursor cursor = dbManager.fetchTimestamp(address);
+
+        if (cursor == null || cursor.getCount() != 1) return false;
+        return (cursor.moveToFirst() && cursor.getLong(0) == timestamp);
     }
 
-    //TODO: Utils
+
+    //UTILITY
 
     public static byte[] macToBytes(String address) {
+        /*
+        Utility method for MAC address translation in bytes; this is for performance enhancing, because
+        a MAC address can have variable length spacing from 17 to 23 bytes, whilst byte array representation
+        only takes 6 bytes and is easier to manage. It is only used in controlled environment, therefore
+        MAC validation is not required
+         */
 
-        //if (BluetoothAdapter.checkBluetoothAddress(address)) {
 
-            byte[] mac = new byte[6];
-            String[] digits = address.toLowerCase().split(":");
-            byte b, counter = 0;
+        byte[] mac = new byte[6];
+        String[] digits = address.toLowerCase().split(":"); //Isolate hexadecimal values
+        byte b, counter = 0;
 
-            for(String d : digits) {
-                b = (byte) Integer.parseInt(d, 16);
-                mac[counter] = b;
-                ++counter;
-            }
+        for(String d : digits) {
 
-            return mac;
-        //}
+            b = (byte) Integer.parseInt(d, 16); //parsing
+            mac[counter] = b;
+            ++counter;
+        }
 
-        //return null;
+        return mac;
     }
 
     public static String bytesToMAC(byte[] mac) {
+        /*
+        Utility method for byte array translation in MAC address; this is method is needed in order to
+        properly use MAC addresses Strings. It is only used in controlled environment, but some checks
+        are still performed
+         */
 
         if (mac.length == 6) {
 
@@ -641,14 +703,13 @@ public class BlueCtrl {
 
             for(byte b : mac) {
 
-                i = (b < 0) ? (b + 256) : (int) b;
+                i = (b < 0) ? (b + 256) : (int) b; //value
 
-                if (bool) address += ':';
-                else bool = !bool;
+                if (bool) address += ':'; //do not insert ':' at the beginning
+                else bool = !bool; //boolean lock
 
-                if (i < 16) address += "0";
-                address += Integer.toHexString(i).toUpperCase();
-
+                if (i < 16) address += "0"; //every field has a minimum of teo digits
+                address += Integer.toHexString(i).toUpperCase(); //reconstruction
             }
 
             return address;

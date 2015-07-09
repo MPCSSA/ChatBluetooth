@@ -170,7 +170,7 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
                     FragmentManager fragmentManager = getFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-                    fragmentTransaction.replace(R.id.containerChat, chatFragment);
+                    fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
                     fragmentTransaction.commit();
 
                 }
