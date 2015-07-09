@@ -11,7 +11,7 @@
     <string name="birth">I was born in...</string>
     <string name="male" translatable="false">M</string>
     <string name="female" translatable="false">F</string>
-    <string name="state">Set visibility: </string>
+    <string name="state">Invisible</string>
     <string name="hint_nick_mod">New nickname</string>
 
     <!-- BUTTONS -->
@@ -51,6 +51,7 @@
     <string name="in_message">In messages</string>
     <string name="in_user">username</string>
     <string name="all">All</string>
+    <string name="spy" translatable="false">Spy Mode</string>
 
 
 </resources>

@@ -34,6 +34,7 @@ import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
+import com.melnykov.fab.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -206,6 +207,10 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         sendBtn.setOnClickListener(this);
 
         (getActivity().findViewById(R.id.emoBtn)).setOnClickListener(this);
+        FloatingActionButton favFab = (FloatingActionButton) getActivity().findViewById(R.id.fabFav);
+        int heart = (user.isFav()) ? R.drawable.fav : R.drawable.unfav;
+        favFab.setImageDrawable(getResources().getDrawable(heart));
+        favFab.setOnClickListener(this);
     }
 
     @Override
@@ -215,17 +220,18 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
             case R.id.sendBtn:
 
-                String msg = msgText.getText().toString();
-                if (!msg.equals("")) {
+                String tmp = msgText.getText().toString();
+                if (!tmp.equals("")) {
                     Date time = new Date();
+                    byte[] msg = (BlueCtrl.SPY == (byte)0) ? tmp.getBytes() : BlueCtrl.encrypt(tmp.getBytes());
                     BlueCtrl.sendMsg(user.getNextNode(),
                             BlueCtrl.buildMsg(user.getMacInBytes(),
                                     BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
-                                    BlueCtrl.encrypt(msg.getBytes())),
+                                    BlueCtrl.encrypt(msg)),
                             ((ChatActivity)getActivity()).getHandler());
 
-                    BlueCtrl.insertMsgTable(msg, user.getMac(), time, 0, 0);
-                    BlueCtrl.msgAdapt.add(new ChatMessage(msg, false, time.getTime(), false));
+                    BlueCtrl.insertMsgTable(tmp, user.getMac(), time, 0, 0);
+                    BlueCtrl.msgAdapt.add(new ChatMessage(tmp, false, time.getTime(), false));
                     BlueCtrl.msgAdapt.notifyDataSetChanged();
                     msgText.setText(null);
                     msgText.requestFocus();
@@ -285,6 +291,19 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                         popupWindow.dismiss();
                     }
                 });
+
+                break;
+
+            case R.id.fabFav:
+
+                user.setFav(!user.isFav());
+                int value = (user.isFav()) ? 1 : 0;
+                BlueCtrl.setFavorite(user.getMac(), value);
+
+                int heart = (user.isFav()) ? R.drawable.fav : R.drawable.unfav;
+                ((FloatingActionButton)v).setImageDrawable(getResources().getDrawable(heart));
+
+                //TODO set image
         }
     }
 

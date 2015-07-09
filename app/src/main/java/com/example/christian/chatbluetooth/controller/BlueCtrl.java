@@ -53,6 +53,7 @@ public class BlueCtrl {
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
 
     public static byte STS = 1; //User status: visible 1 invisible 0
+    public static byte SPY = 0; //Spy mode: enabled 1 disable 0
 
     private static byte[] key = {'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y', 'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y'};
     private static String keyString = "KEYKEYEYKEYKEYEY";
@@ -185,7 +186,7 @@ public class BlueCtrl {
         before communication is over, and it prevents disastrous blocking calls
          */
 
-        byte[] pckt = new byte[15 + length];
+        byte[] pckt = new byte[16 + length];
         /*
         Actual number of bytes that forms a Text Msg packet:
          - 1 byte for MSG_HEADER
@@ -211,6 +212,10 @@ public class BlueCtrl {
         //Sender field
 
         pckt[i] = 0; //Text Msg flag
+        ++i;
+
+        pckt[i] = BlueCtrl.SPY; //Spy Mode
+        System.out.println("SPYMODE = " + BlueCtrl.SPY);
         ++i;
 
         pckt[i] = (byte) (length);
@@ -858,5 +863,10 @@ public class BlueCtrl {
         }
 
         return null;
+    }
+
+    public static void setFavorite(String mac, int value) {
+
+        dbManager.updateFavorites(mac, value);
     }
 }

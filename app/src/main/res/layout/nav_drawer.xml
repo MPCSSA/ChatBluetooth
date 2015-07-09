@@ -54,6 +54,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="48dp"
+            android:layout_marginTop="8dp"
             android:id="@+id/switch_layout">
             <ImageView
                 android:layout_width="wrap_content"
@@ -66,12 +67,41 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/switch_state"
+                android:checked="false"
                 android:layout_marginLeft="72dp"
                 android:layout_centerVertical="true"
                 android:hint="@string/state"
                 android:backgroundTint="@color/light_primary"
                 android:textColorHint="@color/background"
             />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:id="@+id/spy_layout">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_spy"
+                android:background="@drawable/spy"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="16dp"/>
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/switch_spy"
+                android:checked="false"
+                android:layout_marginLeft="72dp"
+                android:layout_centerVertical="true"
+                android:hint="@string/spy"
+                android:backgroundTint="@color/light_primary"
+                android:textColorHint="@color/background"
+                />
+
         </RelativeLayout>
     </LinearLayout>
 

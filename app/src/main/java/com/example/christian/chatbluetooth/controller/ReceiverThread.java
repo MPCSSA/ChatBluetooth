@@ -141,6 +141,7 @@ public class ReceiverThread extends Thread {
                     */
 
                         byte status = (byte) in.read(); //read Status
+                        System.out.println(status);
                         byte[] bytes = new byte[8];
                         i = 0;
 
@@ -161,8 +162,9 @@ public class ReceiverThread extends Thread {
                         bundle.putString("MAC", rmtDvc.getAddress());
                         mail.setData(bundle);
 
-                        if (status == 0) {
+                        if (status == (byte)0) {
 
+                            System.out.println("USER INVISIBLE");
                             mail.what = BlueCtrl.INVISIBLE;
                             //Invisible user, but nonetheless a reachable user
                         }
@@ -471,67 +473,64 @@ public class ReceiverThread extends Thread {
                     It wraps up a message from the sender in a packet consisting of a header, a target MAC address,
                     a sender MAC address and a message field. Target MAC address is the  of the actual recipient of
                     the message MAC address, whilst the sender MAC address is the original sender device MAC address.
+                    Then, it is a text message, a Crypted field follows, indicating wheter or not the message has to be
+                    decrypted with default AES key.
                     Although Message field has variable length, no divider is needed because Target and Sender
-                    fields have fixed length instead. A length byte precedes the Message field, indicating
-                    the message length in bytes; a message cannot exceed 255 characters in length, therefore
-                    1 byte is enough to represent the length field.
+                    fields have fixed length instead. A type byte and a length byte precede the Message field, indicating
+                    the type of the message (text or emoticon) and its length in bytes.
+                    1 byte is enough to represent both the length field and the type field.
                     Text Message:
-                    [5][Target MAC][Sender MAC][0][Msg length][  Message field  ]
-                       | 6 bytes  |  6 bytes  |   |  1 byte  | Msg length bytes |
+                    [5][Target MAC][Sender MAC][0][Crypted][Msg length][  Message field  ]
+                       | 6 bytes  |  6 bytes  |  | 1 byte |  1 byte  | Msg length bytes |
                     Emoticon Message:
                     [5][Target MAC][Sender MAC][1][Emoticon]
-                       | 6 bytes  |  6 bytes  |   | 1 byte |
+                       | 6 bytes  |  6 bytes  |  | 1 byte |
                      */
-                        byte[] buffer = new byte[6], sender = new byte[6];
+                        byte[] buffer = new byte[6], sender = new byte[6],
+                               msgBuffer;
 
                         i = 0;
 
                         do {
                             j = in.read(buffer, i, 6 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
-                            }
+                            if (j < 0) throw new IOException();
                             i += j;
                         } while (i < 6);
 
                         i = 0;
                         do {
                             j = in.read(sender, i, 6 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                //TODO: throw something
-                            }
+                            if (j < 0) throw new IOException();
                             i += j;
                         } while (i < 6);
+
+
 
                         switch(in.read()) {
 
                             case 0:
 
-                                if ((length = in.read()) < 0) {
-                                    System.out.println("Read Error");
-                                    //TODO: optional read exception
-                                }
+                                int crypted;
+                                if ((crypted = in.read()) == -1) throw new  IOException(); //is the message crypted?
+                                System.out.println("CRYPTED: " + crypted);
 
-                                //d++length; //you cannot send empty messages, so message length is between 1 and 256
-                                byte[] msgBuffer = new byte[length];
+                                if ((length = in.read()) < 0) throw new IOException();
+                                //you cannot send empty messages, so message length is between 1 and 255
+
+                                byte[] tmpBuffer;
+                                tmpBuffer = new byte[length];
                                 i = 0;
                                 do {
-                                    j = in.read(msgBuffer, i, length - i);
-                                    if (j < 0) {
-                                        System.out.println("Premature EOF, message misunderstanding");
-                                        //TODO: throw something
-                                    }
+                                    j = in.read(tmpBuffer, i, length - i);
+                                    if (j < 0) throw new IOException();
                                     i += j;
                                 } while (i < length);
 
                                 if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
-                                    System.out.println("VAFFANCULO");
-                                    byte tmpMsg[] = BlueCtrl.decrypt(msgBuffer);
-                                    System.out.println("DECRIPTATO: " + (new String(tmpMsg)));
-                                    BlueCtrl.showReceivedMsg(BlueCtrl.bytesToMAC(sender), new String(tmpMsg), new Date());
+                                    if (crypted == 1) msgBuffer = BlueCtrl.decrypt(tmpBuffer);
+                                    else msgBuffer = tmpBuffer;
+                                    BlueCtrl.showReceivedMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date());
 
                                     Message mail = new Message();
                                     mail.what = BlueCtrl.MSG_HEADER;
@@ -543,7 +542,7 @@ public class ReceiverThread extends Thread {
                                 else {
 
                                     BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
-                                            BlueCtrl.buildMsg(buffer, sender, msgBuffer), handler);
+                                            BlueCtrl.buildMsg(buffer, sender, tmpBuffer), handler);
                                     /*
                                     if this device is not the target device, message has to be forwarded to the next node
                                     on the route leading to the target; it is wrapped again in a packet and sent as a
@@ -558,7 +557,6 @@ public class ReceiverThread extends Thread {
 
                                 if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
 
-                                    System.out.println("SHOWING OFF");
                                     BlueCtrl.showReceivedEmo(BlueCtrl.bytesToMAC(sender), code, new Date());
                                     Message mail = new Message();
                                     mail.what = BlueCtrl.MSG_HEADER;

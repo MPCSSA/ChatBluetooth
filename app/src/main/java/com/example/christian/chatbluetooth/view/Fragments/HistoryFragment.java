@@ -24,6 +24,10 @@ import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.view.Adapters.HistoryAdapter;
+import com.melnykov.fab.FloatingActionButton;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -47,6 +51,7 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
     EditText searchBar;
     ListView historyList;
     HistoryAdapter adapter;
+    HashMap<Integer, Integer> selected = new HashMap<>();
 
     private OnFragmentInteractionListener mListener;
 
@@ -126,9 +131,9 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                CheckBox box = (CheckBox) view.findViewById(R.id.cboxSelect);
-                box.setChecked(!box.isChecked());
-                adapter.notifyDataSetChanged();
+                int position = historyList.getPositionForView(view);
+                if (selected.containsValue(position)) selected.remove(position);
+                else selected.put(position, position);
             }
         });
 
@@ -142,6 +147,9 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
 
         CheckBox boxAll = (CheckBox) getActivity().findViewById(R.id.cboxAll);
         boxAll.setOnClickListener(this);
+
+        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fabHistory);
+        fab.setOnClickListener(this);
     }
 
     @Override
@@ -202,25 +210,44 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
 
             case R.id.fabHistory:
 
-                for (View v : historyList.getTouchables()) {
+                int count = 0, max = historyList.getCount();
 
-                    if (((CheckBox) v.findViewById(R.id.cboxSelect)).isChecked()) {
+                 while (count < max) {
 
-                        message = adapter.remove(v.getVerticalScrollbarPosition());
-                        BlueCtrl.remove(message);
-                    }
+                     System.out.println("FANCULO");
+
+                     View v = historyList.getChildAt(count);
+                     if (v == null) {
+                         System.out.println("NULL");
+                         count++;
+                         continue;
+                     }
+                     CheckBox check = ((CheckBox)v.findViewById(R.id.cboxSelect));
+                     if (check.isChecked()) {
+                         System.out.println("REMOVED");
+                         adapter.remove(historyList.getPositionForView(v));
+                         max--;
+                     }
+                    else {
+                         System.out.println("SKIPPED");
+                         count++;
+                     }
                 }
 
                 break;
 
             case R.id.cboxAll:
 
+                boolean bool = ((CheckBox)view).isChecked();
+
                 for (int p = 0; p < historyList.getCount(); ++p) {
 
-                    ((CheckBox) historyList.getChildAt(p).findViewById(R.id.cboxSelect))
-                            .setChecked(((CheckBox) view).isChecked());
+                    selected.put(p, p);
+                    ((CheckBox)adapter.getView(p, null, historyList).findViewById(R.id.cboxSelect)).setChecked(bool);
                     //sets all checkboxes to the value of the checkbox selector
                 }
+
+                break;
         }
 
         adapter.notifyDataSetChanged();

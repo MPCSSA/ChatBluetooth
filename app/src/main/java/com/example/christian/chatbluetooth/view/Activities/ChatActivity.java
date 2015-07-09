@@ -441,10 +441,21 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 @Override
                 public void onClick(View view) {
 
-                    BlueCtrl.STS = (byte) ((switchVisibility.isChecked()) ? 1 : 0);
+                    BlueCtrl.STS = (byte) ((switchVisibility.isChecked()) ? 0 : 1);
+                    System.out.println("SWITCHED TO " + BlueCtrl.STS);
                     BlueCtrl.dispatchNews(BlueCtrl.buildGrtMsg(), null, handler);
                 }
             });
+
+            final Switch switchSpy = (Switch) findViewById(R.id.switch_spy);
+            switchSpy.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    BlueCtrl.SPY = (byte) ((switchSpy.isChecked()) ? 1 : 0);
+                }
+            });
+
 
         /* END NEW PART */
 

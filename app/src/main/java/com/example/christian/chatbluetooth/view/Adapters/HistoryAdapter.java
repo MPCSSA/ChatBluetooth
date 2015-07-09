@@ -17,29 +17,31 @@ import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
+
     public HistoryAdapter(Context context, int resource) {
         super(context, resource);
     }
 
+    private ArrayList<ChatMessage> messages = new ArrayList<>();
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        View view = convertView;
         ChatMessage msg = getItem(position);
-        boolean bool = ((CheckBox)view.findViewById(R.id.cboxSelect)).isChecked();
-        int backgroundColor = (bool) ? R.color.light_primary : R.color.accent,
-            viewColor = (bool) ? R.color.accent : R.color.light_primary,
-            imageResource = (bool) ? R.drawable.white_emoticons : R.drawable.red_emoticons,
-            layout = (msg.isEmo()) ? R.layout.item_history_emo : R.layout.item_history;
+        int layout = (msg.isEmo()) ? R.layout.item_history_emo : R.layout.item_history;
         //Resources initialization
 
-        if (view == null) {
-            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(layout, parent, false);
-        }
+        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(layout, parent, false);
+
+        ((CheckBox)view.findViewById(R.id.cboxSelect)).setChecked(msg.getSender());
+        int backgroundColor = (msg.getSender()) ? R.color.light_primary : R.color.accent,
+                viewColor = (msg.getSender()) ? R.color.accent : R.color.light_primary,
+                imageResource = (msg.getSender()) ? R.drawable.white_emoticons : R.drawable.red_emoticons;
 
         if (msg.isEmo()) {
 
@@ -57,7 +59,7 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
 
             TextView quote = (TextView) view.findViewById(R.id.tv_quote);
             quote.setText("\"" + msg.getMsg() + "\"");
-            quote.setTextColor(viewColor);
+            quote.setTextColor(getContext().getResources().getColor(viewColor));
         }
 
         TextView from = (TextView) view.findViewById(R.id.tv_from);
@@ -86,17 +88,19 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
         }
 
         from.setText(msg.getUsername() + ", " + when);
-        from.setTextColor(viewColor);
+        from.setTextColor(getContext().getResources().getColor(viewColor));
 
-        view.findViewById(R.id.cboxSelect).setBackgroundColor(viewColor);
-        view.setBackgroundColor(backgroundColor);
+        (view.findViewById(R.id.cboxSelect)).setBackgroundColor(viewColor);
+        view.findViewById(R.id.history_layout).setBackgroundColor(getContext().getResources().getColor(backgroundColor));
+
+        messages.add(msg);
 
         return view;
     }
 
     public ChatMessage remove(int position) {
 
-        ChatMessage msg = getItem(position);
+        ChatMessage msg = messages.remove(position);
         remove(msg);
         return msg;
     }

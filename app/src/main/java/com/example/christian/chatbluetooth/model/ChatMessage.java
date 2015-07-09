@@ -56,4 +56,8 @@ public class ChatMessage {
     }
 
     public boolean isEmo() { return this.isEmo; }
+
+    public void setSentBy(boolean sentBy) {
+        this.sentBy = sentBy;
+    }
 }

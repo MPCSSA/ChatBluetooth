@@ -158,7 +158,7 @@ public class BlueDBManager {
     public Cursor fetchQuotes(String searchBy) {
 
         return db.query(tables[1], new String[] {historyTable[0], historyTable[5], historyTable[2], historyTable[4], "_id"},
-                searchBy, null, null, historyTable[2], null);
+                searchBy, null, null, null, historyTable[2], null);
     }
 
     public Cursor fetchTimestamp(String address) {
@@ -195,7 +195,7 @@ public class BlueDBManager {
         return db.update(tables[0], values, userTable[0] + " = \'" + address + "\'", null);
     }
 
-    public long updateFavourites(String address, boolean isFav) {
+    public long updateFavorites(String address, int isFav) {
 
         ContentValues values = new ContentValues();
 
