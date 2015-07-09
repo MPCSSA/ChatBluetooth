@@ -21,6 +21,7 @@ import android.os.Message;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.DisplayMetrics;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -309,6 +310,22 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             }
         };
 
+        (new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                while (true) {
+
+                    try {
+                        Thread.sleep(5000l);
+                    } catch (InterruptedException e) {
+                        BlueCtrl.dispatchNews(new byte[]{BlueCtrl.ACK}, null, handler);
+                    }
+                }
+            }
+        })).start();
+        //ACK mechanism to catch no longer connected devices
+
         ListFragment listFragment = new ListFragment();
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -450,6 +467,14 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     }
 
     @Override
+    public void onBackPressed() {
+
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        startActivity(intent);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -505,12 +530,20 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        //TODO
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        //TODO
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
-        /*
-        registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
-        registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-        BluetoothAdapter.getDefaultAdapter().startDiscovery();*/
     }
 
     @Override
@@ -521,8 +554,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     @Override
     protected void onPause() {
         super.onPause();
-
-        /*unregisterReceiver(blueReceiver);*/
     }
 
     @Override
