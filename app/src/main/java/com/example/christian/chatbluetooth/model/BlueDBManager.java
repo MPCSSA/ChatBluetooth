@@ -129,12 +129,7 @@ public class BlueDBManager {
     }
 
 
-    //TODO: fetchMethods
-    public Cursor fetchListedUser(String address) {
-
-        return db.query(tables[0], new String[]{userTable[0], userTable[4], userTable[3]}, userTable[0] + " = \'" + address + "\'", null, null, null, null, "1");
-
-    }
+    //FETCH METHODS
 
     public Cursor fetchUsername(String address) {
 
@@ -179,21 +174,7 @@ public class BlueDBManager {
         else return Long.parseLong(cursor.getString(0));
     }
 
-    //TODO: Update methods
-
-    public long updateUserInfo(String address, String username, String profile_pic, int nation, int gender, int age, long timestamp) {
-
-        ContentValues values = new ContentValues();
-        values.put(userTable[1], username);
-        values.put(userTable[2], timestamp);
-        values.put(userTable[4], profile_pic);
-        values.put(userTable[5], nation);
-        values.put(userTable[6], gender);
-        values.put(userTable[7], age);
-
-
-        return db.update(tables[0], values, userTable[0] + " = \'" + address + "\'", null);
-    }
+    //UPDATE METHODS
 
     public long updateFavorites(String address, int isFav) {
 
@@ -204,13 +185,7 @@ public class BlueDBManager {
         return db.update(tables[0], values, userTable[0] + " = \'" + address + "\'", null);
     }
 
-    public long updatePicture(String address) {
-        ContentValues values = new ContentValues();
-
-        values.put(userTable[4], "IMG_" + address);
-
-        return db.update(tables[0], values, userTable[0] + " = \'" + address + "\'", null);
-    }
+    //REMOVE METHODS
 
     public void removeMessage(Integer id) {
 

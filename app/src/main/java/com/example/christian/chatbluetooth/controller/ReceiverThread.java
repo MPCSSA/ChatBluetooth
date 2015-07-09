@@ -603,9 +603,9 @@ public class ReceiverThread extends Thread {
                                 i += j;
                             } while (i < 6);
 
-                            ChatUser user = BlueCtrl.manageDropRequest(rmtDvc.getAddress(), BlueCtrl.bytesToMAC(buffer));
-                            if (user != null) {
-                                out.write(BlueCtrl.buildUpdMsg(user));
+                            byte[] instantreply = BlueCtrl.manageDropRequest(rmtDvc.getAddress(), rmtDvc);
+                            if (instantreply != null) {
+                                out.write(instantreply);
                             }
                         }
 

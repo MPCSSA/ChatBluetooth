@@ -206,7 +206,7 @@ public class MessageThread extends Thread {
                          */
 
                         byte[] lastUpd = new byte[8];
-                        byte b, status;
+                        byte status;
                         int bounces;
 
                         i = 0;

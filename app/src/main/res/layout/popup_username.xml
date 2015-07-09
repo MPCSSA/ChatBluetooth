@@ -27,7 +27,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="@string/mod_popup"
             android:layout_marginLeft="8dp"
             style="?android:attr/borderlessButtonStyle"/>
 
@@ -37,7 +36,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="@string/canc_popup"
             android:layout_marginRight="8dp"
             android:layout_toRightOf="@+id/btn_mod_popup"
             android:layout_toEndOf="@+id/btn_mod_popup"

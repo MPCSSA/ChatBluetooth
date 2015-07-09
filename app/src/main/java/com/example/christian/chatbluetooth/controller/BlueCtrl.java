@@ -107,9 +107,8 @@ public class BlueCtrl {
     public static int counter = 0;
 
 
-    /*
-    ROUTING AND CONNECTION METHODS
-     */
+
+    //ROUTING AND CONNECTION METHODS
 
     public static void sendMsg(BluetoothDevice dvc, byte[] msg, Handler handler) {
         /*
@@ -128,24 +127,6 @@ public class BlueCtrl {
         for(BluetoothDevice dvc : BlueCtrl.closeDvc.values()) {
 
             if (!dvc.equals(filter)) sendMsg(dvc, msg, handler); //A filter can be specified to avoid redundancy
-        }
-    }
-
-
-
-
-
-    public static void fillMsgAdapter(){
-
-        Cursor cursor = fetchMsgHistory(msgAdapt.getAddress(), (new Date()).getTime());
-        if (cursor.getCount() > 0){
-
-            msgAdapt.add(null);
-
-            cursor.moveToLast();
-            do {
-                msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2) == 1, cursor.getLong(1), cursor.getInt(3) == 1));
-            } while(cursor.moveToPrevious());
         }
     }
 
@@ -488,6 +469,23 @@ public class BlueCtrl {
         }
     }
 
+    public static void fillMsgAdapter() {
+        /*
+        Call this method when showing the Chat Fragment, to fill the Adapter with 25 messages from the history.
+         */
+
+        Cursor cursor = fetchMsgHistory(msgAdapt.getAddress(), (new Date()).getTime());
+        if (cursor.getCount() > 0){
+
+            msgAdapt.add(null);
+
+            cursor.moveToLast();
+            do {
+                msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2) == 1, cursor.getLong(1), cursor.getInt(3) == 1));
+            } while(cursor.moveToPrevious());
+        }
+    }
+
 
 
 
@@ -515,58 +513,27 @@ public class BlueCtrl {
 
     }
 
-    public static ChatUser manageDropRequest(String address, String macs) {
+    public static byte[] manageDropRequest(String address, BluetoothDevice dvc) {
 
-        //TODO: Drop Request management
-        return null;
-    }
+        final String mac = address;
+        ChatUser user = BlueCtrl.scanUsers(address);
 
+        if (user != null && !user.getNextNode().equals(dvc)) {
 
-    //DEPRECATED
-
-    /*public static boolean addCloseDvc(BluetoothDevice dvc) {
-
-        boolean newcomer;
-        int pos;
-        if ((pos = closeDvc.indexOf(dvc)) != -1) {
-            System.out.println(pos);
-            System.out.println(counter);
-            //swap
-            /*if (pos != counter) {
-                closeDvc.set(pos, closeDvc.get(counter));
-                closeDvc.set(counter, dvc);
-            }*/
-            /*newcomer = false;
+            return BlueCtrl.buildUpdMsg(user);
         }
-        //insert into position
         else {
-            System.out.println("adding");
-            System.out.println("pippo: " + counter);
-            //closeDvc.add(/*counter, *//*dvc);
-            newcomer = true;
+
+            (new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    userAdapt.remove(mac);
+                    userAdapt.notifyDataSetChanged();
+                }
+            })).start();
+
+            return null;
         }
-
-        ++counter;
-        System.out.println("pippo: " + counter);
-        return newcomer;
-    }*/
-
-    /*if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-
-    String pic = info.getString(5);
-    if (pic == null) {
-        dbManager.updatePicture(address);
-    }
-    File directory = new File(BlueCtrl.appFolder, Environment.DIRECTORY_PICTURES);
-    OutputStream outputStream = new FileOutputStream(directory.getAbsolutePath() + "/IMG_" + address);
-    outputStream.write(image);
-
-}*/
-
-    public static BluetoothDevice cleanCloseDvc() {
-
-        if (closeDvc.size() > counter) return closeDvc.remove(counter);
-        return null;
     }
 
 

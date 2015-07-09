@@ -131,9 +131,9 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                int position = historyList.getPositionForView(view);
-                if (selected.containsValue(position)) selected.remove(position);
-                else selected.put(position, position);
+                ChatMessage message = adapter.getItem(i);
+                message.setSentBy(!message.getSender());
+                adapter.notifyDataSetChanged();
             }
         });
 
@@ -225,6 +225,7 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
                      CheckBox check = ((CheckBox)v.findViewById(R.id.cboxSelect));
                      if (check.isChecked()) {
                          System.out.println("REMOVED");
+                         //TODO use BlueCtrl.removeMessage(id)
                          adapter.remove(historyList.getPositionForView(v));
                          max--;
                      }
@@ -238,15 +239,11 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
 
             case R.id.cboxAll:
 
-                boolean bool = ((CheckBox)view).isChecked();
+                for (int i = 0; i < adapter.getCount(); ++i) {
 
-                for (int p = 0; p < historyList.getCount(); ++p) {
-
-                    selected.put(p, p);
-                    ((CheckBox)adapter.getView(p, null, historyList).findViewById(R.id.cboxSelect)).setChecked(bool);
-                    //sets all checkboxes to the value of the checkbox selector
+                    message = adapter.getItem(i);
+                    message.setSentBy(!message.getSender());
                 }
-
                 break;
         }
 

@@ -491,7 +491,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         catch (IOException e){
             e.printStackTrace();
-            System.out.println("listen failed");
+            System.out.println("LISTEN FAILED");
         }
 
 
