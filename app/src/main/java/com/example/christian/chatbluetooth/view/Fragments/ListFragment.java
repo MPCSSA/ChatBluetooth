@@ -153,8 +153,14 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
             recList.setLayoutManager(llm);
             recList.setItemAnimator(new DefaultItemAnimator());
 
-            if (getTag().equals("FAVORITES")) BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.favList);
-            else BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.userList);
+            if (getTag().equals("FAVORITES")){
+                actionBar.setTitle(R.string.favorites);
+                BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.favList);
+            }
+            else {
+                actionBar.setTitle(R.string.list_frag);
+                BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.userList);
+            }
             recList.setAdapter(BlueCtrl.userAdapt);
             recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
                 @Override

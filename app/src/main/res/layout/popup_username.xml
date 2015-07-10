@@ -28,7 +28,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginLeft="8dp"
-            style="?android:attr/borderlessButtonStyle"/>
+            style="?android:attr/borderlessButtonStyle"
+            android:text="@string/confirm_btn" />
 
 
         <Button
@@ -39,7 +40,8 @@
             android:layout_marginRight="8dp"
             android:layout_toRightOf="@+id/btn_mod_popup"
             android:layout_toEndOf="@+id/btn_mod_popup"
-            style="?android:attr/borderlessButtonStyle"/>
+            style="?android:attr/borderlessButtonStyle"
+            android:text="@string/cancel_btn" />
     </RelativeLayout>
 
 </LinearLayout>

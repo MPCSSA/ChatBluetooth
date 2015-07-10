@@ -288,8 +288,13 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 int value = (user.isFav()) ? 1 : 0;
                 BlueCtrl.setFavorite(user.getMac(), value);
 
-                if (user.isFav()) BlueCtrl.favList.add(user);
-                else BlueCtrl.favList.remove(user);
+                if (user.isFav()){
+                    BlueCtrl.favList.add(user);
+                }
+
+                else{
+                    BlueCtrl.favList.remove(user);
+                }
 
                 int heart = (user.isFav()) ? R.drawable.fav : R.drawable.unfav;
                 ((FloatingActionButton)v).setImageDrawable(getResources().getDrawable(heart));

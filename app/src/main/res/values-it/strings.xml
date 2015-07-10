@@ -16,11 +16,15 @@
     <string name="setting_mod_image">Modifica immagine profilo</string>
     <string name="setting_mod_nick">Modifica nickname</string>
 
+    <string name="confirm_btn">Conferma</string>
+    <string name="cancel_btn">Cancella</string>
+
     <string name="profile_activity">Profilo</string>
     <string name="setting_activity">Impostazioni</string>
     <string name="history_activity">Cronologia</string>
     <string name="reg_frag">Registrazione</string>
-    <string name="list_frag">Lista contatti</string>
+    <string name="list_frag">Lista Contatti</string>
+    <string name="favorites">Lista Preferiti</string>
     <string name="more_history">Altri messaggi</string>
     <string name="history_btn">Tutti i messaggi</string>
     <string name="all">Entrambi</string>

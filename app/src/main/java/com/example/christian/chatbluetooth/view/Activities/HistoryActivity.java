@@ -3,12 +3,15 @@ package com.example.christian.chatbluetooth.view.Activities;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.view.Fragments.HistoryFragment;
@@ -19,6 +22,7 @@ public class HistoryActivity extends Activity implements HistoryFragment.OnFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
+
 
         HistoryFragment historyFragment = new HistoryFragment();
         FragmentManager fragmentManager = getFragmentManager();

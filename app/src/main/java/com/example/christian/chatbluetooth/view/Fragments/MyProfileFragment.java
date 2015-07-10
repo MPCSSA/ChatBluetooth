@@ -2,8 +2,10 @@ package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
@@ -20,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Adapters.MyProfileAdapter;
 
 /**
@@ -98,16 +101,31 @@ public class MyProfileFragment extends Fragment {
 
         SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
         fieldList.setAdapter(new MyProfileAdapter(getActivity(), R.layout.my_profile_item));
-        ((ArrayAdapter<String>)fieldList.getAdapter()).add(sh.getString("username", "my profile"));
-        String birth = sh.getString("birth", null);
-        if (birth != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(birth);
+        Cursor cursor = BlueCtrl.fetchPersistentInfo(BluetoothAdapter.getDefaultAdapter().getAddress());
+        ((ArrayAdapter<String>) fieldList.getAdapter()).add(sh.getString("username", "my profile"));
+        if (cursor.moveToFirst()){
+            ((ArrayAdapter<String>) fieldList.getAdapter()).add(String.valueOf(cursor.getInt(5)));
+            ((ArrayAdapter<String>) fieldList.getAdapter()).add(String.valueOf(cursor.getInt(6)));
+            ((ArrayAdapter<String>) fieldList.getAdapter()).add(String.valueOf(cursor.getInt(7)));
+        }
+
+
+        /*String birth = sh.getString("birth", null);
+        if (birth != null) {
+            System.out.println("BIRTH NOT NULL");
+            ((ArrayAdapter<String>)fieldList.getAdapter()).add(birth);
+        }
         int gender = sh.getInt("gender", 0);
         if (gender != 0) {
+            System.out.println("GENDER NOT NULL");
             String g = (gender == 1) ? "M" : "F";
             ((ArrayAdapter<String>)fieldList.getAdapter()).add(g);
         }
-        String country = sh.getString("country", null);
-        if (country != null) ((ArrayAdapter<String>)fieldList.getAdapter()).add(country);
+        int country = sh.getInt("country", 0);
+        if (country != 0){
+            System.out.println("COUNTRY NOT NULL");
+            ((ArrayAdapter<String>)fieldList.getAdapter()).add(String.valueOf(country));
+        }*/
 
     }
 

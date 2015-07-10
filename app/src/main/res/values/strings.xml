@@ -18,6 +18,8 @@
     <string name="login_btn">Login</string>
     <string name="signup_btn">Or Sign Up</string>
     <string name="register_btn">Or Sign Up</string>
+    <string name="confirm_btn">Confirm</string>
+    <string name="cancel_btn">Cancel</string>
 
     <!-- TOASTS -->
     <string name="login_greeting">Welcome,&#160;</string>
@@ -36,6 +38,7 @@
     <string name="history_activity">History</string>
     <string name="reg_frag">Sign up</string>
     <string name="list_frag">Users list</string>
+    <string name="favorites">Favorites list</string>
 
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>

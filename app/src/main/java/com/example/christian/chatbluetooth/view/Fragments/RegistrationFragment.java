@@ -218,13 +218,13 @@ public class RegistrationFragment extends Fragment {
                             preferences.edit().putString("birth", date.getText().toString().replace("/", " "));
 
                             int gender;
-                            if ((getActivity().findViewById(R.id.radioGroup_reg)).isSelected()) {
+                            if ((getActivity().findViewById(R.id.radioGroup_reg)).isPressed()) {
                                 gender = (((RadioButton) getActivity().findViewById(R.id.rbtn_male)).isChecked()) ? 1 : 2;
                             }
                             else gender = 0;
                             preferences.edit().putInt("gender", gender).apply();
 
-                            preferences.edit().putInt("nationality", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItemPosition()).apply();
+                            preferences.edit().putInt("country", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItemPosition()).apply();
 
                             //BlueCtrl.bindUser(preferences);
                             ((MainActivity)getActivity()).registered();

@@ -28,6 +28,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
@@ -46,7 +47,7 @@ import com.example.christian.chatbluetooth.view.Fragments.ChatFragment;
 import com.example.christian.chatbluetooth.view.Fragments.ListFragment;
 import com.example.christian.chatbluetooth.view.Adapters.MenuAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
-import com.example.christian.chatbluetooth.view.Fragments.NoMaterialNavDrawerFragment;
+
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -54,14 +55,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
-public class ChatActivity extends Activity implements ListFragment.OnFragmentInteractionListener,
-                                                      ChatFragment.OnFragmentInteractionListener,
-    /*DEBUG ONLY*/                                    NoMaterialNavDrawerFragment.OnFragmentInteractionListener {
+public class ChatActivity extends FragmentActivity implements ListFragment.OnFragmentInteractionListener,
+                                                      ChatFragment.OnFragmentInteractionListener
+    /*DEBUG ONLY*/                                     {
 
     private DrawerLayout drawerLayout;
     private Switch switchVisibility;
     private static Handler handler;
     public boolean state = false;
+    public boolean state2 = false;
 
     public Handler getHandler() { return ChatActivity.handler; }
 
@@ -366,6 +368,14 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         })).start();
         //ACK mechanism to catch no longer connected devices
 
+        ListFragment listFragment = new ListFragment();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+        fragmentTransaction.add(R.id.containerChat, listFragment, "LIST_FRAGMENT");
+        fragmentTransaction.commit();
+
+
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 
         drawerLayout = (DrawerLayout) inflater.inflate(R.layout.nav_drawer, null);
@@ -478,7 +488,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 age = (int) (millis / 31536000000l);
             }
             catch (Exception ignore) {}
-            BlueCtrl.insertUserTable(BluetoothAdapter.getDefaultAdapter().getAddress(), timestamp, sh.getString("username", "Unknown"), age, sh.getInt("gender", 0), sh.getInt("nationality", 0));
+            BlueCtrl.insertUserTable(BluetoothAdapter.getDefaultAdapter().getAddress(), timestamp, sh.getString("username", "Unknown"), age, sh.getInt("gender", 0), sh.getInt("country", 0));
         }
 
         BlueCtrl.validateUser(BluetoothAdapter.getDefaultAdapter().getAddress(), getSharedPreferences("preferences", MODE_PRIVATE).getLong("timestamp", 0));
@@ -539,20 +549,54 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             return true;
         }
 
-        if (id == android.R.id.home){
+        if (id == android.R.id.home) {
 
-            if (state){
+            if (state) {
                 ListFragment listFragment = new ListFragment();
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
-                fragmentTransaction.replace(R.id.containerChat, listFragment);
+                fragmentTransaction.replace(R.id.containerChat, listFragment, "LIST_FRAGMENT");
                 fragmentTransaction.commit();
+                View view = this.getCurrentFocus();
+                if (view != null) {
+                    InputMethodManager imm = (InputMethodManager)getSystemService(
+                            Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+
                 state = false;
-                return true;
+            } else {
+                drawerLayout.openDrawer(findViewById(R.id.left_drawer));
+            }
+        }
+
+
+        if (id == R.id.action_fav){
+            if(!state2) {
+                item.setIcon(R.drawable.contacts);
+                System.out.println("PIPPO BAUDO");
+                ListFragment listFragment = new ListFragment();
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
+                fragmentTransaction.replace(R.id.containerChat, listFragment, "FAVORITES");
+                fragmentTransaction.commit();
+                state2 = true;
+
             }
 
-            drawerLayout.openDrawer(findViewById(R.id.left_drawer));
+            else{
+                item.setIcon(R.drawable.favorite);
+                System.out.println("PIPPO BAUDO");
+                ListFragment listFragment = new ListFragment();
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                fragmentTransaction.replace(R.id.containerChat, listFragment, "LIST_FRAGMENT");
+                fragmentTransaction.commit();
+                state2 = false;
+            }
         }
 
         return super.onOptionsItemSelected(item);
