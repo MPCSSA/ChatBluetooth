@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -48,7 +49,11 @@ import com.example.christian.chatbluetooth.view.Adapters.MenuAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
 import com.example.christian.chatbluetooth.view.Fragments.NoMaterialNavDrawerFragment;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -343,8 +348,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         }*/
                 }
 
-                if (BlueCtrl.version) BlueCtrl.userAdapt.notifyDataSetChanged();
-                else BlueCtrl.userNomat.notifyDataSetChanged();
+                BlueCtrl.userAdapt.notifyDataSetChanged();
                 //notify any changes to the List Adapter
 
             }
@@ -467,9 +471,37 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         BlueCtrl.emoticons = new EmoticonAdapter(this, R.layout.item_emoticon_picker);
 
+        SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
+
+        if (sh.getBoolean("1stRun", true)) {
+
+            sh.edit().putBoolean("1stRun", false).apply();
+            try {
+                InputStream myInput = getAssets().open(BlueCtrl.dbname + ".db");
+                // Path to the just created empty db
+                File outFile = getDatabasePath(BlueCtrl.dbname + ".db");
+                // Open the empty db as the output stream
+                OutputStream myOutput = new FileOutputStream(outFile);
+                // transfer bytes from the inputfile to the outputfile
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = myInput.read(buffer)) > 0) {
+                    myOutput.write(buffer, 0, length);
+                }
+                // Close the streams
+                myOutput.flush();
+                myOutput.close();
+                myInput.close();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("DB CREATION FAILED");
+            }
+        }
+
         BlueCtrl.openDatabase(this);
         if (getIntent().getBooleanExtra("newbie", false)) {
-            SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
+
             long timestamp = sh.getLong("timestamp", 0);
             int age = 0;
             try {

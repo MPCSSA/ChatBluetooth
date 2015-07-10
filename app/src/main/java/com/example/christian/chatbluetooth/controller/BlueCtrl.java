@@ -3,11 +3,11 @@ package com.example.christian.chatbluetooth.controller;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Environment;
 import android.os.Handler;
 import android.util.Base64;
 
@@ -56,7 +56,6 @@ public class BlueCtrl {
     public static byte SPY = 0; //Spy mode: enabled 1 disable 0
 
     private static byte[] key = {'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y', 'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y'};
-    private static String keyString = "KEYKEYEYKEYKEYEY";
 
     /*
     DEBUG ONLY
@@ -95,17 +94,15 @@ public class BlueCtrl {
     manipulate views
     */
     public final static ArrayList<ChatUser> userList = new ArrayList<>();
-    public final static RecycleAdapter userAdapt = new RecycleAdapter(userList);
+    public final static ArrayList<ChatUser> favList = new ArrayList<>();
+    public static RecycleAdapter userAdapt;
     //ChatUser RecyclerAdapter; it is only used by ListFragent, therefore it can be initialized as final
     public static EmoticonAdapter emoticons; //ArrayAdapter used to implement the Emoticons Tab in ChatFragment
     public static MessageAdapter msgAdapt; //ArrayAdapter used to show and manage message history in ChatFragment
 
     //DATABASE
     private static BlueDBManager dbManager; //DB Manager
-    private static final String dbname = "bluedb"; //DB name
-
-    public static int counter = 0;
-
+    public static final String dbname = "bluedb"; //DB name
 
 
     //ROUTING AND CONNECTION METHODS
@@ -130,6 +127,29 @@ public class BlueCtrl {
         }
     }
 
+    public static byte[] manageDropRequest(String address, BluetoothDevice dvc) {
+
+        final String mac = address;
+        ChatUser user = BlueCtrl.scanUsers(address);
+
+        if (user != null && !user.getNextNode().equals(dvc)) {
+
+            return BlueCtrl.buildUpdMsg(user);
+        }
+        else {
+
+            (new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    userAdapt.remove(mac);
+                    userAdapt.notifyDataSetChanged();
+                }
+            })).start();
+
+            return null;
+        }
+    }
+
 
     //BUILD MESSAGE ROUTINES
 
@@ -145,10 +165,7 @@ public class BlueCtrl {
         grt[0] = BlueCtrl.GRT_HEADER; //msg header
         grt[1] = BlueCtrl.STS; //user status
 
-        for(int i = 2; i < 10; ++i) {
-            grt[i] = timestamp[i-2];
-        }
-        //8-byte long timestamp
+        System.arraycopy(timestamp, 0, grt, 2, 8); //8-byte long timestamp
 
         return grt;
     }
@@ -179,38 +196,14 @@ public class BlueCtrl {
 
         pckt[0] = MSG_HEADER; //packet header
 
-        int i = 1;
-        for(byte b : target) {
-            pckt[i] = b;
-            ++i;
-        }
-        //Target field
+        System.arraycopy(target, 0, pckt, 1, 6); //Target field
+        System.arraycopy(sender, 0, pckt, 7, 6); //Sender field
 
-        for(byte b : sender) {
-            pckt[i] = b;
-            ++i;
-        }
-        //Sender field
+        pckt[13] = 0; //Text Msg flag
+        pckt[14] = BlueCtrl.SPY; //Spy Mode
+        pckt[15] = (byte) (length);
 
-        pckt[i] = 0; //Text Msg flag
-        ++i;
-
-        pckt[i] = BlueCtrl.SPY; //Spy Mode
-        System.out.println("SPYMODE = " + BlueCtrl.SPY);
-        ++i;
-
-        pckt[i] = (byte) (length);
-        ++i;
-        /*
-        Note that empty messages are not forwarded, so the actual message range is from 1 to 256;
-        8-bit representation can only reach 255, therefore range increment is implicit
-         */
-
-        for(byte b : msg) {
-            pckt[i] = b;
-            ++i;
-        }
-        //Actual Text Msg
+        System.arraycopy(msg, 0, pckt, 16, length); //Actual Text Msg
 
         return pckt;
     }
@@ -233,23 +226,11 @@ public class BlueCtrl {
 
         pckt[0] = MSG_HEADER; //packet header
 
-        int i = 1;
-        for(byte b : target) {
-            pckt[i] = b;
-            ++i;
-        }
-        //Target field
+        System.arraycopy(target, 0, pckt, 1, 6); //Target field
+        System.arraycopy(sender, 0, pckt, 7, 6); //Sender field
 
-        for(byte b : sender) {
-            pckt[i] = b;
-            ++i;
-        }
-        //Sender field
-
-        pckt[i] = 1; //Msg type (in this case, emoticon)
-        ++i;
-
-        pckt[i] = code; //emoticon code
+        pckt[13] = 1; //Msg type (in this case, emoticon)
+        pckt[15] = code; //emoticon code
 
         return pckt;
 
@@ -261,30 +242,18 @@ public class BlueCtrl {
         one after another and are easily managed by MessageThread
          */
 
-        byte[] upd = new byte[16], lastUpd;
+        byte[] upd = new byte[16], mac, lastUpd;
 
         upd[0] = BlueCtrl.UPD_HEADER; //packet header
 
-        int i = 1, j;
-        for (j = 0; j < 6; ++j) {
-            upd[i + j] = user.getMacInBytes()[j];
-        }
-        i += j;
-        //Device MAC
+        mac = BlueCtrl.macToBytes(user.getMac());
+        System.arraycopy(mac, 0, upd, 1, 6); //Device MAC
 
         lastUpd = longToBytes(user.getLastUpd());
-        for (j = 0; j < 8; ++j) {
-            upd[i + j] = lastUpd[j];
-        }
-        i += j;
-        //Timestamp of the last time profile was updated
+        System.arraycopy(lastUpd, 0, upd, 7, 8); //Timestamp of the last time profile was updated
 
-        upd[i] = (byte) (user.getBounces());
-        ++i;
-        //number of devices on the route
-
-        upd[i] = (byte) user.getStatus();
-        //user status
+        upd[14] = (byte) (user.getBounces()); //number of devices on the route
+        upd[15] = (byte) user.getStatus(); //user status
 
         return upd;
     }
@@ -310,13 +279,12 @@ public class BlueCtrl {
          */
 
         upd[0] = BlueCtrl.UPD_HEADER; //packet header
-
         upd[1] = (byte) updCascade.size(); //number of segments; at least 1
 
-        for (int i = 0; i < updCascade.size(); ++i) {
-            for (int j = 0; j < 16; ++j) {
-                upd[2 + i * 16 + j] = updCascade.get(i)[j];
-            }
+        int count = updCascade.size();
+        for (int i = 0; i < count; ++i) {
+
+            System.arraycopy(updCascade.get(i), 0, upd, 2 + i * 16, 16);
         }
         //adding segments previously collected
 
@@ -340,7 +308,7 @@ public class BlueCtrl {
         int country = info.getInt(5), gender = info.getInt(6), age = info.getInt(7);
 
         byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
-                card = new byte[27 + user.length];
+                card = new byte[27 + user.length], lastPic;
         /*
         Actual size of a CRD header varies depending on the Username field.
          - 1 byte for the header
@@ -352,42 +320,23 @@ public class BlueCtrl {
          - 8 bytes for picture timestamp
          */
 
-        int i = 0, j;
-        card[i] = BlueCtrl.CRD_HEADER; //packet header
-        ++i;
+        card[0] = BlueCtrl.CRD_HEADER; //packet header
 
-        for (j = 0; j < 6; ++j) {
-            card[i + j] = address[j];
-        }
-        i += j;
-        //MAC address
+        System.arraycopy(address, 0, card, 1, 6); //MAC address
+        System.arraycopy(lastUpd, 0, card, 7, 8); //timestamp
 
-        for (j = 0; j < 8; ++j) {
-            card[i + j] = lastUpd[j];
-        }
-        i += j;
+        card[15] = (byte) age;
+        card[16] = (byte) gender;
+        card[17] = (byte) country;
+        card[18] = (byte) user.length;
 
-        card[i] = (byte) age;
-        ++i;
-        card[i] = (byte) gender;
-        ++i;
-        card[i] = (byte) country;
-        ++i;
-
-        card[i] = (byte) user.length;
-        ++i;
-        for (j = 0; j < user.length; ++j) {
-            card[i + j] = user[j];
-        }
-        i += j;
+        System.arraycopy(user, 0, card, 19, user.length);
 
         long picture = (profile_pic == null) ? 0l : Long.parseLong(profile_pic);
         //if the user did not choose a new Profile Picture, a value of 0 indicates default image
-        byte[] lastPic = longToBytes(picture);
 
-        for (j = 0; j < 8; ++j) {
-            card[i + j] = lastPic[j];
-        }
+        lastPic = longToBytes(picture);
+        System.arraycopy(lastPic, 0, card, 20 + user.length, lastPic.length);
 
         return card;
     }
@@ -486,55 +435,20 @@ public class BlueCtrl {
         }
     }
 
-
-
-
-
-
     public static ChatUser scanUsers(String address) {
+        /*
+        Utility method for userList scanning. Returns a ChatUser instance that matches the MAC address
+        passed as argument or null if none was found.
+         */
 
-        System.out.println("searching for " + address);
         for (ChatUser user : userList) {
+
             if (user.getMac().equals(address)) return user;
         }
 
         return null;
     }
 
-    public static void getUserList() {
-
-        //TODO: make bluetooth discovery and update model ChatUser Adapter
-
-    }
-
-    public static void retrieveHistory(String username) {
-
-        //TODO: fetch msg history via DBManager
-
-    }
-
-    public static byte[] manageDropRequest(String address, BluetoothDevice dvc) {
-
-        final String mac = address;
-        ChatUser user = BlueCtrl.scanUsers(address);
-
-        if (user != null && !user.getNextNode().equals(dvc)) {
-
-            return BlueCtrl.buildUpdMsg(user);
-        }
-        else {
-
-            (new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    userAdapt.remove(mac);
-                    userAdapt.notifyDataSetChanged();
-                }
-            })).start();
-
-            return null;
-        }
-    }
 
 
     //DB OPERATIONS
@@ -630,8 +544,7 @@ public class BlueCtrl {
 
         Cursor cursor = dbManager.fetchTimestamp(address);
 
-        if (cursor == null || cursor.getCount() != 1) return false;
-        return (cursor.moveToFirst() && cursor.getLong(0) == timestamp);
+        return !(cursor == null || cursor.getCount() != 1) && (cursor.moveToFirst() && cursor.getLong(0) == timestamp);
     }
 
 
@@ -678,7 +591,7 @@ public class BlueCtrl {
                 i = (b < 0) ? (b + 256) : (int) b; //value
 
                 if (bool) address += ':'; //do not insert ':' at the beginning
-                else bool = !bool; //boolean lock
+                else bool = true; //boolean lock
 
                 if (i < 16) address += "0"; //every field has a minimum of teo digits
                 address += Integer.toHexString(i).toUpperCase(); //reconstruction
@@ -691,10 +604,14 @@ public class BlueCtrl {
     }
 
     public static byte[] longToBytes(long l) {
+        /*
+        This method is used to translate a long int representing a timestamp into a byte array
+         */
 
         byte[] bytes = new byte[8]; //Java representation of a long int is made up of 64 bits
 
         for(int i = 7; i >= 0; --i) {
+
             bytes[i] = (byte) (l % 256);
             l /= 256;
         }
@@ -703,6 +620,9 @@ public class BlueCtrl {
     }
 
     public static long rebuildTimestamp(byte[] bytes) {
+        /*
+        This method is used to translate a 8-byte array into a long int representing a timestamp
+         */
 
         long l = 0;
         int i = 7;
@@ -716,25 +636,35 @@ public class BlueCtrl {
     }
 
     public static void lockDiscoverySuspension() {
+        /*
+        Bluetooth Discovery is a heavy process that sucks up most of the bandwidth; not only it is
+        recommended to turn it off while sending messages but it is also necessary, because connection
+        can easily be lost in the process. This application tries many connection at a time; in order to
+        restore Discovery after all threads are done, a Lock counter and a boolean flag Suspended are
+        used to keep track of all connections, putting down discovery when a first one is set and turning
+        it on when the last one ended. This is called "Last one out closes the door" principle.
+         */
 
-        ++DISCOVERY_LOCK; //thread eneters the room
+        ++DISCOVERY_LOCK; //thread enters the room
         System.out.println("LOCK " + DISCOVERY_LOCK);
-        if (DISCOVERY_SUSPENDED) return; //the door was already opened
+        if (DISCOVERY_SUSPENDED) return; //The door was already opened
 
-        DISCOVERY_SUSPENDED = true; //thread opened the door
+        DISCOVERY_SUSPENDED = true; //Thread opened the door
 
-        BluetoothAdapter.getDefaultAdapter().cancelDiscovery(); //and turned on lights
+        BluetoothAdapter.getDefaultAdapter().cancelDiscovery(); //And turned on lights
     }
 
     public static void unlockDiscoverySuspension() {
-        if ((--DISCOVERY_LOCK) < 1) { //thread left the room
+        /*
+        This method is the one who releases Discovery Lock and turns discovery back on when the last one finished.
+        The last one out closes the door behind
+         */
+        if ((--DISCOVERY_LOCK) < 1) { //Thread left the room
 
-            System.out.println("UNLOCKED");
-
-            DISCOVERY_SUSPENDED = false; //if thread was the last one in the room, turns off lights
+            DISCOVERY_SUSPENDED = false; //If thread was the last one in the room, turns off lights
 
             if (!BluetoothAdapter.getDefaultAdapter().isDiscovering())
-                BluetoothAdapter.getDefaultAdapter().startDiscovery(); //and closes the door
+                BluetoothAdapter.getDefaultAdapter().startDiscovery(); //And closes the door
         }
         else System.out.println("OPEN DOOR " + DISCOVERY_LOCK);
     }
@@ -782,21 +712,13 @@ public class BlueCtrl {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
             String encrypted = Base64.encodeToString(cipher.doFinal(encrypt), Base64.DEFAULT);
-            System.out.println("Encrypted: " + encrypted);
+            System.out.println("ENCRYPTED: " + encrypted);
 
             return encrypted.getBytes();
-
         }
+        catch (NoSuchAlgorithmException | IllegalBlockSizeException | NoSuchPaddingException |
+                BadPaddingException | InvalidKeyException e) {
 
-        catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
             e.printStackTrace();
         }
 
@@ -835,5 +757,17 @@ public class BlueCtrl {
     public static void setFavorite(String mac, int value) {
 
         dbManager.updateFavorites(mac, value);
+    }
+
+    public static Cursor fetchFlags(String displayCountry) {
+
+        if (displayCountry.equals("ITALY")) {
+
+        }
+        else {
+
+        }
+
+        return null;
     }
 }
