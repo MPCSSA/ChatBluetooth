@@ -19,14 +19,10 @@ import android.os.Bundle;
 //import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.DisplayMetrics;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,7 +41,6 @@ import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.ServerThread;
 import com.example.christian.chatbluetooth.model.ChatUser;
-import com.example.christian.chatbluetooth.view.Adapters.ChatListAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.EmoticonAdapter;
 import com.example.christian.chatbluetooth.view.Fragments.ChatFragment;
 import com.example.christian.chatbluetooth.view.Fragments.ListFragment;
@@ -59,7 +54,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
-public class ChatActivity extends FragmentActivity implements ListFragment.OnFragmentInteractionListener,
+public class ChatActivity extends Activity implements ListFragment.OnFragmentInteractionListener,
                                                       ChatFragment.OnFragmentInteractionListener,
     /*DEBUG ONLY*/                                    NoMaterialNavDrawerFragment.OnFragmentInteractionListener {
 
@@ -371,45 +366,6 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
         })).start();
         //ACK mechanism to catch no longer connected devices
 
-        //VIEWPAGER
-        ChatListAdapter chatList = new ChatListAdapter(getSupportFragmentManager());
-        ViewPager pagerList = (ViewPager) findViewById(R.id.pager_chat);
-        pagerList.setAdapter(chatList);
-
-        TabLayout tab = (TabLayout) findViewById(R.id.tab_layout);
-        tab.addTab(tab.newTab().setText("PUBLIC"));
-        tab.addTab(tab.newTab().setText("FAVORITES"));
-        tab.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                if (tab.getPosition() == 0)
-                    getSupportFragmentManager().beginTransaction().add(new ListFragment(), "PUBLIC");
-                else
-                    getSupportFragmentManager().beginTransaction().add(new ListFragment(), "FAVORITES");
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
-        });
-
-        pagerList.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tab));
-        tab.setupWithViewPager(pagerList);
-
-        /*ListFragment listFragment = new ListFragment();
-        android.support.v4.app.FragmentManager fragmentManager = getSupportFragmentManager();
-        android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-        fragmentTransaction.add(R.id.containerChat, listFragment, "LIST_FRAGMENT");
-        fragmentTransaction.commit();*/
-
-
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 
         drawerLayout = (DrawerLayout) inflater.inflate(R.layout.nav_drawer, null);
@@ -561,8 +517,8 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
             else {
 
                 ListFragment listFragment = new ListFragment();
-                android.support.v4.app.FragmentManager fragmentManager = getSupportFragmentManager();
-                android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
                 fragmentTransaction.add(R.id.containerChat, listFragment, "LIST_FRAGMENT");
                 fragmentTransaction.commit();
@@ -587,8 +543,8 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
 
             if (state){
                 ListFragment listFragment = new ListFragment();
-                android.support.v4.app.FragmentManager fragmentManager = getSupportFragmentManager();
-                android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
                 fragmentTransaction.replace(R.id.containerChat, listFragment);
                 fragmentTransaction.commit();
@@ -596,23 +552,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                 return true;
             }
 
-            else{
-                if (BlueCtrl.version) drawerLayout.openDrawer(findViewById(R.id.left_drawer));
-    /*
-    DEBUG ONLY
-     */
-                else {
-                    NoMaterialNavDrawerFragment fragment = new NoMaterialNavDrawerFragment();
-                    FragmentManager fragmentManager = getFragmentManager();
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    fragmentTransaction.replace(R.id.containerChat, fragment);
-                    fragmentTransaction.commit();
-                }
-    /*
-    DEBUG ONLY
-     */
-            }
-
+            drawerLayout.openDrawer(findViewById(R.id.left_drawer));
         }
 
         return super.onOptionsItemSelected(item);

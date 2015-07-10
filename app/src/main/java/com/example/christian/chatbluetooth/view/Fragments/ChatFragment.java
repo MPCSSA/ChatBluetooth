@@ -48,7 +48,7 @@ import java.util.Date;
  * Use the {@link ChatFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ChatFragment extends android.support.v4.app.Fragment implements View.OnClickListener{
+public class ChatFragment extends Fragment implements View.OnClickListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -67,18 +67,6 @@ public class ChatFragment extends android.support.v4.app.Fragment implements Vie
     public void setUser(ChatUser chatUser) {
         this.user = chatUser;
     }
-
-    /*public void setMac(byte [] mac){
-        this.mac = mac;
-    }
-
-    public void setAddress(String address){
-        this.user = address;
-    }
-
-    public void setDevice(BluetoothDevice dvc){
-        this.dvc = dvc;
-    }*/
 
     /**
      * Use this factory method to create a new instance of
@@ -115,8 +103,7 @@ public class ChatFragment extends android.support.v4.app.Fragment implements Vie
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        int layout = (BlueCtrl.version) ? R.layout.fragment_chat : R.layout.fragment_chat_nomat;
-        return inflater.inflate(layout, container, false);
+        return inflater.inflate(R.layout.fragment_chat, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -155,7 +142,7 @@ public class ChatFragment extends android.support.v4.app.Fragment implements Vie
         SpannableString title = new SpannableString(user.getName());
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         actionBar.setTitle(title);
-        if (BlueCtrl.version) actionBar.setHomeAsUpIndicator(null);
+        actionBar.setHomeAsUpIndicator(null);
 
         msgText = (EditText) getActivity().findViewById(R.id.etMsg);
 
@@ -301,10 +288,11 @@ public class ChatFragment extends android.support.v4.app.Fragment implements Vie
                 int value = (user.isFav()) ? 1 : 0;
                 BlueCtrl.setFavorite(user.getMac(), value);
 
+                if (user.isFav()) BlueCtrl.favList.add(user);
+                else BlueCtrl.favList.remove(user);
+
                 int heart = (user.isFav()) ? R.drawable.fav : R.drawable.unfav;
                 ((FloatingActionButton)v).setImageDrawable(getResources().getDrawable(heart));
-
-                //TODO set image
         }
     }
 

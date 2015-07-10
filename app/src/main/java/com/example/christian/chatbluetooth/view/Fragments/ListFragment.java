@@ -34,7 +34,7 @@ import com.example.christian.chatbluetooth.view.Watchers.RecyclerItemClickListen
  * Use the {@link ListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ListFragment extends android.support.v4.app.Fragment implements ChatFragment.OnFragmentInteractionListener{
+public class ListFragment extends Fragment implements ChatFragment.OnFragmentInteractionListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -170,8 +170,8 @@ public class ListFragment extends android.support.v4.app.Fragment implements Cha
 
                     chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
 
-                    android.support.v4.app.FragmentManager fragmentManager = getFragmentManager();
-                    android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    FragmentManager fragmentManager = getFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
                     fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
                     fragmentTransaction.commit();
@@ -204,8 +204,8 @@ public class ListFragment extends android.support.v4.app.Fragment implements Cha
 
                     chatFragment.setUser(BlueCtrl.userAdapt.getItem(i));
 
-                    android.support.v4.app.FragmentManager fragmentManager = getFragmentManager();
-                    android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    FragmentManager fragmentManager = getFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     fragmentTransaction.replace(R.id.containerChat, chatFragment);
                     fragmentTransaction.commit();
 
