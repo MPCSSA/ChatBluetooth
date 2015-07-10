@@ -51,7 +51,7 @@
     <string name="in_message">In messages</string>
     <string name="in_user">username</string>
     <string name="all">All</string>
-    <string name="spy" translatable="false">Spy Mode</string>
+    <string name="spy">Spy Mode</string>
 
 
 </resources>

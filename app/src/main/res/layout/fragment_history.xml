@@ -81,7 +81,7 @@
         android:id="@+id/fabHistory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@mipmap/close"
+        android:src="@mipmap/delete"
         android:layout_gravity="bottom|end"
         android:backgroundTint="@color/accent"
         android:layout_marginBottom="16dp"
