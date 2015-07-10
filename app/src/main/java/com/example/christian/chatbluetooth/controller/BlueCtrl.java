@@ -336,7 +336,7 @@ public class BlueCtrl {
         //if the user did not choose a new Profile Picture, a value of 0 indicates default image
 
         lastPic = longToBytes(picture);
-        System.arraycopy(lastPic, 0, card, 20 + user.length, lastPic.length);
+        System.arraycopy(lastPic, 0, card, 19 + user.length, lastPic.length);
 
         return card;
     }
