@@ -23,6 +23,7 @@ import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
+import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
 import com.example.christian.chatbluetooth.view.Watchers.RecyclerItemClickListener;
 
 /**
@@ -88,6 +89,7 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     */
         // Inflate the layout for this fragment
         return inflater.inflate(layout, container, false);
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -151,7 +153,8 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
             recList.setLayoutManager(llm);
             recList.setItemAnimator(new DefaultItemAnimator());
 
-            //final RecycleAdapter cardadapt = new RecycleAdapter(createList(1));
+            if (getTag().equals("FAVORITES")) BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.favList);
+            else BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.userList);
             recList.setAdapter(BlueCtrl.userAdapt);
             recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
                 @Override

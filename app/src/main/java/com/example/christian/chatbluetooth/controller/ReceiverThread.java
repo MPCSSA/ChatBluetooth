@@ -7,8 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
-import com.example.christian.chatbluetooth.model.ChatUser;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,7 +20,6 @@ public class ReceiverThread extends Thread {
     private OutputStream out;     //OutputStream object from which reading ACK messages
     private BluetoothDevice rmtDvc;        //MAC address of communicating Bluetooth device
     private Handler handler;
-    private static byte[] key = {'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y', 'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y'};
 
     public void setSckt(BluetoothSocket sckt) {
         this.sckt = sckt;
@@ -541,20 +538,14 @@ public class ReceiverThread extends Thread {
                                 }
                                 else {
 
-                                    byte[] glued = new byte[16 + tmpBuffer.length];
+                                    byte[] glued = new byte[16 + length];
                                     glued[0] = BlueCtrl.MSG_HEADER;
-                                    for (int _ = 0; _ < 6; ++_) {
-                                        glued[1 + _] = buffer[_];
-                                    }
-                                    for (int _ = 0; _ < 6; ++_) {
-                                        glued[7 + _] = sender[_];
-                                    }
+                                    System.arraycopy(buffer, 0, glued, 1, 6);
+                                    System.arraycopy(sender, 0, glued, 7, 6);
                                     glued[13] = 0;
                                     glued[14] = (byte) crypted;
                                     glued[15] = (byte) length;
-                                    for (int _ = 0; _ < length; ++_) {
-                                        glued[16 + _] = tmpBuffer[_];
-                                    }
+                                    System.arraycopy(tmpBuffer, 0, glued, 16, length);
                                     //Glue together the message to resend without errors
 
                                     BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
@@ -612,16 +603,22 @@ public class ReceiverThread extends Thread {
                             i = 0;
                             do {
                                 j = in.read(buffer, i, 6 - i);
-                                if (j < 0) {
-                                    System.out.println("Premature EOF, message misunderstanding");
-                                    throw new IOException();
-                                }
+                                if (j < 0) throw new IOException();
                                 i += j;
                             } while (i < 6);
 
                             byte[] instantreply = BlueCtrl.manageDropRequest(rmtDvc.getAddress(), rmtDvc);
                             if (instantreply != null) {
                                 out.write(instantreply);
+                            }
+                            else {
+
+                                Message mail = new Message();
+                                mail.what = BlueCtrl.DRP_HEADER;
+                                Bundle bundle = new Bundle();
+                                bundle.putString("MAC", BlueCtrl.bytesToMAC(buffer));
+                                mail.setData(bundle);
+                                handler.sendMessage(mail);
                             }
                         }
 

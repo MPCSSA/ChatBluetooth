@@ -214,22 +214,22 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
 
                  while (count < max) {
 
-                     System.out.println("FANCULO");
+                     message = adapter.getItem(count);
+                     if (message == null) {
 
-                     View v = historyList.getChildAt(count);
-                     if (v == null) {
                          System.out.println("NULL");
                          count++;
                          continue;
                      }
-                     CheckBox check = ((CheckBox)v.findViewById(R.id.cboxSelect));
-                     if (check.isChecked()) {
+
+                     if (message.getSender()) {
+
                          System.out.println("REMOVED");
-                         //TODO use BlueCtrl.removeMessage(id)
-                         adapter.remove(historyList.getPositionForView(v));
+                         BlueCtrl.remove(message);
                          max--;
                      }
-                    else {
+                     else {
+
                          System.out.println("SKIPPED");
                          count++;
                      }

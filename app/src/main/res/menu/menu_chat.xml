@@ -8,4 +8,12 @@
         android:orderInCategory="100"
         android:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_fav"
+        android:title="Favorites"
+        android:orderInCategory="200"
+        android:showAsAction="ifRoom"
+        android:icon="@drawable/favorite"
+        />
+
 </menu>

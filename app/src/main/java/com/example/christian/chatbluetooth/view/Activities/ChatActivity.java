@@ -19,10 +19,10 @@ import android.os.Bundle;
 //import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.DisplayMetrics;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -170,8 +170,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         updates the value into the map
                         */
 
-                        if (BlueCtrl.version) BlueCtrl.userAdapt.add(user);
-                        else BlueCtrl.userNomat.add(user);
+                        BlueCtrl.userList.add(user);
+                        if (user.isFav()) BlueCtrl.favList.add(user);
                         //Add found user in the user list
 
                         ArrayList<byte[]> updCascade = new ArrayList<>();
@@ -203,9 +203,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //Restore Token
 
                         if (BlueCtrl.userQueue.size() > 0) {
-                            if (BlueCtrl.version)
-                                BlueCtrl.userAdapt.add(BlueCtrl.userQueue.remove(0));
-                            else BlueCtrl.userNomat.add(BlueCtrl.userQueue.remove(0));
+                            user = BlueCtrl.userQueue.remove(0);
+                            BlueCtrl.userList.add(user);
+                            if (user.isFav()) BlueCtrl.favList.add(user);
                         }
                         //Pop ChatUser from Buffer
                         break;
@@ -240,13 +240,30 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //New message could be from a chat currently opened, therefore it could require update
                         break;
 
+                    case BlueCtrl.DRP_HEADER:
+                        //Some device successfully sent the MAC address of a lost device
+
+                        BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
+                        System.out.println("TOKEN " + BlueCtrl.TKN);
+                        //Restore Token
+
+                        mac = msg.getData().getString("MAC");
+                        user = BlueCtrl.scanUsers(msg.getData().getString("MAC"));
+                        BlueCtrl.userList.remove(user);
+                        BlueCtrl.favList.remove(user);
+                        //Remove user from the RecyclerView
+
+                        break;
+
                     case BlueCtrl.INVISIBLE:
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
                         System.out.println("TOKEN " + BlueCtrl.TKN);
                         //Restore Token
 
-                        BlueCtrl.userAdapt.remove(msg.getData().getString("MAC"));
+                        user = BlueCtrl.scanUsers(msg.getData().getString("MAC"));
+                        BlueCtrl.userList.remove(user);
+                        BlueCtrl.favList.remove(user);
 
                         break;
 
@@ -340,7 +357,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 while (true) {
 
                     try {
-                        Thread.sleep(5000l);
+                        Thread.sleep(10000l);
                     } catch (InterruptedException e) {
                         BlueCtrl.dispatchNews(new byte[]{BlueCtrl.ACK}, null, handler);
                     }
@@ -349,95 +366,86 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         })).start();
         //ACK mechanism to catch no longer connected devices
 
-        ListFragment listFragment = new ListFragment();
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-        fragmentTransaction.add(R.id.containerChat, listFragment, "LIST_FRAGMENT");
-        fragmentTransaction.commit();
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 
-        /* NEW PART */
+        drawerLayout = (DrawerLayout) inflater.inflate(R.layout.nav_drawer, null);
 
-        if (BlueCtrl.version) {
+        ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+        View child = decor.getChildAt(0);
+        decor.removeView(child);
+        FrameLayout container = (FrameLayout) drawerLayout.findViewById(R.id.nav_container);
+        container.addView(child);
+        decor.addView(drawerLayout);
 
-            LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-            drawerLayout = (DrawerLayout) inflater.inflate(R.layout.nav_drawer, null);
-            ViewGroup decor = (ViewGroup) getWindow().getDecorView();
-            View child = decor.getChildAt(0);
-            decor.removeView(child);
-            FrameLayout container = (FrameLayout) drawerLayout.findViewById(R.id.nav_container);
-            container.addView(child);
-            decor.addView(drawerLayout);
-            ((TextView) findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
-            ListView listViewMenu = (ListView) findViewById(R.id.list_menu);
-            listViewMenu.setAdapter(new MenuAdapter(this, R.layout.menu_item_layout));
-            ((ArrayAdapter) listViewMenu.getAdapter()).add("Profilo");
-            ((ArrayAdapter) listViewMenu.getAdapter()).add("Impostazioni");
-            ((ArrayAdapter) listViewMenu.getAdapter()).add("Cronologia");
-            listViewMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        ((TextView) findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
+
+        ListView listViewMenu = (ListView) findViewById(R.id.list_menu);
+        listViewMenu.setAdapter(new MenuAdapter(this, R.layout.menu_item_layout));
+        ((ArrayAdapter) listViewMenu.getAdapter()).add("Profilo");
+        ((ArrayAdapter) listViewMenu.getAdapter()).add("Impostazioni");
+        ((ArrayAdapter) listViewMenu.getAdapter()).add("Cronologia");
+        listViewMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     switch (position) {
                         case 0:
                             Intent intent = new Intent(
-                                    getApplicationContext(),
-                                    ProfileActivity.class
-                            );
+                                            getApplicationContext(),
+                                            ProfileActivity.class);
                             startActivity(intent);
                             break;
 
                         case 1:
                             intent = new Intent(
-                                    getApplicationContext(),
-                                    SettingActivity.class
-                            );
+                                            getApplicationContext(),
+                                            SettingActivity.class);
                             startActivity(intent);
                             break;
 
                         case 2:
                             intent = new Intent(
-                                    getApplicationContext(),
-                                    HistoryActivity.class
-                            );
+                                            getApplicationContext(),
+                                            HistoryActivity.class);
                             startActivity(intent);
                             break;
                     }
                 }
             });
-            ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null, R.string.app_name, R.string.app_name) {
-                /**
-                 * Called when a drawer has settled in a completely closed state.
-                 */
-                public void onDrawerClosed(View view) {
-                    super.onDrawerClosed(view);
-                    getActionBar().setTitle("Lista Contatti");
-                    invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-                }
 
-                /**
-                 * Called when a drawer has settled in a completely open state.
-                 */
-                public void onDrawerOpened(View drawerView) {
-                    super.onDrawerOpened(drawerView);
-                    getActionBar().setTitle("Menu");
-                    invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-                }
-            };
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null, R.string.app_name, R.string.app_name) {
+            /**
+            * Called when a drawer has settled in a completely closed state.
+            */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                getActionBar().setTitle("Lista Contatti");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
 
-            drawerLayout.setDrawerListener(drawerToggle);
+            /**
+            * Called when a drawer has settled in a completely open state.
+            */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                getActionBar().setTitle("Menu");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
 
-            Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-            int[] pixel = new int[2];
-            pixel[0] = (bmp.getWidth() - 240) / 2;
-            pixel[1] = (bmp.getHeight() - 180) / 2;
-            bmp = Bitmap.createScaledBitmap(bmp, 240, 180, false);
-            bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
-            ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bmp));
+        drawerLayout.setDrawerListener(drawerToggle);
 
-            switchVisibility = (Switch) findViewById(R.id.switch_state);
-            (findViewById(R.id.image_switch)).setBackground(getDrawable(R.mipmap.visibility));
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
+        int[] pixel = new int[2];
+        pixel[0] = (bmp.getWidth() - 240) / 2;
+        pixel[1] = (bmp.getHeight() - 180) / 2;
+        bmp = Bitmap.createScaledBitmap(bmp, 240, 180, false);
+        bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+        ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bmp));
 
-            switchVisibility.setOnClickListener(new View.OnClickListener() {
+        switchVisibility = (Switch) findViewById(R.id.switch_state);
+        (findViewById(R.id.image_switch)).setBackground(getDrawable(R.mipmap.visibility));
+
+        switchVisibility.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
@@ -447,19 +455,15 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 }
             });
 
-            final Switch switchSpy = (Switch) findViewById(R.id.switch_spy);
-            switchSpy.setOnClickListener(new View.OnClickListener() {
+
+        final Switch switchSpy = (Switch) findViewById(R.id.switch_spy);
+        switchSpy.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-                    BlueCtrl.SPY = (byte) ((switchSpy.isChecked()) ? 1 : 0);
+                BlueCtrl.SPY = (byte) ((switchSpy.isChecked()) ? 1 : 0);
                 }
             });
-
-
-        /* END NEW PART */
-
-        }
 
         BlueCtrl.emoticons = new EmoticonAdapter(this, R.layout.item_emoticon_picker);
 
@@ -482,9 +486,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         BlueCtrl.msgAdapt = new MessageAdapter(this, R.layout.listitem_discuss);
         BlueCtrl.msgAdapt.setAddress(new String());
 
-        //if (BlueCtrl.appFolder == null) BlueCtrl.appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-
         try {
             (new ServerThread(BluetoothAdapter.getDefaultAdapter().listenUsingInsecureRfcommWithServiceRecord("com.example.christian.chatbluetooth", UUID.fromString(BlueCtrl.UUID)), handler)).start();
         }
@@ -493,7 +494,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             e.printStackTrace();
             System.out.println("LISTEN FAILED");
         }
-
 
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
@@ -552,23 +552,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 return true;
             }
 
-            else{
-                if (BlueCtrl.version) drawerLayout.openDrawer(findViewById(R.id.left_drawer));
-    /*
-    DEBUG ONLY
-     */
-                else {
-                    NoMaterialNavDrawerFragment fragment = new NoMaterialNavDrawerFragment();
-                    FragmentManager fragmentManager = getFragmentManager();
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    fragmentTransaction.replace(R.id.containerChat, fragment);
-                    fragmentTransaction.commit();
-                }
-    /*
-    DEBUG ONLY
-     */
-            }
-
+            drawerLayout.openDrawer(findViewById(R.id.left_drawer));
         }
 
         return super.onOptionsItemSelected(item);

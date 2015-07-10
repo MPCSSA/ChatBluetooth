@@ -238,7 +238,6 @@ public class BlueCtrl {
             pckt[i] = b;
             ++i;
         }
-
         //Target field
 
         for(byte b : sender) {

@@ -1,0 +1,6 @@
+<root>
+  <item name='android.support.v7.app.ActionBar NAVIGATION_MODE_TABS'>
+    <annotation name='java.lang.annotation.Deprecated' />
+    <annotation name='android.support.annotation.Nullable' />
+  </item>
+</root>
