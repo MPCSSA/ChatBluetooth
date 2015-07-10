@@ -227,7 +227,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                     BlueCtrl.sendMsg(user.getNextNode(),
                             BlueCtrl.buildMsg(user.getMacInBytes(),
                                     BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
-                                    BlueCtrl.encrypt(msg)),
+                                    msg),
                             ((ChatActivity)getActivity()).getHandler());
 
                     BlueCtrl.insertMsgTable(tmp, user.getMac(), time, 0, 0);
