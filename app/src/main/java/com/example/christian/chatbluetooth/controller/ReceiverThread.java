@@ -541,8 +541,24 @@ public class ReceiverThread extends Thread {
                                 }
                                 else {
 
+                                    byte[] glued = new byte[16 + tmpBuffer.length];
+                                    glued[0] = BlueCtrl.MSG_HEADER;
+                                    for (int _ = 0; _ < 6; ++_) {
+                                        glued[1 + _] = buffer[_];
+                                    }
+                                    for (int _ = 0; _ < 6; ++_) {
+                                        glued[7 + _] = sender[_];
+                                    }
+                                    glued[13] = 0;
+                                    glued[14] = (byte) crypted;
+                                    glued[15] = (byte) length;
+                                    for (int _ = 0; _ < length; ++_) {
+                                        glued[16 + _] = tmpBuffer[_];
+                                    }
+                                    //Glue together the message to resend without errors
+
                                     BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
-                                            BlueCtrl.buildMsg(buffer, sender, tmpBuffer), handler);
+                                                     glued, handler);
                                     /*
                                     if this device is not the target device, message has to be forwarded to the next node
                                     on the route leading to the target; it is wrapped again in a packet and sent as a
