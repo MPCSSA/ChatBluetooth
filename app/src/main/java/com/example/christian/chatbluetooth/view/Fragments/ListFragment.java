@@ -23,6 +23,7 @@ import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
+import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
 import com.example.christian.chatbluetooth.view.Watchers.RecyclerItemClickListener;
 
 /**
@@ -33,7 +34,7 @@ import com.example.christian.chatbluetooth.view.Watchers.RecyclerItemClickListen
  * Use the {@link ListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ListFragment extends Fragment implements ChatFragment.OnFragmentInteractionListener{
+public class ListFragment extends android.support.v4.app.Fragment implements ChatFragment.OnFragmentInteractionListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -88,6 +89,7 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     */
         // Inflate the layout for this fragment
         return inflater.inflate(layout, container, false);
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -151,7 +153,8 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
             recList.setLayoutManager(llm);
             recList.setItemAnimator(new DefaultItemAnimator());
 
-            //final RecycleAdapter cardadapt = new RecycleAdapter(createList(1));
+            if (getTag().equals("FAVORITES")) BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.favList);
+            else BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.userList);
             recList.setAdapter(BlueCtrl.userAdapt);
             recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
                 @Override
@@ -167,8 +170,8 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
 
                     chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
 
-                    FragmentManager fragmentManager = getFragmentManager();
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    android.support.v4.app.FragmentManager fragmentManager = getFragmentManager();
+                    android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
                     fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
                     fragmentTransaction.commit();
@@ -201,8 +204,8 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
 
                     chatFragment.setUser(BlueCtrl.userAdapt.getItem(i));
 
-                    FragmentManager fragmentManager = getFragmentManager();
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    android.support.v4.app.FragmentManager fragmentManager = getFragmentManager();
+                    android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     fragmentTransaction.replace(R.id.containerChat, chatFragment);
                     fragmentTransaction.commit();
 
