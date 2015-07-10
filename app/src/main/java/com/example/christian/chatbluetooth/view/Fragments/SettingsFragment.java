@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
@@ -31,6 +32,8 @@ import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.model.Country;
+import com.example.christian.chatbluetooth.view.Adapters.CountryAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.SettingAdapter;
 import com.melnykov.fab.FloatingActionButton;
 
@@ -38,6 +41,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -208,6 +213,26 @@ public class SettingsFragment extends Fragment {
                         inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                         layout = inflater.inflate(R.layout.popup_countries,
                                 (ViewGroup) getActivity().findViewById(R.id.country_layout));
+
+                        ListView countries = (ListView) layout.findViewById(R.id.list_countries);
+                        CountryAdapter adapter = new CountryAdapter(getActivity(), R.layout.item_countries);
+
+                        Cursor flag_cursor = BlueCtrl.fetchFlags(Locale.getDefault().getDisplayCountry());
+                        Country country;
+                        if (flag_cursor.moveToFirst()) {
+
+                            do {
+
+                                 adapter.add(new Country(flag_cursor.getString(0), flag_cursor.getInt(1)));
+                            } while(flag_cursor.moveToNext());
+                        }
+
+                        countries.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                            }
+                        });
 
                         point = new Point();
                         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
