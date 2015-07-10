@@ -230,7 +230,7 @@ public class BlueCtrl {
         System.arraycopy(sender, 0, pckt, 7, 6); //Sender field
 
         pckt[13] = 1; //Msg type (in this case, emoticon)
-        pckt[15] = code; //emoticon code
+        pckt[14] = code; //emoticon code
 
         return pckt;
 
