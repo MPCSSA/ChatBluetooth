@@ -31,9 +31,11 @@
     <string name="in_message">Solo messaggi</string>
     <string name="in_user">Solo contatti</string>
     <string name="setting_mod_age">Modifica data di nascita</string>
-    <string name="setting_mod_country">Modifica nazionalita</string>
+    <string name="setting_mod_country">Modifica nazionalit&#224;</string>
     <string name="setting_mod_gender">Modifica sesso</string>
     <string name="spy">Spy Mode</string>
     <string name="you">Tu</string>
     <string name="country">Vengo da&#8230;</string>
+    <string name="from">Origine:&#160;</string>
+    <string name="age">Et&#224;&#160;</string>
 </resources>

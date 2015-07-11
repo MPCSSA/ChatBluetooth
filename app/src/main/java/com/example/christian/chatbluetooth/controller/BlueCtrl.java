@@ -295,42 +295,40 @@ public class BlueCtrl {
     public static byte[] buildCard(Cursor info) {
         /*
         Use this method to retrieve and encode persistent user information requested by a user.
-        Username is the only variable size field; for performance issues, Profile Pictures are
-        not dispatched, but the last field of this message contains a long value referring to the
-        instant the last picture was taken; if an user requests this picture, it is sent via Picture Message
+        Username is the only variable size field.
          */
 
         info.moveToFirst();
         //fetched info
 
         String mac = info.getString(0), username = info.getString(1);
-        long timestamp  = info.getLong(2);
-        int country = info.getInt(5), gender = info.getInt(6), age = info.getInt(7);
+        long timestamp  = info.getLong(2), age = info.getInt(7);
+        int country = info.getInt(5), gender = info.getInt(6);
 
         byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
-                card = new byte[19 + user.length];
+               agestamp = longToBytes(age), card = new byte[26 + user.length];
         /*
         Actual size of a CRD header varies depending on the Username field.
          - 1 byte for the header
          - 6 bytes for MAC address
          - 8 bytes for Last Update timestamp
-         - 1 byte for age, gender and country for a total of 3 bytes
+         - 8 for age timestamp
+         - 1 for gender and country for a total of 2 bytes
          - 1 byte for the Username length field
          - length bytes for Username
-         - 8 bytes for picture timestamp
          */
 
         card[0] = BlueCtrl.CRD_HEADER; //packet header
 
         System.arraycopy(address, 0, card, 1, 6); //MAC address
         System.arraycopy(lastUpd, 0, card, 7, 8); //timestamp
+        System.arraycopy(agestamp, 0, card, 15, 8); //age timestamp
 
-        card[15] = (byte) age;
-        card[16] = (byte) gender;
-        card[17] = (byte) country;
-        card[18] = (byte) user.length;
+        card[23] = (byte) gender;
+        card[24] = (byte) country;
+        card[25] = (byte) user.length;
 
-        System.arraycopy(user, 0, card, 19, user.length);
+        System.arraycopy(user, 0, card, 26, user.length);
 
         return card;
     }
@@ -454,7 +452,7 @@ public class BlueCtrl {
 
         //RECORD MANAGEMENT
 
-    public static void insertUserTable(String mac, long timestamp, String username, int age, int gender, int country) {
+    public static void insertUserTable(String mac, long timestamp, String username, long age, int gender, int country) {
         //This method performs record creation or record replacing of persistent user information
 
         dbManager.createRecord(0, new Object[]{mac, username, timestamp, false, null, country, gender, age});
@@ -655,21 +653,6 @@ public class BlueCtrl {
                 BluetoothAdapter.getDefaultAdapter().startDiscovery(); //And closes the door
         }
         else System.out.println("OPEN DOOR " + DISCOVERY_LOCK);
-    }
-
-    public static byte[] extractImage(String path) {
-
-        Bitmap bmp = BitmapFactory.decodeFile(path);
-        OutputStream outputStream = new ByteArrayOutputStream();
-
-        bmp.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-
-        return ((ByteArrayOutputStream)outputStream).toByteArray();
-    }
-
-    public static Bitmap rebuildImage(byte[] image) {
-
-        return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 
     public static Collection dropUsers(String address) {

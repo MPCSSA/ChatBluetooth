@@ -89,11 +89,11 @@ public class ReceiverThread extends Thread {
                         case BlueCtrl.CRD_HEADER:
                             k = 0;
                             do {
-                                l = (int) in.skip(17 - k);
+                                l = (int) in.skip(25 - k);
                                 k += l;
-                            } while(k < 17);
-                            //skip first 17 bytes of the message; after that, skipping username requires reading length field
-                            skip = in.read() + 8; //skip username and picture timestamp fields
+                            } while(k < 25);
+                            //skip first 25 bytes of the message; after that, skipping username requires reading length field
+                            skip = in.read(); //skip username
                             break;
                         case BlueCtrl.MSG_HEADER:
                             k = 0;
@@ -314,15 +314,15 @@ public class ReceiverThread extends Thread {
                     picture, therefore enhancing performance and avoiding heavy unnecessary message exchange.
                     Card Message can be up to 47 bytes long.
                     [3][   MAC   ][last update][ age ][gender][nationality][length][  username  ]
-                       | 6 bytes |   8 bytes  |1 byte|1 byte |   1 byte   |1 byte |length bytes |
+                       | 6 bytes |   8 bytes  |8 byte|1 byte |   1 byte   |1 byte |length bytes |
                      */
                         final byte[] buffer = new byte[6],
                                lastUpd = new byte[8],
+                               age = new byte[8],
                                username;
-                        final int age, gender, country;
+                        final int gender, country;
                         int length;
 
-                        System.out.println("Give me your card");
                         i = 0;
                         do {
                             j = in.read(buffer, i, 6 - i);
@@ -333,8 +333,6 @@ public class ReceiverThread extends Thread {
                             i += j;
                         } while (i < 6);
                         //read MAC address
-
-                        System.out.println("Your MAC is " + BlueCtrl.bytesToMAC(buffer));
 
                         i = 0;
                         do {
@@ -347,9 +345,17 @@ public class ReceiverThread extends Thread {
                         } while (i < 8);
                         //read LastUpd field
 
-                        System.out.println("Last time was " + BlueCtrl.rebuildTimestamp(lastUpd));
+                        i = 0;
+                        do {
+                            j = in.read(age, i, 8 - i);
+                            if (j < 0) {
+                                System.out.println("Premature EOF, message misunderstanding");
+                                throw new IOException();
+                            }
+                            i += j;
+                        } while (i < 8);
+                        //read age field
 
-                        age = in.read();
                         gender = in.read();
                         country = in.read();
                         //read optional user information; can be 0 (null)
@@ -373,7 +379,7 @@ public class ReceiverThread extends Thread {
                             public void run() {
                                 String address = BlueCtrl.bytesToMAC(buffer);
                                 BlueCtrl.insertUserTable(address, BlueCtrl.rebuildTimestamp(lastUpd),
-                                        new String(username), age, gender, country);
+                                        new String(username), BlueCtrl.rebuildTimestamp(age), gender, country);
                                 //consistent information inserted into DB
 
                                 Message mail = new Message();

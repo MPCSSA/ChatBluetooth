@@ -113,7 +113,7 @@ public class BlueDBManager {
         createRecord(2, new Object[] {"USA","USA", 185, "USA"});
     }
 
-    private ContentValues createCV(String address, String username, long timestamp, boolean isFav, String profile_pic, int nation, int gender, int age) {
+    private ContentValues createCV(String address, String username, long timestamp, boolean isFav, String profile_pic, int nation, int gender, long age) {
 
         ContentValues values = new ContentValues();
 
@@ -173,7 +173,7 @@ public class BlueDBManager {
             case 0:
                 id = db.insertWithOnConflict(tables[table], null,
                         createCV((String) attrs[0], (String) attrs[1], (long) attrs[2], (boolean) attrs[3],
-                                 (String) attrs[4], (int) attrs[5], (int) attrs[6], (int) attrs[7]),
+                                 (String) attrs[4], (int) attrs[5], (int) attrs[6], (long) attrs[7]),
                         SQLiteDatabase.CONFLICT_REPLACE);
                 break;
 

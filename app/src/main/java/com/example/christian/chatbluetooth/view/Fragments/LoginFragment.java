@@ -46,6 +46,7 @@ public class LoginFragment extends Fragment {
 
     EditText userField;
     EditText passwField;
+    String username;
 
     private OnFragmentInteractionListener mListener;
 
@@ -184,19 +185,23 @@ public class LoginFragment extends Fragment {
                 public void onClick(View v) {
                     SharedPreferences preferences = getActivity().getSharedPreferences("preferences", getActivity().MODE_PRIVATE);
 
-                    String username = preferences.getString("username", null); // null is a default value if they don't exist
+                    username = preferences.getString("username", null); // null is a default value if they don't exist
                     String password = preferences.getString("password", null); // null is a default value if they don't exist
 
                     if (username == null) {
+
                         //Not registered
                         Toast.makeText(getActivity(), "You must first register", Toast.LENGTH_SHORT).show();
-                    } else if (username != null && password != null) {
+                    }
+                    else if (username != null && password != null) {
+
                         if (userField.getText().toString().equals(username) && passwField.getText().toString().equals(password)) {
 
                             Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
                             discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
                             startActivityForResult(discoverable, 1);
-                        } else {
+                        }
+                        else {
                             // Wrong user or pass
                             Toast.makeText(getActivity(), "Wrong username or password", Toast.LENGTH_SHORT).show();
                             userField.requestFocus();
@@ -221,7 +226,7 @@ public class LoginFragment extends Fragment {
                     getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).edit().putBoolean("1stRun", false).apply();
                 }
 
-                Toast.makeText(getActivity(), "Login", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), getString(R.string.login_greeting) + username, Toast.LENGTH_SHORT).show();
                 getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).edit().putBoolean("logged in", true).apply();
 
                 Intent intent = new Intent(

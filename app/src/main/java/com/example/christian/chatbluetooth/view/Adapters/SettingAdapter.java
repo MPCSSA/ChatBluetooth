@@ -70,10 +70,37 @@ public class SettingAdapter extends ArrayAdapter<String> {
         else {
 
             view = inflater.inflate(R.layout.item_gender, parent, false);
-            if (((SettingActivity)getContext()).gender == 1)
-                ((RadioButton) view.findViewById(R.id.male_settings)).setChecked(true);
-            else if (((SettingActivity)getContext()).gender == 2)
-                ((RadioButton) view.findViewById(R.id.fem_settings)).setChecked(true);
+
+            RadioButton male = (RadioButton) view.findViewById(R.id.male_settings),
+                    fem = (RadioButton) view.findViewById(R.id.fem_settings);
+
+            if (((SettingActivity)getContext()).gender == 1) (male).setChecked(true);
+            else if (((SettingActivity)getContext()).gender == 2) (fem).setChecked(true);
+
+            male.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    ((SettingActivity)getContext()).gender = 1;
+                }
+            });
+
+            fem.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    ((SettingActivity)getContext()).gender = 2;
+                }
+            });
+
+            CheckBox cb = (CheckBox) view.findViewById(R.id.visible_cb);
+            cb.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    ((SettingActivity)getContext()).checked[position - 1] = ((CheckBox)view).isChecked();
+                }
+            });
         }
 
         if (position > 0) ((CheckBox) view.findViewById(R.id.visible_cb)).setChecked(((SettingActivity)getContext()).checked[position - 1]);

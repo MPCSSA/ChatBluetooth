@@ -60,5 +60,8 @@
     <string name="you">You</string>
     <string name="country">I\'m from&#8230;</string>
 
+    <string name="from">From&#160;</string>
+    <string name="age">Age&#160;</string>
+
 
 </resources>

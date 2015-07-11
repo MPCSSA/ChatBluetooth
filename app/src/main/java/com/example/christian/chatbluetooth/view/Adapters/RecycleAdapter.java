@@ -19,6 +19,7 @@ import com.example.christian.chatbluetooth.model.Country;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 
@@ -47,12 +48,11 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         if (username == null) username = "Unknown";
         userViewHolder.name.setText(username);
 
-        int age = chatUser.getAge();
+        long age = chatUser.getAge();
         if (age > 0) {
 
-            userViewHolder.age.setText(String.valueOf(age));
+            userViewHolder.age.setText(String.valueOf((new Date()).getTime() - age));
         }
-
 
         int gender = chatUser.getGender();
         if (gender > 0) {
@@ -61,14 +61,14 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
             else userViewHolder.thumb.setBackground(context.getDrawable(R.drawable.unknown_fem));
         }
 
-        int country = chatUser.getCountry();
-        Country c = null; //= BlueCtrl.fetchFlags(country);
-        if (country > 0 && c != null) {
+        int c = chatUser.getCountry();
+        Country country =  BlueCtrl.fetchFlag(c);
+        if (c > 0 && country != null) {
 
             Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.flags);
-            int w = bitmap.getWidth() / 17, h = bitmap.getHeight() / 12, pos = c.getPosition();
+            int w = bitmap.getWidth() / 17, h = bitmap.getHeight() / 12, pos = country.getPosition();
 
-            userViewHolder.flag.setBackground(new BitmapDrawable(Bitmap.createBitmap(bitmap, (0 / 12) * w, (0 % 12) * h, w, h)));
+            userViewHolder.flag.setBackground(new BitmapDrawable(Bitmap.createBitmap(bitmap, (pos / 12) * w, (pos % 12) * h, w, h)));
         }
     }
 

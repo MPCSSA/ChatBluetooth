@@ -23,7 +23,10 @@ import android.widget.ListView;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.model.Country;
 import com.example.christian.chatbluetooth.view.Adapters.MyProfileAdapter;
+
+import java.util.Date;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -87,7 +90,7 @@ public class MyProfileFragment extends Fragment {
 
         Point point = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
-        System.out.println("La larghezza: " + point.x);
+
         int width = point.x;
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -100,33 +103,30 @@ public class MyProfileFragment extends Fragment {
 
 
         SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
-        fieldList.setAdapter(new MyProfileAdapter(getActivity(), R.layout.my_profile_item));
-        Cursor cursor = BlueCtrl.fetchPersistentInfo(BluetoothAdapter.getDefaultAdapter().getAddress());
-        ((ArrayAdapter<String>) fieldList.getAdapter()).add(sh.getString("username", "my profile"));
-        if (cursor.moveToFirst()){
-            ((ArrayAdapter<String>) fieldList.getAdapter()).add(String.valueOf(cursor.getInt(5)));
-            ((ArrayAdapter<String>) fieldList.getAdapter()).add(String.valueOf(cursor.getInt(6)));
-            ((ArrayAdapter<String>) fieldList.getAdapter()).add(String.valueOf(cursor.getInt(7)));
-        }
+        MyProfileAdapter adapter = new MyProfileAdapter(getActivity(), R.layout.my_profile_item);
+        fieldList.setAdapter(adapter);
 
+        adapter.add(new String[]{getString(R.string.username), sh.getString("username", "Unknown")});
 
-        /*String birth = sh.getString("birth", null);
-        if (birth != null) {
-            System.out.println("BIRTH NOT NULL");
-            ((ArrayAdapter<String>)fieldList.getAdapter()).add(birth);
-        }
-        int gender = sh.getInt("gender", 0);
-        if (gender != 0) {
-            System.out.println("GENDER NOT NULL");
-            String g = (gender == 1) ? "M" : "F";
-            ((ArrayAdapter<String>)fieldList.getAdapter()).add(g);
-        }
         int country = sh.getInt("country", 0);
-        if (country != 0){
-            System.out.println("COUNTRY NOT NULL");
-            ((ArrayAdapter<String>)fieldList.getAdapter()).add(String.valueOf(country));
-        }*/
+        if (country > 0) {
 
+            Country c = BlueCtrl.fetchFlag(country);
+            adapter.add(new String[] {getString(R.string.from), c.getCountry(), String.valueOf(c.getPosition())});
+        }
+
+        long timestamp = sh.getLong("birth_timestamp", 0l);
+        if (timestamp > 0) {
+
+            int age = (int) (((new Date()).getTime() - timestamp) / 31536000000l);
+            adapter.add(new String[]{getString(R.string.age), String.valueOf(age)});
+        }
+
+        int gender = sh.getInt("gender", 0);
+        if (gender > 0) {
+
+            adapter.add(new String[] {String.valueOf(gender)});
+        }
     }
 
     @Override

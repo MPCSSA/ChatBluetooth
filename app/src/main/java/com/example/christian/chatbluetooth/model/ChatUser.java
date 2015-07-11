@@ -10,8 +10,6 @@ import java.util.Date;
 
 public class ChatUser {
 
-    //TODO: observer mechanism
-
     //identifier information
     private String strMAC; //target MAC address in String format
     private byte[] bMAC; //target MAC address in byte array format
@@ -64,7 +62,8 @@ public class ChatUser {
     //persistent information
     private String name; //user name
     private boolean favorite; //whether or not the user is into Favorites category
-    private int age, gender, country;
+    private long age;
+    private int gender, country;
     private String profilePic;
 
     public String getName() { return name; }
@@ -79,8 +78,8 @@ public class ChatUser {
     public int getGender() { return this.gender; }
     public void setGender(int gender) { this.gender = gender; }
 
-    public int getAge() { return age; }
-    public void setAge(int age) { this.age = age; }
+    public long getAge() { return age; }
+    public void setAge(long age) { this.age = age; }
 
     public String getProfilePic() { return this.profilePic; }
     public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
@@ -110,7 +109,7 @@ public class ChatUser {
         setName(profileInfo.getString(1));
         setCountry(profileInfo.getInt(5));
         setGender(profileInfo.getInt(6));
-        setAge(profileInfo.getInt(7));
+        setAge(profileInfo.getLong(7));
     }
 
     public boolean updateUser(BluetoothDevice dvc, int bnc, int sts) {

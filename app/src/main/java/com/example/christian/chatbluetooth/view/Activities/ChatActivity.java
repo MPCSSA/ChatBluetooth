@@ -344,16 +344,9 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
             }
         };
 
-        if (!BlueCtrl.version) {
-            BlueCtrl.openDatabase(this);
-            BlueCtrl.fetchFlags();
-            return;
-        }
-
-                (new Thread(new Runnable() {
+        (new Thread(new Runnable() {
                     @Override
                     public void run() {
-
                         while (true) {
 
                             try {
@@ -361,8 +354,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                             } catch (InterruptedException e) {
                                 BlueCtrl.dispatchNews(new byte[]{BlueCtrl.ACK}, null, handler);
                             }
-                        }
-                    }
+                        }}
                 })).start();
         //ACK mechanism to catch no longer connected devices
 
@@ -472,7 +464,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                 }
             });
 
-        ((Button) findViewById(R.id.btn_logout)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btn_logout).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
@@ -488,15 +480,12 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
         SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
 
         BlueCtrl.openDatabase(this);
+
+        //SAVING USER PROFILE
         if (getIntent().getBooleanExtra("newbie", false)) {
 
-            long timestamp = sh.getLong("timestamp", 0);
-            int age = 0;
-            try {
-                long millis = (new Date()).getTime() - (new SimpleDateFormat("dd mm yyyy")).parse(sh.getString("birth", "01 01 1980")).getTime();
-                age = (int) (millis / 31536000000l);
-            }
-            catch (Exception ignore) {}
+            long timestamp = sh.getLong("timestamp", 0), age = sh.getLong("birth_timestamp", 0);
+
             BlueCtrl.insertUserTable(BluetoothAdapter.getDefaultAdapter().getAddress(), timestamp, sh.getString("username", "Unknown"), age, sh.getInt("gender", 0), sh.getInt("country", 0));
         }
 

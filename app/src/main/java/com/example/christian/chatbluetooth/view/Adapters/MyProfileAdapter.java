@@ -2,6 +2,9 @@ package com.example.christian.chatbluetooth.view.Adapters;
 
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +16,7 @@ import com.example.christian.chatbluetooth.R;
 
 import java.util.zip.Inflater;
 
-public class MyProfileAdapter extends ArrayAdapter<String>{
+public class MyProfileAdapter extends ArrayAdapter<String[]>{
 
     private int layout;
 
@@ -25,18 +28,36 @@ public class MyProfileAdapter extends ArrayAdapter<String>{
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+
         View view = convertView;
+
         if (view == null){
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = inflater.inflate(layout, parent, false);
         }
 
-        ((TextView) view.findViewById(R.id.field)).setText(getItem(position));
-        if (position == 0){
-            CheckBox checkBox = (CheckBox) view.findViewById(R.id.visibility_cb);
-            checkBox.setVisibility(View.INVISIBLE);
-            checkBox.setEnabled(false);
+        if (getItem(position).length < 2) {
+
+            int gender = Integer.parseInt(getItem(position)[0]), image = (gender == 1) ? R.drawable.male_radio_unchecked : R.drawable.fem_radio_unchecked;
+            view.findViewById(R.id.gender).setBackground(getContext().getDrawable(image));
+
+            return view;
         }
+        else view.findViewById(R.id.gender).setBackground(null);
+
+        ((TextView) view.findViewById(R.id.field)).setText(getItem(position)[0]);
+        ((TextView) view.findViewById(R.id.value)).setText(getItem(position)[1]);
+
+        if (getItem(position)[0].equals(getContext().getString(R.string.from))) {
+
+            int p = Integer.parseInt(getItem(position)[2]);
+
+            Bitmap bmp = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.flags);
+            int w = bmp.getWidth() / 17, h = bmp.getHeight() / 12;
+            view.findViewById(R.id.flag).setBackground(new BitmapDrawable(
+                    Bitmap.createBitmap(bmp, w * (p / 12), h * (p % 12), w, h)));
+        }
+        else view.findViewById(R.id.flag).setBackground(null);
 
         return view;
     }
