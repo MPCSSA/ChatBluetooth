@@ -37,8 +37,8 @@ public class CountryAdapter extends ArrayAdapter<Country> {
         ImageView flag = (ImageView) view.findViewById(R.id.country_flag);
         Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.flags);
         int w = bitmap.getWidth() / 17, h = bitmap.getHeight() / 12;
-        flag.setBackground(new BitmapDrawable(Bitmap.createBitmap(bitmap, w * (country.getPosition() / 17),
-                                                                  h * (country.getPosition() / 12), w, h)));
+        flag.setBackground(new BitmapDrawable(Bitmap.createBitmap(bitmap, w * (country.getPosition() / 12),
+                                                                  h * (country.getPosition() % 12), w, h)));
 
         return view;
     }

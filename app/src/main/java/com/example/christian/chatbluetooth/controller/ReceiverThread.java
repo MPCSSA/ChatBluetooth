@@ -95,12 +95,6 @@ public class ReceiverThread extends Thread {
                             //skip first 17 bytes of the message; after that, skipping username requires reading length field
                             skip = in.read() + 8; //skip username and picture timestamp fields
                             break;
-                        case BlueCtrl.PIC_HEADER:
-                            skip = 0;
-                            for (int _ = 0; _ < 3; ++_) {
-                                skip = skip * 256 + in.read(); //skip the whole picture
-                            }
-                            break;
                         case BlueCtrl.MSG_HEADER:
                             k = 0;
                             do {
@@ -319,12 +313,12 @@ public class ReceiverThread extends Thread {
                     last update: if this field has not changed, this device needs not to download a new
                     picture, therefore enhancing performance and avoiding heavy unnecessary message exchange.
                     Card Message can be up to 47 bytes long.
-                    [3][   MAC   ][last update][ age ][gender][nationality][length][  username  ][Profile Picture Last Upd]
-                       | 6 bytes |   8 bytes  |1 byte|1 byte |   1 byte   |1 byte |length bytes |        8 bytes          |
+                    [3][   MAC   ][last update][ age ][gender][nationality][length][  username  ]
+                       | 6 bytes |   8 bytes  |1 byte|1 byte |   1 byte   |1 byte |length bytes |
                      */
                         final byte[] buffer = new byte[6],
                                lastUpd = new byte[8],
-                               username, lastPic = new byte[8];
+                               username;
                         final int age, gender, country;
                         int length;
 
@@ -358,7 +352,7 @@ public class ReceiverThread extends Thread {
                         age = in.read();
                         gender = in.read();
                         country = in.read();
-                        //read optional user information; can be null
+                        //read optional user information; can be 0 (null)
 
                         length = in.read();
                         username = new byte[length];
@@ -373,16 +367,6 @@ public class ReceiverThread extends Thread {
                             i += j;
                         } while (i < length);
                         //read username
-
-                        i = 0;
-                        do {
-                            j = in.read(lastPic, i, 8 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
-                            i += j;
-                        } while (i < 8);
 
                         (new Thread(new Runnable() {
                             @Override
@@ -400,64 +384,15 @@ public class ReceiverThread extends Thread {
                                 handler.sendMessage(mail);
                                 //update and show user information
 
-                                //TODO: image updating
-
                             }
                         })).start();
-
-                        long picture = BlueCtrl.rebuildTimestamp(lastPic);
-
-                        if (picture == 0 || BlueCtrl.validatePicture(BlueCtrl.bytesToMAC(buffer), picture)) {
-
-                            out.write(BlueCtrl.ACK); //ACKed
-                            connected = false;
-                        }
-                        else {
-
-                            out.write(BlueCtrl.RQS_HEADER);
-                            out.write(buffer);
-                            out.write(1);
-                        }
-
-                        break;
-
-                    }
-
-                    case BlueCtrl.PIC_HEADER:
-                        /*
-                        A Picture Message is an heavy kind of message which wraps up an updated profile
-                        picture. Following the header, 3 bytes decoded as a 24-bit integer represent
-                        the picture size (for a maximum of 16 MB circa) for a streamer safe reading.
-                        [4][picture length][    PICTURE    ]
-                           |   3 bytes    |  length bytes  |
-                         */
-
-                        i = 0;
-                        int length = 0;
-                        do {
-                            length = (length * 256) + in.read();
-                            ++i;
-                        } while (i < 3);
-
-                        byte[] pic = new byte[length];
-
-                        i = 0;
-                        do {
-                            j = in.read(pic, i, length - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
-                            i += j;
-                        } while (i < length);
-                        //download profile image as a byte sequence
-
-                        //TODO: new Thread(new Runnable() {...})
 
                         out.write(BlueCtrl.ACK); //ACKed
                         connected = false;
 
                         break;
+
+                    }
 
                     case BlueCtrl.MSG_HEADER: {
                     /*
@@ -502,7 +437,7 @@ public class ReceiverThread extends Thread {
 
                             case 0:
 
-                                int crypted;
+                                int crypted, length = 0;;
                                 if ((crypted = in.read()) == -1) throw new  IOException(); //is the message crypted?
                                 System.out.println("CRYPTED: " + crypted);
 
@@ -667,14 +602,6 @@ public class ReceiverThread extends Thread {
 
             e.printStackTrace();
             BlueCtrl.unlockDiscoverySuspension();
-
-            Message mail = new Message();
-            mail.what = BlueCtrl.LST;
-            Bundle bundle = new Bundle();
-            bundle.putString("MAC", rmtDvc.getAddress());
-            mail.setData(bundle);
-            handler.sendMessage(mail);
-            cancel();
         }
         catch (Exception e) {
 

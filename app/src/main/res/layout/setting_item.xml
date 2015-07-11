@@ -12,6 +12,16 @@
         android:layout_marginLeft="16dp"
         android:layout_centerVertical="true" />
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/set_item"
+        android:id="@+id/flag"
+        android:layout_marginStart="8dp"
+        android:paddingTop="1dp"
+        android:paddingStart="1dp"
+        android:layout_centerVertical="true"/>
+
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

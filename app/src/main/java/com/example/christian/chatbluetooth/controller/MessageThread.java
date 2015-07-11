@@ -161,22 +161,14 @@ public class MessageThread extends Thread {
                         } while (i < 6);
                         //MAC address of unknown user
 
-                        if (in.read() == 0) {
-                            //Card Message requested
+                        address = BlueCtrl.bytesToMAC(buffer); //MAC address
 
-                            address = BlueCtrl.bytesToMAC(buffer); //MAC address
+                        byte[] card = BlueCtrl.buildCard(BlueCtrl.fetchPersistentInfo(address));
+                        //Building response message
 
-                            byte[] card = BlueCtrl.buildCard(BlueCtrl.fetchPersistentInfo(address));
-                            //Building response message
+                        out.write(card);
+                        System.out.println(address + " CARD SENT TO " + rmtDvc.getAddress());
 
-                            out.write(card);
-                            System.out.println(address + " CARD SENT TO " + rmtDvc.getAddress());
-                        }
-                        else {
-                            //Picture Update requested
-
-                            //TODO: fetch profile picture
-                        }
 
                         break;
 

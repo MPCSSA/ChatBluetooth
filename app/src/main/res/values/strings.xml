@@ -8,7 +8,7 @@
     <string name="username" translatable="false">Username</string>
     <string name="password" translatable="false">Password</string>
     <string name="confirm">Confirm password</string>
-    <string name="birth">I was born in...</string>
+    <string name="birth">I was born in&#8230;</string>
     <string name="male" translatable="false">M</string>
     <string name="female" translatable="false">F</string>
     <string name="state">Invisible</string>
@@ -56,6 +56,9 @@
     <string name="all">All</string>
     <string name="spy">Spy Mode</string>
     <string name="log_out" translatable="false">Log Out</string>
+
+    <string name="you">You</string>
+    <string name="country">I\'m from&#8230;</string>
 
 
 </resources>

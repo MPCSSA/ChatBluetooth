@@ -99,6 +99,7 @@
                 android:id="@+id/tv_birth"
                 android:hint="@string/birth"
                 android:layout_toRightOf="@+id/calendar"
+                android:layout_centerVertical="true"
                 android:layout_marginStart="8dp"
                 android:textSize="18sp" />
 
@@ -145,16 +146,35 @@
                 android:layout_marginStart="20dp"/>
         </RadioGroup>
 
-        <Spinner
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/spin_nations"
-            android:entries="@array/nation"
-            android:backgroundTint="@color/accent"
+            android:id="@+id/country_popup_layout"
+            android:layout_marginTop="16dp"
             android:layout_below="@+id/radioGroup_reg"
-            android:layout_alignParentStart="true"
-            android:spinnerMode="dialog"
-            android:layout_marginTop="20dp"/>
+            android:layout_alignStart="@+id/birth_layout">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:ems="10"
+                android:id="@+id/tv_country"
+                android:hint="@string/country"
+                android:layout_toRightOf="@+id/world"
+                android:layout_marginStart="8dp"
+                android:layout_centerVertical="true"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/world"
+                android:background="@drawable/world"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                />
+
+        </RelativeLayout>
 
     </RelativeLayout>
 </FrameLayout>

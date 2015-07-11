@@ -44,13 +44,11 @@ public class BlueCtrl {
     public static final byte UPD_HEADER = (byte) 1; //header for Update Message
     public static final byte RQS_HEADER = (byte) 2; //header for Info Request
     public static final byte CRD_HEADER = (byte) 3; //header for Card Message
-    public static final byte PIC_HEADER = (byte) 4; //header for Card Message
-    public static final byte MSG_HEADER = (byte) 5; //header for Chat Message
-    public static final byte DRP_HEADER = (byte) 6; //header for Drop Request
-    public static final byte        ACK = (byte) 7; //ACKnowledge Message for communication synchronization
-    public static final byte  INVISIBLE = (byte) 8;
+    public static final byte MSG_HEADER = (byte) 4; //header for Chat Message
+    public static final byte DRP_HEADER = (byte) 5; //header for Drop Request
+    public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
+    public static final byte  INVISIBLE = (byte) 7;
     public static final byte        NAK = (byte) -1;
-    public static final byte        LST = (byte) -2;
     public static final int         TKN = 20;       //Tokens assigned to an alive device
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
 
@@ -306,11 +304,10 @@ public class BlueCtrl {
 
         String mac = info.getString(0), username = info.getString(1);
         long timestamp  = info.getLong(2);
-        String profile_pic = info.getString(4);
         int country = info.getInt(5), gender = info.getInt(6), age = info.getInt(7);
 
         byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
-                card = new byte[27 + user.length], lastPic;
+                card = new byte[19 + user.length];
         /*
         Actual size of a CRD header varies depending on the Username field.
          - 1 byte for the header
@@ -334,19 +331,7 @@ public class BlueCtrl {
 
         System.arraycopy(user, 0, card, 19, user.length);
 
-        long picture = (profile_pic == null) ? 0l : Long.parseLong(profile_pic);
-        //if the user did not choose a new Profile Picture, a value of 0 indicates default image
-
-        lastPic = longToBytes(picture);
-        System.arraycopy(lastPic, 0, card, 19 + user.length, lastPic.length);
-
         return card;
-    }
-
-    public byte[] buildPicture() {
-
-        //TODO
-        return null;
     }
 
 
@@ -687,16 +672,12 @@ public class BlueCtrl {
     }
 
     public static Collection dropUsers(String address) {
+
         return userAdapt.dropUsers(address);
     }
 
     public static Cursor fetchMsgHistory(String address, long timestamp){
         return dbManager.fetchMsgHistory(address, timestamp);
-    }
-
-    public static boolean validatePicture(String address, long timestamp) {
-
-        return (dbManager.fetchProfilePicCode(address) == timestamp);
     }
 
     public static BluetoothDevice scanUsersForDvc(String address) {
@@ -761,17 +742,39 @@ public class BlueCtrl {
         dbManager.updateFavorites(mac, value);
     }
 
-    public static Country fetchFlags(int position) {
+    public static Country fetchFlag(int position) {
 
         Cursor cursor = dbManager.fetchCountry(position);
 
         if (cursor != null && cursor.moveToFirst()) {
-
             if (Locale.getDefault().getDisplayCountry().equals("ITALY"))
-                return new Country(cursor.getString(1), cursor.getInt(3));
-            else return new Country(cursor.getString(2), cursor.getInt(3));
+                return (new Country(cursor.getString(0), cursor.getInt(2)));
+            else return (new Country(cursor.getString(1), cursor.getInt(2)));
         }
 
         return null;
+    }
+
+    public static ArrayList<Country> fetchFlags() {
+
+        Cursor cursor = dbManager.fetchCountries();
+        ArrayList<Country> countries= new ArrayList<>();
+
+        if (cursor != null && cursor.moveToFirst()) {
+
+            do {
+                if (Locale.getDefault().getDisplayCountry().equals("ITALY"))
+                    countries.add(new Country(cursor.getString(0), cursor.getInt(2)));
+                else countries.add(new Country(cursor.getString(1), cursor.getInt(2)));
+            }
+            while (cursor.moveToNext());
+        }
+
+        return countries;
+    }
+
+    public static void closeDB() {
+
+        dbManager.getDb().close();
     }
 }

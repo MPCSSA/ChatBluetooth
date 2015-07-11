@@ -5,39 +5,41 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Activities.MainActivity;
+import com.example.christian.chatbluetooth.view.Adapters.CountryAdapter;
 import com.example.christian.chatbluetooth.view.Watchers.ConfirmationWatcher;
 import com.example.christian.chatbluetooth.view.Watchers.PasswordWatcher;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -60,7 +62,6 @@ public class RegistrationFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
 
     private Button registration;
-    private Spinner nations;
     private EditText name;
     private EditText passw;
     private EditText confirmPassw;
@@ -68,6 +69,7 @@ public class RegistrationFragment extends Fragment {
     private ImageView calendar;
     private RadioButton male;
     private RadioButton female;
+    private int id = 0;
 
     /**
      * Use this factory method to create a new instance of
@@ -104,11 +106,7 @@ public class RegistrationFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        /*
-        DEBUG ONLY
-        */
-        int layout = (BlueCtrl.version) ? R.layout.fragment_registration : R.layout.fragment_registration_nomat;
-        return inflater.inflate(layout, container, false);
+        return inflater.inflate(R.layout.fragment_registration, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -181,17 +179,50 @@ public class RegistrationFragment extends Fragment {
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         actionBar.setTitle(title);
 
-        this.nations = (Spinner) getActivity().findViewById(R.id.spin_nations);
-        List<String> list = new ArrayList<String>();
-        list.add("Nazione di nascita");
-        list.add("Francia");
-        list.add("Germania");
-        list.add("Inghilterra");
-        list.add("Italia");
-        list.add("Spagna");
-        int spinner_item = (BlueCtrl.version) ? R.layout.spinner_item : R.layout.spinner_item_nomat;
-        ArrayAdapter<String> dataAdapter= new ArrayAdapter<String>(getActivity(), spinner_item, list);
-        nations.setAdapter(dataAdapter);
+        getActivity().findViewById(R.id.world).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                name.clearFocus();
+                passw.clearFocus();
+                confirmPassw.clearFocus();
+
+                LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                View v = inflater.inflate(R.layout.popup_countries,
+                        (ViewGroup) getActivity().findViewById(R.id.country_popup_layout));
+
+                Point point = new Point();
+                getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
+
+                int win_width = (point.x) * 2 / 3;
+                int win_height = (point.y) / 3;
+
+                final PopupWindow countryPopup = new PopupWindow(v, win_width, win_height, true);
+                countryPopup.setBackgroundDrawable(new BitmapDrawable());
+                countryPopup.setAnimationStyle(R.style.SettingsPopup);
+                countryPopup.showAtLocation(v, Gravity.CENTER, 0, 0);
+
+                ListView countries = (ListView) v.findViewById(R.id.list_countries);
+                CountryAdapter adapter = new CountryAdapter(getActivity(), R.layout.item_countries);
+                countries.setAdapter(adapter);
+
+                adapter.addAll(BlueCtrl.fetchFlags());
+                adapter.notifyDataSetChanged();
+
+                countries.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                        id = i + 1;
+
+                        String country = BlueCtrl.fetchFlag(i + 1).getCountry();
+                        ((TextView) getActivity().findViewById(R.id.tv_country)).setText(country);
+
+                        //countryPopup.dismiss();
+                    }
+                });
+            }
+        });
 
         calendar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -221,15 +252,15 @@ public class RegistrationFragment extends Fragment {
                             preferences.edit().putLong("timestamp", creation.getTime()).apply();
 
                             String birth = date.getText().toString();
-                            Date birthday;
+                            long birthday;
                             try {
-                                birthday = (new SimpleDateFormat("dd mm yyyy")).parse(birth.replace("/", " "));
+                                birthday = (new SimpleDateFormat("dd mm yyyy")).parse(birth.replace("/", " ")).getTime();
                             } catch (ParseException ignore) {
-                                birthday = new Date();
+                                birthday = 0l;
                             }
 
                             preferences.edit().putString("birth", birth).apply();    //birth date
-                            preferences.edit().putLong("birth_timestamp", birthday.getTime()).apply(); //timestamp
+                            preferences.edit().putLong("birth_timestamp", birthday).apply(); //timestamp
 
                             int gender = 0;
                             if (((RadioButton)getActivity().findViewById(R.id.rbtn_male)).isChecked()) gender = 1;
@@ -237,7 +268,7 @@ public class RegistrationFragment extends Fragment {
 
                             preferences.edit().putInt("gender", gender).apply();
 
-                            preferences.edit().putInt("country", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItemPosition() + 1).apply();
+                            preferences.edit().putInt("country", id).apply();
 
                             ((MainActivity)getActivity()).registered();
 

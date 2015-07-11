@@ -137,7 +137,7 @@ public class LoginFragment extends Fragment {
         super.onActivityCreated(savedIstanceState);
 
 
-        if (getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("logged in", false)) {
+        if (!BlueCtrl.version || getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("logged in", false)) {
             Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
             startActivityForResult(discoverable, 1);
@@ -214,7 +214,12 @@ public class LoginFragment extends Fragment {
         if (requestCode == 1) {
 
             if (resultCode == 1) {
-                System.out.println("STARTING CHAT");
+
+                if (getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("1stRun", true)) {
+
+                    BlueCtrl.closeDB();
+                    getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).edit().putBoolean("1stRun", false).apply();
+                }
 
                 Toast.makeText(getActivity(), "Login", Toast.LENGTH_SHORT).show();
                 getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).edit().putBoolean("logged in", true).apply();

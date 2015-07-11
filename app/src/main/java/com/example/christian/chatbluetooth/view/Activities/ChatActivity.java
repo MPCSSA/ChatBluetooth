@@ -38,9 +38,11 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
 //import com.example.christian.chatbluetooth.controller.AsyncScavenger;
+import com.example.christian.chatbluetooth.controller.AsyncScavenger;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.ServerThread;
 import com.example.christian.chatbluetooth.model.ChatUser;
@@ -70,6 +72,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
     private static Handler handler;
     public boolean state = false;
     public boolean state2 = false;
+    public boolean chat = false;
 
     public Handler getHandler() { return ChatActivity.handler; }
 
@@ -230,11 +233,6 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
 
                         break;
 
-                    case BlueCtrl.PIC_HEADER:
-
-                        //TODO: Thread for picking and resizing the image for Thumbnail
-                        break;
-
                     case BlueCtrl.MSG_HEADER:
                         //Some device successfully sent a chat message to this device
 
@@ -256,7 +254,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                         //Restore Token
 
                         mac = msg.getData().getString("MAC");
-                        user = BlueCtrl.scanUsers(msg.getData().getString("MAC"));
+                        user = BlueCtrl.scanUsers(mac);
                         BlueCtrl.userList.remove(user);
                         BlueCtrl.favList.remove(user);
                         //Remove user from the RecyclerView
@@ -306,7 +304,14 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
 
                             BlueCtrl.tokenMap.remove(mac);
                             BlueCtrl.closeDvc.remove(mac);
-                            BlueCtrl.userAdapt.remove(mac);
+
+                            ArrayList<ChatUser> lstDvcs = (ArrayList) BlueCtrl.userAdapt.dropUsers(mac);
+
+                                    (new AsyncScavenger(handler)).execute((Runnable) lstDvcs.iterator()); //DROP routine
+
+                            for (ChatUser u : lstDvcs) {
+                                BlueCtrl.favList.remove(u); //Remove from GUI
+                            }
                         }
                         else {
 
@@ -329,26 +334,8 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                             //there's no point in forwarding the message again
                             //END OF RESEND CHAIN
                         }
+
                         break;
-
-                    /*case BlueCtrl.LST:
-                        //Lost connection while receiving a message
-
-                        mac = msg.getData().getString("MAC");
-                        //MAC address of the wannabe receiver
-
-                        counter = BlueCtrl.tokenMap.get(mac);
-                        //Tokens left
-                        if (counter != null) {
-                            /*
-                            It is unlikely to lose connection once it is established; to make sure
-                            the remote device is still there, this device starts sending ACK messages
-                            to prove its existence. If the device is unknown, however, it does nothing
-                             */
-
-/*                            BlueCtrl.sendMsg(BlueCtrl.scanUsersForDvc(mac), new byte[] {BlueCtrl.ACK}, handler);
-                            break;
-                        }*/
                 }
 
                 BlueCtrl.userAdapt.notifyDataSetChanged();
@@ -357,20 +344,26 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
             }
         };
 
-        (new Thread(new Runnable() {
-            @Override
-            public void run() {
+        if (!BlueCtrl.version) {
+            BlueCtrl.openDatabase(this);
+            BlueCtrl.fetchFlags();
+            return;
+        }
 
-                while (true) {
+                (new Thread(new Runnable() {
+                    @Override
+                    public void run() {
 
-                    try {
-                        Thread.sleep(10000l);
-                    } catch (InterruptedException e) {
-                        BlueCtrl.dispatchNews(new byte[]{BlueCtrl.ACK}, null, handler);
+                        while (true) {
+
+                            try {
+                                Thread.sleep(10000l);
+                            } catch (InterruptedException e) {
+                                BlueCtrl.dispatchNews(new byte[]{BlueCtrl.ACK}, null, handler);
+                            }
+                        }
                     }
-                }
-            }
-        })).start();
+                })).start();
         //ACK mechanism to catch no longer connected devices
 
         ListFragment listFragment = new ListFragment();
@@ -379,7 +372,6 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
         fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
         fragmentTransaction.add(R.id.containerChat, listFragment, "LIST_FRAGMENT");
         fragmentTransaction.commit();
-
 
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 
@@ -495,40 +487,13 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
 
         SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
 
-        if (sh.getBoolean("1stRun", true)) {
-
-            sh.edit().putBoolean("1stRun", false).apply();
-            try {
-                InputStream myInput = getAssets().open(BlueCtrl.dbname + ".db");
-                // Path to the just created empty db
-                File outFile = getDatabasePath(BlueCtrl.dbname + ".db");
-                // Open the empty db as the output stream
-                OutputStream myOutput = new FileOutputStream(outFile);
-                // transfer bytes from the inputfile to the outputfile
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = myInput.read(buffer)) > 0) {
-                    myOutput.write(buffer, 0, length);
-                }
-                // Close the streams
-                myOutput.flush();
-                myOutput.close();
-                myInput.close();
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("DB CREATION FAILED");
-            }
-        }
-
         BlueCtrl.openDatabase(this);
         if (getIntent().getBooleanExtra("newbie", false)) {
 
             long timestamp = sh.getLong("timestamp", 0);
             int age = 0;
             try {
-                long millis = (new SimpleDateFormat("dd mm yyyy")).parse(sh.getString("birth", "01 01 1980")).getTime() -
-                              (new Date()).getTime();
+                long millis = (new Date()).getTime() - (new SimpleDateFormat("dd mm yyyy")).parse(sh.getString("birth", "01 01 1980")).getTime();
                 age = (int) (millis / 31536000000l);
             }
             catch (Exception ignore) {}
@@ -554,6 +519,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
         registerReceiver(this.blueReceiver, new IntentFilter(String.valueOf(BluetoothAdapter.ACTION_STATE_CHANGED)));
         BluetoothAdapter.getDefaultAdapter().startDiscovery();
     }
+
 
     @Override
     public void onBackPressed() {

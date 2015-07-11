@@ -2,6 +2,9 @@ package com.example.christian.chatbluetooth.view.Adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +28,7 @@ public class SettingAdapter extends ArrayAdapter<String> {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
 
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view;
@@ -35,10 +38,34 @@ public class SettingAdapter extends ArrayAdapter<String> {
             view = inflater.inflate(layout, parent, false);
             ((TextView) view.findViewById(R.id.set_item)).setText(getItem(position));
 
+            CheckBox cb = (CheckBox) view.findViewById(R.id.visible_cb);
+
             if (position == 0) {
-                view.findViewById(R.id.visible_cb).setEnabled(false);
-                view.findViewById(R.id.visible_cb).setVisibility(View.INVISIBLE);
+                cb.setEnabled(false);
+                cb.setVisibility(View.INVISIBLE);
             }
+            else {
+
+                cb.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        ((SettingActivity)getContext()).checked[position - 1] = ((CheckBox)view).isChecked();
+                    }
+                });
+            }
+
+            int p;
+            if (position == 1 && (p = ((SettingActivity)getContext()).flag) != 0) {
+
+                Bitmap bmp = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.flags);
+                int w = bmp.getWidth() / 17, h = bmp.getHeight() / 12;
+                view.findViewById(R.id.flag).setBackground(new BitmapDrawable(
+                        Bitmap.createBitmap(bmp, w * (p / 12), h * (p % 12), w, h)));
+            }
+
+
+
         }
         else {
 

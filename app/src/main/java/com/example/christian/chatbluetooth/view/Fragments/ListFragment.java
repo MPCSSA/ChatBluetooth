@@ -131,63 +131,66 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        ((ChatActivity) getActivity()).state = false;
+        if (BlueCtrl.version) {
+            ((ChatActivity) getActivity()).state = false;
 
-        Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
+            Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
 
-        ActionBar actionBar = getActivity().getActionBar();
+            ActionBar actionBar = getActivity().getActionBar();
 
-        actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
-        actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
+            actionBar.setDisplayHomeAsUpEnabled(true);
 
 
-        final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
-        recList.setHasFixedSize(true);
-        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        recList.setLayoutManager(llm);
-        recList.setItemAnimator(new DefaultItemAnimator());
+            final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
+            recList.setHasFixedSize(true);
+            LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+            llm.setOrientation(LinearLayoutManager.VERTICAL);
+            recList.setLayoutManager(llm);
+            recList.setItemAnimator(new DefaultItemAnimator());
 
-        SpannableString title;
-        if (getTag().equals("FAVORITES")) {
+            SpannableString title;
+            if (getTag().equals("FAVORITES")) {
 
-            title = new SpannableString(getString(R.string.favorites));
-            title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.favList);
-        }
-        else {
+                title = new SpannableString(getString(R.string.favorites));
+                title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.favList);
+            } else {
 
-            title = new SpannableString(getString(R.string.list_frag));
-            title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            actionBar.setTitle(title);
-            BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.userList);
-        }
-
-        actionBar.setTitle(title);
-
-        recList.setAdapter(BlueCtrl.userAdapt);
-        recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-
-                if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
-                    BlueCtrl.msgAdapt.clear();
-                    BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
-                    BlueCtrl.fillMsgAdapter();
-                }
-
-                ChatFragment chatFragment = new ChatFragment();
-
-                chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
-
-                FragmentManager fragmentManager = getFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-                fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
-                fragmentTransaction.commit();
-
+                title = new SpannableString(getString(R.string.list_frag));
+                title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                actionBar.setTitle(title);
+                BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.userList);
             }
-        }));
+
+            actionBar.setTitle(title);
+
+            recList.setAdapter(BlueCtrl.userAdapt);
+            recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+
+                    if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
+                        BlueCtrl.msgAdapt.clear();
+                        BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
+                        BlueCtrl.fillMsgAdapter();
+                    }
+
+                    ((ChatActivity) getActivity()).chat = true;
+
+                    ChatFragment chatFragment = new ChatFragment();
+
+                    chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
+
+                    FragmentManager fragmentManager = getFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                    fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
+                    fragmentTransaction.commit();
+
+                }
+            }));
+        }
 
     }
 

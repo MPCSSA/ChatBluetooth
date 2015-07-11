@@ -18,6 +18,8 @@ import android.text.SpannableString;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -130,6 +132,18 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         mListener = null;
     }
 
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        int drawable;
+        if (user.getGender() == 0) drawable = R.drawable.unknown_nogender;
+        else if (user.getGender() == 1) drawable = R.drawable.unknown_male;
+        else drawable = R.drawable.unknown_fem;
+
+        menu.findItem(R.id.action_fav).setIcon(drawable);
+    }
 
     @Override
     public void onActivityCreated(Bundle savedIstanceState) {

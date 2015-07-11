@@ -5,6 +5,8 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -55,6 +57,8 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
     /*
     DEBUG ONLY
     */
+
+        if (getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("1stRun", true)) BlueCtrl.openDatabase(this);
 
         loginFragment = new LoginFragment();
         FragmentManager fragmentManager = getFragmentManager();

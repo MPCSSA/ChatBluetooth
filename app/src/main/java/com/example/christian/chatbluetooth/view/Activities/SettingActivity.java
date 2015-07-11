@@ -14,18 +14,18 @@ import android.view.MenuItem;
 import android.widget.Button;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Fragments.SettingsFragment;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class SettingActivity extends Activity implements SettingsFragment.OnFragmentInteractionListener {
 
-    private Bundle bundle;
-    public boolean[] checked = new boolean[3];
-    public int gender;
-
-    public void setBundle(Bundle bundle) {
-
-        this.bundle = bundle;
-    }
+    public boolean[] checked = new boolean[3], newChecked = new boolean[3];
+    public int gender, country, flag = 0;
+    public String usr, birth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,13 +62,40 @@ public class SettingActivity extends Activity implements SettingsFragment.OnFrag
             return true;
         }
 
-        /*if (id == R.id.action_edit) {
+        if (id == R.id.action_edit) {
 
             SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
 
-            if (sh.getBoolean())
+            if (!usr.equals(sh.getString("username", "Unknown")) ||
+                !birth.equals(sh.getString("birth", null)) ||
+                gender != sh.getInt("gender", 0) ||
+                flag != sh.getInt("country", 0) ||
+                checked[0] != sh.getBoolean("COUNTRY_VISIBLE", true) ||
+                checked[1] != sh.getBoolean("AGE_VISIBLE", true) ||
+                checked[2] != sh.getBoolean("GENDER_VISIBLE", true)) {
 
-        }*/
+                sh.edit().putString("username", usr).apply();
+
+                sh.edit().putString("birth", birth).apply();
+                long birthday;
+                try {
+                    birthday = (new SimpleDateFormat("dd mm yyyy")).parse(birth.replace("/", " ")).getTime();
+                } catch (ParseException ignore) {
+                    birthday = 0l;
+                }
+                sh.edit().putLong("birth_timestamp", birthday).apply();
+
+                sh.edit().putInt("gender", gender).apply();
+
+                sh.edit().putInt("country", country).apply();
+
+                sh.edit().putBoolean("COUNTRY_VISIBLE", checked[0]).apply();
+                sh.edit().putBoolean("AGE_VISIBLE", checked[1]).apply();
+                sh.edit().putBoolean("GENDER_VISIBLE", checked[2]).apply();
+
+                sh.edit().putLong("timestamp", (new Date()).getTime()).apply();
+            }
+        }
 
         return super.onOptionsItemSelected(item);
     }
