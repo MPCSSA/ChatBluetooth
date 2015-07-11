@@ -7,7 +7,10 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="1dp"
         android:layout_gravity="right"
         android:id="@+id/history_layout">
 
@@ -21,6 +24,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="&quot;"
+                android:textColor="@color/accent"
                 android:id="@+id/tv_quote_open"
                 android:layout_alignParentTop="true"
                 android:gravity="start" />
@@ -30,13 +34,12 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/emoticon" />
 
-
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="&quot;"
+                android:textColor="@color/accent"
                 android:id="@+id/tv_unquote"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
@@ -49,6 +52,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="Small Text"
+            android:textColor="@color/accent"
             android:id="@+id/tv_from"
             android:layout_below="@+id/emoticon_wrapper"
             android:layout_alignParentLeft="true"
@@ -61,8 +65,8 @@
             android:id="@+id/cboxSelect"
             android:layout_centerVertical="true"
             android:layout_alignParentEnd="true"
-            android:clickable="true"/>
-
+            android:clickable="false"
+            android:focusable="false"/>
 
     </RelativeLayout>
 

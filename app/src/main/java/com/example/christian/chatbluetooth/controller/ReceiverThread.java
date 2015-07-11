@@ -237,23 +237,18 @@ public class ReceiverThread extends Thread {
                             } while (i < 16);
                             //read a whole segment
 
-                            i = 0;
-                            while (i < 6) {
-                                buffer[i] = segment[i];
-                                ++i;
-                            }
+                            System.arraycopy(segment, 0, buffer, 0, 6);
+                            String address = BlueCtrl.bytesToMAC(buffer);
 
-                            i = 0;
-                            while (i < 8) {
-                                lastUpd[i] = segment[i + 6];
-                                ++i;
-                            }
+                            if (address.equals(BluetoothAdapter.getDefaultAdapter().getAddress())) continue;
+                            //Information about this device could arrive
+
+                            System.arraycopy(segment, 6, lastUpd, 0, 8);
+                            long timestamp = BlueCtrl.rebuildTimestamp(lastUpd);
+
                             bounces = (segment[14] < 0) ? (byte) (segment[14] + 256) : segment[14];
                             status = segment[15];
                             //recreate fields information from segment
-
-                            String address = BlueCtrl.bytesToMAC(buffer);
-                            long timestamp = BlueCtrl.rebuildTimestamp(lastUpd);
 
                             Message mail = new Message();
                             Bundle bundle = new Bundle();

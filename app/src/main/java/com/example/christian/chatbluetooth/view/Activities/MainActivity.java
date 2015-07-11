@@ -85,6 +85,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         }
 
         if (id == android.R.id.home){
+
             FragmentManager fragmentManager = getFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);

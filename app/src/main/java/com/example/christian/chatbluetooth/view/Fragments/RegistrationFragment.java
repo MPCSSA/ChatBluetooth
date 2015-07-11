@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -32,6 +33,8 @@ import com.example.christian.chatbluetooth.view.Activities.MainActivity;
 import com.example.christian.chatbluetooth.view.Watchers.ConfirmationWatcher;
 import com.example.christian.chatbluetooth.view.Watchers.PasswordWatcher;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -147,9 +150,11 @@ public class RegistrationFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState){
         super.onActivityCreated(savedInstanceState);
 
-        ActionBar actionBar = getActivity().getActionBar();
+        final ActionBar actionBar = getActivity().getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
+
         Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
+
         name = (EditText) getActivity().findViewById(R.id.et_reg_username);
         passw = (EditText) getActivity().findViewById(R.id.et_reg_password);
         confirmPassw = (EditText) getActivity().findViewById(R.id.et_confirm);
@@ -215,25 +220,31 @@ public class RegistrationFragment extends Fragment {
                             preferences.edit().putString("password", passw.getText().toString()).apply();
                             preferences.edit().putLong("timestamp", creation.getTime()).apply();
 
-                            preferences.edit().putString("birth", date.getText().toString().replace("/", " "));
-
-                            int gender;
-                            if ((getActivity().findViewById(R.id.radioGroup_reg)).isPressed()) {
-                                gender = (((RadioButton) getActivity().findViewById(R.id.rbtn_male)).isChecked()) ? 1 : 2;
+                            String birth = date.getText().toString();
+                            Date birthday;
+                            try {
+                                birthday = (new SimpleDateFormat("dd mm yyyy")).parse(birth.replace("/", " "));
+                            } catch (ParseException ignore) {
+                                birthday = new Date();
                             }
-                            else gender = 0;
+
+                            preferences.edit().putString("birth", birth).apply();    //birth date
+                            preferences.edit().putLong("birth_timestamp", birthday.getTime()).apply(); //timestamp
+
+                            int gender = 0;
+                            if (((RadioButton)getActivity().findViewById(R.id.rbtn_male)).isChecked()) gender = 1;
+                            if (((RadioButton)getActivity().findViewById(R.id.rbtn_fem)).isChecked()) gender = 2;
+
                             preferences.edit().putInt("gender", gender).apply();
 
-                            preferences.edit().putInt("country", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItemPosition()).apply();
+                            preferences.edit().putInt("country", ((Spinner) getActivity().findViewById(R.id.spin_nations)).getSelectedItemPosition() + 1).apply();
 
-                            //BlueCtrl.bindUser(preferences);
                             ((MainActivity)getActivity()).registered();
 
                             LoginFragment fragment = new LoginFragment();
                             FragmentManager fragmentManager = getFragmentManager();
                             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                            /*DEBUG ONLY*/
-                            if (BlueCtrl.version) fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
+                            fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
                             fragmentTransaction.replace(R.id.container, fragment);
                             fragmentTransaction.commit();
 
@@ -242,10 +253,9 @@ public class RegistrationFragment extends Fragment {
                     } else
                         Toast.makeText(getActivity(), "Check username and password fields!", Toast.LENGTH_SHORT).show();
                 }
-                else
-                {
+                else {
+
                     Toast.makeText(getActivity(), "You are already registered", Toast.LENGTH_SHORT).show();
-                    //TODO: Cancel the registration or not?
                 }
             }
         });
@@ -254,28 +264,24 @@ public class RegistrationFragment extends Fragment {
 
     public void DateDialog(){
 
-        DatePickerDialog.OnDateSetListener listener=new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
 
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear,int dayOfMonth)
             {
                 //prima di mandare il tutto alla textview aggiusto i parametri in modo da essere uniformi a gg/mm/aaaa
                 String Toset = "";
-                if(dayOfMonth < 10)
-                    Toset="0";
+
+                if(dayOfMonth < 10) Toset="0";
                 Toset = Toset + dayOfMonth + "/";
-                if(monthOfYear < 10)
-                    Toset = Toset + "0";
+
+                if(monthOfYear < 10) Toset = Toset + "0";
                 Toset = Toset + (monthOfYear+1) + "/" + year;
 
                 date.setText(Toset);
 
-                //DEBUG ONLY
-                if (BlueCtrl.version) {
-                    date.setTextColor(getResources().getColor(R.color.primary_text));
-                    date.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf"));
-                }
-                //DEBUG ONLY
+                date.setTextColor(getResources().getColor(R.color.primary_text));
+                date.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf"));
 
                 date.clearFocus();
 
@@ -287,7 +293,7 @@ public class RegistrationFragment extends Fragment {
         passw.clearFocus();
         confirmPassw.clearFocus();
         DatePickerDialog dpDialog=new DatePickerDialog(getActivity(), R.style.DialogTheme,listener, 1980, 1,1);
-        dpDialog.show();//mostra la dialog
+        dpDialog.show(); //Show Dialog
 
     }
     public interface OnFragmentInteractionListener {

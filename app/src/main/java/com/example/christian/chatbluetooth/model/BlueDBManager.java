@@ -15,9 +15,10 @@ public class BlueDBManager {
 
     private Context context;
     private SQLiteDatabase db;
-    private final String[] tables = {"user", "history"};
+    private final String[] tables = {"user", "history", "Nation"};
     public final String[] userTable = {"mac","username","last_upd","isFav","profile_pic","nationality","gender","age"}; //field User Table
-    public final String[] historyTable ={"msg","user","date","sent_by", "is_emo", "username"}; //field Hystory Table
+    public final String[] historyTable = {"msg","user","date","sent_by", "is_emo", "username"}; //field Hystory Table
+    public final String[] nationTable = {"idNation","NameITA","NameEng","Code", "Pos"}; //field Nation Table
 
     public Context getContext() { return context; }
 
@@ -172,6 +173,11 @@ public class BlueDBManager {
             return 0;
         }
         else return Long.parseLong(cursor.getString(0));
+    }
+
+    public Cursor fetchCountry(int id) {
+
+        return db.query(tables[2], new String[] {nationTable[1], nationTable[2], nationTable[4]}, null, null, null, null, null, "1");
     }
 
     //UPDATE METHODS

@@ -14,6 +14,7 @@ import android.util.Base64;
 import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
+import com.example.christian.chatbluetooth.model.Country;
 import com.example.christian.chatbluetooth.view.Adapters.EmoticonAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
@@ -29,6 +30,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -759,13 +761,15 @@ public class BlueCtrl {
         dbManager.updateFavorites(mac, value);
     }
 
-    public static Cursor fetchFlags(String displayCountry) {
+    public static Country fetchFlags(int position) {
 
-        if (displayCountry.equals("ITALY")) {
+        Cursor cursor = dbManager.fetchCountry(position);
 
-        }
-        else {
+        if (cursor != null && cursor.moveToFirst()) {
 
+            if (Locale.getDefault().getDisplayCountry().equals("ITALY"))
+                return new Country(cursor.getString(1), cursor.getInt(3));
+            else return new Country(cursor.getString(2), cursor.getInt(3));
         }
 
         return null;

@@ -126,12 +126,30 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
         ActionBar actionBar = getActivity().getActionBar();
         actionBar.setTitle(getString(R.string.history_activity));
 
+        (getActivity().findViewById(R.id.etHistory)).clearFocus();
+
+        Button searchBtn = (Button) getActivity().findViewById(R.id.btnHistory);
+        searchBtn.setOnClickListener(this);
+
+        searchBar = (EditText) getActivity().findViewById(R.id.etHistory);
+        searchBar.clearFocus();
+        searchBar.addTextChangedListener(this);
+
+        final CheckBox boxAll = (CheckBox) getActivity().findViewById(R.id.cboxAll);
+        boxAll.setOnClickListener(this);
+
+        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fabHistory);
+        fab.setOnClickListener(this);
+
         historyList = (ListView) getActivity().findViewById(R.id.listHistory);
         adapter = new HistoryAdapter(getActivity(), R.layout.item_history);
         historyList.setAdapter(adapter);
+
         historyList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                boxAll.setChecked(false);
 
                 ChatMessage message = adapter.getItem(i);
                 message.setSentBy(!message.getSender());
@@ -140,18 +158,6 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
         });
 
         historyGroup = (RadioGroup) getActivity().findViewById(R.id.historyGroup);
-
-        Button searchBtn = (Button) getActivity().findViewById(R.id.btnHistory);
-        searchBtn.setOnClickListener(this);
-
-        searchBar = (EditText) getActivity().findViewById(R.id.etHistory);
-        searchBar.addTextChangedListener(this);
-
-        CheckBox boxAll = (CheckBox) getActivity().findViewById(R.id.cboxAll);
-        boxAll.setOnClickListener(this);
-
-        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fabHistory);
-        fab.setOnClickListener(this);
     }
 
     @Override
@@ -228,6 +234,7 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
 
                          System.out.println("REMOVED");
                          BlueCtrl.remove(message);
+                         adapter.remove(message);
                          max--;
                      }
                      else {
@@ -237,14 +244,15 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
                      }
                 }
 
+                ((CheckBox)getActivity().findViewById(R.id.cboxAll)).setChecked(false);
+
                 break;
 
             case R.id.cboxAll:
 
                 for (int i = 0; i < adapter.getCount(); ++i) {
 
-                    message = adapter.getItem(i);
-                    message.setSentBy(!message.getSender());
+                    adapter.getItem(i).setSentBy(((CheckBox) view).isChecked());
                 }
                 break;
         }

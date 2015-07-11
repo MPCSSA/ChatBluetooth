@@ -55,6 +55,7 @@
     <string name="in_user">username</string>
     <string name="all">All</string>
     <string name="spy">Spy Mode</string>
+    <string name="log_out" translatable="false">Log Out</string>
 
 
 </resources>

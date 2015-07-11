@@ -128,100 +128,67 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
      */
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState){
+    public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
         ((ChatActivity) getActivity()).state = false;
 
-        Typeface type = Typeface.createFromAsset(getActivity().getAssets(),"fonts/Roboto-Regular.ttf");
-        SpannableString title = new SpannableString(getString(R.string.list_frag));
-        title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
 
         ActionBar actionBar = getActivity().getActionBar();
+
+        actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+
+        final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
+        recList.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recList.setLayoutManager(llm);
+        recList.setItemAnimator(new DefaultItemAnimator());
+
+        SpannableString title;
+        if (getTag().equals("FAVORITES")) {
+
+            title = new SpannableString(getString(R.string.favorites));
+            title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.favList);
+        }
+        else {
+
+            title = new SpannableString(getString(R.string.list_frag));
+            title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            actionBar.setTitle(title);
+            BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.userList);
+        }
+
         actionBar.setTitle(title);
 
-        if (BlueCtrl.version) {
+        recList.setAdapter(BlueCtrl.userAdapt);
+        recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
 
-            actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
-            actionBar.setDisplayHomeAsUpEnabled(true);
-
-
-            final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
-            recList.setHasFixedSize(true);
-            LinearLayoutManager llm = new LinearLayoutManager(getActivity());
-            llm.setOrientation(LinearLayoutManager.VERTICAL);
-            recList.setLayoutManager(llm);
-            recList.setItemAnimator(new DefaultItemAnimator());
-
-            if (getTag().equals("FAVORITES")){
-                actionBar.setTitle(R.string.favorites);
-                BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.favList);
-            }
-            else {
-                actionBar.setTitle(R.string.list_frag);
-                BlueCtrl.userAdapt = new RecycleAdapter(BlueCtrl.userList);
-            }
-            recList.setAdapter(BlueCtrl.userAdapt);
-            recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-
-                    if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
-                        BlueCtrl.msgAdapt.clear();
-                        BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
-                        BlueCtrl.fillMsgAdapter();
-                    }
-
-                    ChatFragment chatFragment = new ChatFragment();
-
-                    chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
-
-                    FragmentManager fragmentManager = getFragmentManager();
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-                    fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
-                    fragmentTransaction.commit();
-
+                if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
+                    BlueCtrl.msgAdapt.clear();
+                    BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
+                    BlueCtrl.fillMsgAdapter();
                 }
-            }));
-        }
 
-    /*
-    DEBUG ONLY
-    */
-        else {
-            System.out.println("building");
-            final ListView recList = (ListView) getActivity().findViewById(R.id.cardList);
+                ChatFragment chatFragment = new ChatFragment();
 
-            BlueCtrl.userNomat = new NoMaterialRecyclerAdapter(getActivity(), R.layout.card_layout_nomat);
-            recList.setAdapter(BlueCtrl.userNomat);
+                chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
 
-            recList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
+                fragmentTransaction.commit();
 
-                    if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(i).getMac())) {
-                        BlueCtrl.msgAdapt.clear();
-                        BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(i).getMac());
-                        BlueCtrl.fillMsgAdapter();
-                    }
+            }
+        }));
 
-                    ChatFragment chatFragment = new ChatFragment();
-
-                    chatFragment.setUser(BlueCtrl.userAdapt.getItem(i));
-
-                    FragmentManager fragmentManager = getFragmentManager();
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    fragmentTransaction.replace(R.id.containerChat, chatFragment);
-                    fragmentTransaction.commit();
-
-                }
-            });
-
-        }
-    /*
-    DEBUG ONLY
-    */
     }
 
     @Override

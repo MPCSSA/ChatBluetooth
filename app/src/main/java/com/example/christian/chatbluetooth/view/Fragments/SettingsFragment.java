@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -23,23 +24,28 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.Country;
+import com.example.christian.chatbluetooth.view.Activities.SettingActivity;
 import com.example.christian.chatbluetooth.view.Adapters.CountryAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.SettingAdapter;
 import com.melnykov.fab.FloatingActionButton;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -66,6 +72,12 @@ public class SettingsFragment extends Fragment {
     private String mCurrentPhotoPath;
     private String imageNameFile;
     private File image;
+
+    private Bundle oldStuff = new Bundle();
+    private boolean changed;
+    public String usr;
+    public int country, gender;
+    public String birth;
 
     private OnFragmentInteractionListener mListener;
 
@@ -138,15 +150,27 @@ public class SettingsFragment extends Fragment {
         ActionBar actionBar = getActivity().getActionBar();
         actionBar.setTitle(getString(R.string.setting_activity));
 
-        ListView settingList = (ListView) getActivity().findViewById(R.id.setting_list);
+        SettingActivity activity = (SettingActivity) getActivity();
 
+        SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
+
+        activity.checked[0] = sh.getBoolean("COUNTRY_VISIBLE", true);
+        activity.checked[1] = sh.getBoolean("AGE_VISIBLE", true);
+        activity.checked[2] = sh.getBoolean("GENDER_VISIBLE", true);
+
+        usr = sh.getString("username", "Unknown");
+        country = sh.getInt("country", 0);
+        final int code = country;
+        birth = sh.getString("birth", null);
+        gender = sh.getInt("gender", 0);
+        activity.gender = gender;
+
+        final ListView settingList = (ListView) getActivity().findViewById(R.id.setting_list);
 
         Point point = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
         System.out.println("La larghezza: " + point.x);
         int width = point.x;
-        /*DisplayMetrics displayMetrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);*/
 
         Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
         bmp = Bitmap.createScaledBitmap(bmp, width, (9*width)/16, false);
@@ -187,14 +211,18 @@ public class SettingsFragment extends Fragment {
                         usernamePopup.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
                         final EditText nickEditText = (EditText) layout.findViewById(R.id.nickModText);
+                        nickEditText.setText(usr);
+
                         Button btnNameConfirm = (Button) layout.findViewById(R.id.btn_mod_popup);
                         Button btnNameCanc = (Button) layout.findViewById(R.id.btn_canc_popup);
 
                         btnNameConfirm.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
+
                                 String newNick = nickEditText.getText().toString();
-                                System.out.println(newNick);
+                                changed = changed || newNick.equals(usr);
+                                usr = newNick;
                                 usernamePopup.dismiss();
                             }
                         });
@@ -214,26 +242,6 @@ public class SettingsFragment extends Fragment {
                         layout = inflater.inflate(R.layout.popup_countries,
                                 (ViewGroup) getActivity().findViewById(R.id.country_layout));
 
-                        ListView countries = (ListView) layout.findViewById(R.id.list_countries);
-                        CountryAdapter adapter = new CountryAdapter(getActivity(), R.layout.item_countries);
-
-                        Cursor flag_cursor = BlueCtrl.fetchFlags(Locale.getDefault().getDisplayCountry());
-                        Country country;
-                        if (flag_cursor.moveToFirst()) {
-
-                            do {
-
-                                 adapter.add(new Country(flag_cursor.getString(0), flag_cursor.getInt(1)));
-                            } while(flag_cursor.moveToNext());
-                        }
-
-                        countries.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-                            }
-                        });
-
                         point = new Point();
                         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
 
@@ -245,17 +253,38 @@ public class SettingsFragment extends Fragment {
                         countryPopup.setAnimationStyle(R.style.SettingsPopup);
                         countryPopup.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
+                        ListView countries = (ListView) layout.findViewById(R.id.list_countries);
+                        CountryAdapter adapter = new CountryAdapter(getActivity(), R.layout.item_countries);
+
+                        Country country;
+                        int i = 0;
+
+                        while ((country = BlueCtrl.fetchFlags(i)) != null) {
+
+                            adapter.add(country);
+                            ++i;
+                        }
+                        adapter.notifyDataSetChanged();
+
+                        countries.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                                changed = changed || i + 1 == code;
+                                countryPopup.dismiss();
+                            }
+                        });
 
                         break;
 
                     case 2:
 
-                        DateDialog();
+                        try {
+                            DateDialog();
+                        }
+                        catch (ParseException ignore) {};
 
                         break;
-
-                    case 3: //TODO GENDER
-
                 }
             }
         });
@@ -324,14 +353,12 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    public void DateDialog() {
+    public void DateDialog() throws ParseException {
 
         DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
 
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-
-                TextView tv = ((TextView) view.findViewById(R.id.set_item));
 
                 //prima di mandare il tutto alla textview aggiusto i parametri in modo da essere uniformi a gg/mm/aaaa
                 String Toset = "";
@@ -342,20 +369,23 @@ public class SettingsFragment extends Fragment {
                     Toset = Toset + "0";
                 Toset = Toset + (monthOfYear + 1) + "/" + year;
 
-                tv.setText(Toset);
-
-                //DEBUG ONLY
-                if (BlueCtrl.version) {
-                    tv.setTextColor(getResources().getColor(R.color.primary_text));
-                    tv.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf"));
-                }
-                //DEBUG ONLY
-
-                tv.clearFocus();
-
-                getActivity().findViewById(R.id.setting_layout).requestFocus();
+                changed = changed || (Toset.equals(birth));
+                birth = Toset;
             }
         };
+
+        Date date;
+        if (birth != null) date = (new SimpleDateFormat("dd mm yyyy")).parse(birth.replace("/", " "));
+        else date = new Date();
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        int year = cal.get(Calendar.YEAR), month = cal.get(Calendar.MONTH), day = cal.get(Calendar.DAY_OF_MONTH);
+        DatePickerDialog dpDialog = new DatePickerDialog(getActivity(), R.style.DialogTheme, listener, year, month, day);
+        dpDialog.show();//mostra la dialog
+
+        getActivity().findViewById(R.id.setting_layout).requestFocus();
+
     }
 
 

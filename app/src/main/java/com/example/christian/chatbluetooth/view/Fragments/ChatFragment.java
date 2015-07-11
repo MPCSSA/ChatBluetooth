@@ -230,8 +230,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
             case R.id.emoBtn:
 
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                int layout = (BlueCtrl.version) ? R.layout.emoticon_popup : R.layout.emoticon_popup_nomat;
-                View view = inflater.inflate(layout, (ViewGroup) getActivity().findViewById(R.id.emoticons));
+                View view = inflater.inflate(R.layout.emoticon_popup, (ViewGroup) getActivity().findViewById(R.id.emoticons));
 
                 GridView grid = (GridView) view.findViewById(R.id.emo_grid);
                 grid.setAdapter(BlueCtrl.emoticons);
@@ -258,7 +257,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 popupWindow.setWidth((w / 2) * 5);
                 popupWindow.setBackgroundDrawable(new BitmapDrawable());
                 popupWindow.setAnimationStyle(R.style.EmoticonAnim);
-                if (BlueCtrl.version) popupWindow.setElevation(8f);
+                popupWindow.setElevation(8f);
 
                 popupWindow.showAtLocation(view, Gravity.BOTTOM | Gravity.END, 36, msgText.getHeight() + 32);
 

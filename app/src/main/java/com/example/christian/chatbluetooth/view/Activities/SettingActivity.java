@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -15,13 +16,23 @@ import android.widget.Button;
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.view.Fragments.SettingsFragment;
 
-public class SettingActivity extends Activity implements SettingsFragment.OnFragmentInteractionListener{
+public class SettingActivity extends Activity implements SettingsFragment.OnFragmentInteractionListener {
+
+    private Bundle bundle;
+    public boolean[] checked = new boolean[3];
+    public int gender;
+
+    public void setBundle(Bundle bundle) {
+
+        this.bundle = bundle;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
 
+        ActionBar actionBar = getActionBar();
 
         SettingsFragment settingFragment = new SettingsFragment();
         FragmentManager fragmentManager = getFragmentManager();
@@ -50,6 +61,14 @@ public class SettingActivity extends Activity implements SettingsFragment.OnFrag
         if (id == R.id.action_settings) {
             return true;
         }
+
+        /*if (id == R.id.action_edit) {
+
+            SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
+
+            if (sh.getBoolean())
+
+        }*/
 
         return super.onOptionsItemSelected(item);
     }

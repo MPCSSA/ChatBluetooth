@@ -32,6 +32,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -479,6 +480,17 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                 }
             });
 
+        ((Button) findViewById(R.id.btn_logout)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                getSharedPreferences("preferences", Context.MODE_PRIVATE).edit().putBoolean("logged in", false).apply();
+
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            }
+        });
+
         BlueCtrl.emoticons = new EmoticonAdapter(this, R.layout.item_emoticon_picker);
 
         SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
@@ -584,14 +596,17 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
         if (id == android.R.id.home) {
 
             if (state) {
+
                 ListFragment listFragment = new ListFragment();
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
                 fragmentTransaction.replace(R.id.containerChat, listFragment, "LIST_FRAGMENT");
                 fragmentTransaction.commit();
+
                 View view = this.getCurrentFocus();
                 if (view != null) {
+
                     InputMethodManager imm = (InputMethodManager)getSystemService(
                             Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
@@ -606,6 +621,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
 
         if (id == R.id.action_fav){
             if(!state2) {
+
                 item.setIcon(R.drawable.contacts);
                 System.out.println("PIPPO BAUDO");
                 ListFragment listFragment = new ListFragment();
@@ -615,10 +631,10 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                 fragmentTransaction.replace(R.id.containerChat, listFragment, "FAVORITES");
                 fragmentTransaction.commit();
                 state2 = true;
-
             }
 
             else{
+
                 item.setIcon(R.drawable.favorite);
                 System.out.println("PIPPO BAUDO");
                 ListFragment listFragment = new ListFragment();

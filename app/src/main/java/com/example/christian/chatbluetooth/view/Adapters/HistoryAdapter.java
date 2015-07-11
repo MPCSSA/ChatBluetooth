@@ -26,8 +26,6 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
         super(context, resource);
     }
 
-    private ArrayList<ChatMessage> messages = new ArrayList<>();
-
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
@@ -39,9 +37,7 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
         View view = inflater.inflate(layout, parent, false);
 
         ((CheckBox)view.findViewById(R.id.cboxSelect)).setChecked(msg.getSender());
-        int backgroundColor = (msg.getSender()) ? R.color.light_primary : R.color.accent,
-                viewColor = (msg.getSender()) ? R.color.accent : R.color.light_primary,
-                imageResource = (msg.getSender()) ? R.drawable.white_emoticons : R.drawable.red_emoticons;
+        int imageResource = R.drawable.white_emoticons;
 
         if (msg.isEmo()) {
 
@@ -59,7 +55,6 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
 
             TextView quote = (TextView) view.findViewById(R.id.tv_quote);
             quote.setText("\"" + msg.getMsg() + "\"");
-            quote.setTextColor(getContext().getResources().getColor(viewColor));
         }
 
         TextView from = (TextView) view.findViewById(R.id.tv_from);
@@ -88,20 +83,7 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
         }
 
         from.setText(msg.getUsername() + ", " + when);
-        from.setTextColor(getContext().getResources().getColor(viewColor));
-
-        (view.findViewById(R.id.cboxSelect)).setBackgroundColor(viewColor);
-        view.findViewById(R.id.history_layout).setBackgroundColor(getContext().getResources().getColor(backgroundColor));
-
-        messages.add(msg);
 
         return view;
-    }
-
-    public ChatMessage remove(int position) {
-
-        ChatMessage msg = messages.remove(position);
-        remove(msg);
-        return msg;
     }
 }

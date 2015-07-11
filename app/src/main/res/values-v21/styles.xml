@@ -32,5 +32,4 @@
         <item name="android:windowEnterAnimation">@anim/abc_fade_in</item>
         <item name="android:windowExitAnimation">@anim/abc_fade_out</item>
     </style>
-
 </resources>
