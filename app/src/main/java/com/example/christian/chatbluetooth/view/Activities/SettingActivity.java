@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
@@ -12,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
@@ -93,8 +95,18 @@ public class SettingActivity extends Activity implements SettingsFragment.OnFrag
                 sh.edit().putBoolean("AGE_VISIBLE", checked[1]).apply();
                 sh.edit().putBoolean("GENDER_VISIBLE", checked[2]).apply();
 
-                sh.edit().putLong("timestamp", (new Date()).getTime()).apply();
+                long timestamp = (new Date()).getTime();
+                sh.edit().putLong("timestamp", timestamp).apply();
+
+                int country = (checked[0]) ? this.country : 0;
+                long age = (checked[1]) ? birthday : 0l;
+                int gender = (checked[2]) ? this.gender : 0;
+                BlueCtrl.updateProfile(timestamp, usr, country, gender, age);
+
+                Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show();
             }
+
+            super.onBackPressed();
         }
 
         return super.onOptionsItemSelected(item);

@@ -1,5 +1,6 @@
 package com.example.christian.chatbluetooth.model;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -8,6 +9,8 @@ import android.util.Base64;
 import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
+import com.example.christian.chatbluetooth.controller.BlueCtrl;
+import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -251,7 +254,7 @@ public class BlueDBManager {
 
         Cursor c = db.query(tables[2], new String[] {nationTable[0], nationTable[1], nationTable[3]}, null, null, null, null, null, null);
         System.out.println("HOW MANY? " + c.getCount());
-        return db.query(tables[2], new String[] {nationTable[0], nationTable[1], nationTable[3]}, null, null, null, null, null, null);
+        return db.query(tables[2], new String[]{nationTable[0], nationTable[1], nationTable[3]}, null, null, null, null, null, null);
     }
 
     //UPDATE METHODS
@@ -270,5 +273,20 @@ public class BlueDBManager {
     public void removeMessage(Integer id) {
 
         db.delete(tables[1], "_id = " + id, null);
+    }
+
+    public void updateProfile(long timestamp, String usr, int country, int gender, long age) {
+
+        ContentValues values = new ContentValues();
+
+        values.put(userTable[1], usr);
+        values.put(userTable[2], timestamp);
+        values.put(userTable[5], country);
+        values.put(userTable[6], gender);
+        values.put(userTable[7], age);
+
+        db.update(tables[0], values, userTable[0] + " = \'" + BluetoothAdapter.getDefaultAdapter().getAddress() + "\'", null);
+
+        BlueCtrl.dispatchNews(BlueCtrl.buildGrtMsg(), null, ((ChatActivity)context).getHandler());
     }
 }

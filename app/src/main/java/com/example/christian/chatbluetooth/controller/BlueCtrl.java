@@ -15,6 +15,7 @@ import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.model.Country;
+import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 import com.example.christian.chatbluetooth.view.Adapters.EmoticonAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
@@ -776,5 +777,10 @@ public class BlueCtrl {
     public static void closeDB() {
 
         dbManager.getDb().close();
+    }
+
+    public static void updateProfile(long timestamp, String usr, int country, int gender, long age) {
+
+        dbManager.updateProfile(timestamp, usr, country, gender, age);
     }
 }
