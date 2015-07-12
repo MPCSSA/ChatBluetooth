@@ -534,6 +534,8 @@ public class BlueCtrl {
         if (cursor != null && cursor.moveToFirst()) {
 
             do {
+                System.out.println("LANGUAGE " +  Locale.getDefault().getLanguage());
+                System.out.println("LANGUAGE " +  Locale.ITALIAN.toString());
                 if (Locale.getDefault().getLanguage().equals(Locale.ITALIAN.toString())) //translation
                     countries.add(new Country(cursor.getString(0), cursor.getInt(2)));
                 else countries.add(new Country(cursor.getString(1), cursor.getInt(2)));
