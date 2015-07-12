@@ -189,7 +189,7 @@ public class RegistrationFragment extends Fragment {
 
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 View v = inflater.inflate(R.layout.popup_countries,
-                        (ViewGroup) getActivity().findViewById(R.id.country_popup_layout));
+                        (ViewGroup) getActivity().findViewById(R.id.country_popup_layout), false);
 
                 Point point = new Point();
                 getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);

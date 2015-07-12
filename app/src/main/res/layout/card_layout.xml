@@ -41,7 +41,7 @@
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
             android:id="@+id/profilePict"
-            android:background="@drawable/unknown_nogender"
+            android:background="@drawable/favorite"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true" />
 
