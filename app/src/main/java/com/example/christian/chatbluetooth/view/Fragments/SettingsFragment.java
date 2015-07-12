@@ -332,6 +332,7 @@ public class SettingsFragment extends Fragment {
                     }
                     // Continue only if the File was successfully created
                     if (photoFile != null) {
+                        System.out.println("REQUEST TAKING PICTURE");
                         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                                 Uri.fromFile(photoFile));
                         startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
@@ -343,8 +344,8 @@ public class SettingsFragment extends Fragment {
 
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        imageNameFile = "JPEG_" + timeStamp + "_";
+
+        imageNameFile = "PROFILE_IMG";
         File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
 
