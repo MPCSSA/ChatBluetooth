@@ -2,19 +2,25 @@ package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 
@@ -34,11 +40,12 @@ import java.util.Date;
  * create an instance of this fragment.
  */
 public class MyProfileFragment extends Fragment {
-
+    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
+    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -52,7 +59,7 @@ public class MyProfileFragment extends Fragment {
      * @param param2 Parameter 2.
      * @return A new instance of fragment MyProfileFragment.
      */
-
+    // TODO: Rename and change types and number of parameters
     public static MyProfileFragment newInstance(String param1, String param2) {
         MyProfileFragment fragment = new MyProfileFragment();
         Bundle args = new Bundle();
@@ -80,8 +87,10 @@ public class MyProfileFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         ActionBar actionBar = getActivity().getActionBar();
-        actionBar.setTitle(getString(R.string.profile_activity));
-        //ActionBar setting
+        Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
+        SpannableString title = new SpannableString(getString(R.string.profile_activity));
+        title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        actionBar.setTitle(title);
 
         ListView fieldList = (ListView) getActivity().findViewById(R.id.my_info_list);
         //List of user information
@@ -173,8 +182,8 @@ public class MyProfileFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-
-        void onFragmentInteraction(Uri uri);
+        // TODO: Update argument type and name
+        public void onFragmentInteraction(Uri uri);
     }
 
 }

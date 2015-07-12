@@ -2,10 +2,15 @@ package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -112,8 +117,10 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
         super.onActivityCreated(savedInstanceState);
 
         ActionBar actionBar = getActivity().getActionBar();
-        actionBar.setTitle(getString(R.string.history_activity));
-        //ActionBar
+        Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
+        SpannableString title = new SpannableString(getString(R.string.history_activity));
+        title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        actionBar.setTitle(title);
 
         Button searchBtn = (Button) getActivity().findViewById(R.id.btnHistory); //get all messages Button
         searchBtn.setOnClickListener(this);
@@ -150,7 +157,9 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
         });
 
         historyGroup = (RadioGroup) getActivity().findViewById(R.id.historyGroup);
-        //RadioButtons for key research options
+
+        searchBtn.setTypeface(type);
+        searchBar.setTypeface(type);
     }
 
     @Override

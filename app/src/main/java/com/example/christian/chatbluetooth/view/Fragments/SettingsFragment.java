@@ -9,12 +9,15 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -130,8 +133,10 @@ public class SettingsFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         ActionBar actionBar = getActivity().getActionBar();
-        actionBar.setTitle(getString(R.string.setting_activity));
-        //Set Action Bar
+        final Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
+        SpannableString title = new SpannableString(getString(R.string.setting_activity));
+        title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        actionBar.setTitle(title);
 
         final SettingActivity activity = (SettingActivity) getActivity(); //SettingActivity instance
 
@@ -198,11 +203,14 @@ public class SettingsFragment extends Fragment {
                         //Change Username popup
 
                         final EditText nickEditText = (EditText) layout.findViewById(R.id.nickModText);
+                        nickEditText.setTypeface(type);
                         nickEditText.setText(activity.usr);
 
                         Button btnNameConfirm = (Button) layout.findViewById(R.id.btn_mod_popup);
                         Button btnNameCanc = (Button) layout.findViewById(R.id.btn_canc_popup);
-                        //confirm or undo
+
+                        btnNameConfirm.setTypeface(type);
+                        btnNameCanc.setTypeface(type);
 
                         btnNameConfirm.setOnClickListener(new View.OnClickListener() {
                             @Override
