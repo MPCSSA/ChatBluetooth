@@ -262,6 +262,17 @@ public class ReceiverThread extends Thread {
 
                             handler.sendMessage(mail);
 
+                            if (status == (byte)0) {
+
+                                mail = new Message();
+                                bundle = new Bundle();
+                                bundle.putString("MAC", address);
+                                mail.what = BlueCtrl.INVISIBLE;
+                                mail.setData(bundle);
+                                handler.sendMessage(mail);
+                                //Invisible user, but nonetheless a reachable user
+                            }
+
                             if (BlueCtrl.validateUser(address, timestamp)) {
 
                                 if (bool) {
