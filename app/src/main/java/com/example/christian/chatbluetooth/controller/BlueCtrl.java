@@ -515,7 +515,7 @@ public class BlueCtrl {
         Cursor cursor = dbManager.fetchCountry(position);
 
         if (cursor != null && cursor.moveToFirst()) {
-            if (Locale.getDefault().getDisplayCountry().equals("ITALY")) //translation
+            if (Locale.getDefault().getLanguage().equals(Locale.ITALIAN.toString())) //translation
                 return (new Country(cursor.getString(0), cursor.getInt(2)));
             else return (new Country(cursor.getString(1), cursor.getInt(2)));
         }
@@ -534,7 +534,7 @@ public class BlueCtrl {
         if (cursor != null && cursor.moveToFirst()) {
 
             do {
-                if (Locale.getDefault().getDisplayCountry().equals("ITALY")) //translation
+                if (Locale.getDefault().getLanguage().equals(Locale.ITALIAN.toString())) //translation
                     countries.add(new Country(cursor.getString(0), cursor.getInt(2)));
                 else countries.add(new Country(cursor.getString(1), cursor.getInt(2)));
             }
