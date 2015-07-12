@@ -24,7 +24,6 @@
             android:textColor="@color/background"
             android:layout_centerVertical="true"
             android:layout_toRightOf="@+id/profilePict"
-            android:layout_alignParentEnd="true"
             android:layout_marginLeft="16dp" />
 
         <TextView

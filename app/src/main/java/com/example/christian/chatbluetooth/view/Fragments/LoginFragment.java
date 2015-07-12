@@ -226,16 +226,17 @@ public class LoginFragment extends Fragment {
             if (resultCode == 1) {
                 //user agreed to turn on Bluetooth and be discoverable
 
-                if (getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("1stRun", true)) {
+                SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
+                if (sh.getBoolean("1stRun", true)) {
 
                     BlueCtrl.closeDB(); //Database opened at first run for tables initialization
-                    getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).edit().putBoolean("1stRun", false).apply();
+                    sh.edit().putBoolean("1stRun", false).apply();
                     //no longer first run
                 }
 
-                Toast.makeText(getActivity(), getString(R.string.login_greeting) + username + "!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), getString(R.string.login_greeting) + sh.getString("username", "Unknown") + "!", Toast.LENGTH_SHORT).show();
                 //Welcome Toast
-                getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).edit().putBoolean("logged in", true).apply();
+                sh.edit().putBoolean("logged in", true).apply();
                 //Set user as logged in for future sessions
 
                 Intent intent = new Intent(

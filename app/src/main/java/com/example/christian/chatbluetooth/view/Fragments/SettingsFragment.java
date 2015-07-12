@@ -51,19 +51,16 @@ import java.util.Date;
  * create an instance of this fragment.
  */
 public class SettingsFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
     static final int REQUEST_TAKE_PHOTO = 1;
     private String mCurrentPhotoPath;
     private String imageNameFile;
-    private File image;
 
     private OnFragmentInteractionListener mListener;
 
@@ -105,7 +102,6 @@ public class SettingsFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_settings, container, false);
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -135,32 +131,37 @@ public class SettingsFragment extends Fragment {
 
         ActionBar actionBar = getActivity().getActionBar();
         actionBar.setTitle(getString(R.string.setting_activity));
+        //Set Action Bar
 
-        final SettingActivity activity = (SettingActivity) getActivity();
+        final SettingActivity activity = (SettingActivity) getActivity(); //SettingActivity instance
 
         SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
+        //User profile information storage
 
         activity.checked[0] = sh.getBoolean("COUNTRY_VISIBLE", true);
         activity.checked[1] = sh.getBoolean("AGE_VISIBLE", true);
         activity.checked[2] = sh.getBoolean("GENDER_VISIBLE", true);
+        //Where those fields checked before?
 
-        activity.usr = sh.getString("username", "Unknown");
+        activity.usr = sh.getString("username", "Unknown"); //old username value
         if ((activity.country = sh.getInt("country", 0)) != 0) activity.flag = BlueCtrl.fetchFlag(activity.country).getPosition();
-        activity.birth = sh.getString("birth", null);
-        activity.gender = sh.getInt("gender", 0);
+        //old country code
+        activity.birth = sh.getString("birth", null); //old birth date
+        activity.gender = sh.getInt("gender", 0); //old gender
 
         final ListView settingList = (ListView) getActivity().findViewById(R.id.setting_list);
+        //field list
 
         Point point = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
-        System.out.println("La larghezza: " + point.x);
         int width = point.x;
 
         Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-        bmp = Bitmap.createScaledBitmap(bmp, width, (9 * width) / 16, false);
+        bmp = Bitmap.createScaledBitmap(bmp, width, (9 * width) / 16, false); //16:9 ratio
         bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         ImageView imageView = (ImageView) getActivity().findViewById(R.id.setting_image);
         imageView.setImageDrawable(new BitmapDrawable(bmp));
+        //show profile image
 
         final SettingAdapter adapt = new SettingAdapter(getActivity(), R.layout.setting_item);
         settingList.setAdapter(adapt);
@@ -169,6 +170,7 @@ public class SettingsFragment extends Fragment {
         adapt.add(getString(R.string.setting_mod_country));
         adapt.add(getString(R.string.setting_mod_age));
         adapt.add(getString(R.string.setting_mod_gender));
+        //Add fields
 
         settingList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -193,20 +195,22 @@ public class SettingsFragment extends Fragment {
                         usernamePopup.setBackgroundDrawable(new BitmapDrawable());
                         usernamePopup.setAnimationStyle(R.style.SettingsPopup);
                         usernamePopup.showAtLocation(layout, Gravity.CENTER, 0, 0);
+                        //Change Username popup
 
                         final EditText nickEditText = (EditText) layout.findViewById(R.id.nickModText);
                         nickEditText.setText(activity.usr);
 
                         Button btnNameConfirm = (Button) layout.findViewById(R.id.btn_mod_popup);
                         Button btnNameCanc = (Button) layout.findViewById(R.id.btn_canc_popup);
+                        //confirm or undo
 
                         btnNameConfirm.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
 
-                                String newNick = nickEditText.getText().toString();
-                                activity.usr = newNick;
+                                activity.usr = nickEditText.getText().toString();
                                 usernamePopup.dismiss();
+                                //Update username and dismiss
                             }
                         });
 
@@ -219,7 +223,7 @@ public class SettingsFragment extends Fragment {
 
                         break;
 
-                    case 1:
+                    case 1: //Country selection
 
                         inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                         layout = inflater.inflate(R.layout.popup_countries,
@@ -235,21 +239,22 @@ public class SettingsFragment extends Fragment {
                         countryPopup.setBackgroundDrawable(new BitmapDrawable());
                         countryPopup.setAnimationStyle(R.style.SettingsPopup);
                         countryPopup.showAtLocation(layout, Gravity.CENTER, 0, 0);
+                        //countries popup
 
                         ListView countries = (ListView) layout.findViewById(R.id.list_countries);
                         CountryAdapter adapter = new CountryAdapter(getActivity(), R.layout.item_countries);
                         countries.setAdapter(adapter);
 
-                        adapter.addAll(BlueCtrl.fetchFlags());
+                        adapter.addAll(BlueCtrl.fetchFlags()); //populate list
                         adapter.notifyDataSetChanged();
 
                         countries.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
                             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                                int p = BlueCtrl.fetchFlag(i + 1).getPosition();
+                                //on item click store new country position and display flag
 
-                                activity.flag = p;
+                                activity.flag = BlueCtrl.fetchFlag(i + 1).getPosition();
                                 activity.country = i + 1;
 
                                 adapt.notifyDataSetChanged();
@@ -259,7 +264,7 @@ public class SettingsFragment extends Fragment {
 
                         break;
 
-                    case 2:
+                    case 2: //Modify Birth date
 
                         try {
 
@@ -268,7 +273,7 @@ public class SettingsFragment extends Fragment {
                                 @Override
                                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
 
-                                    //prima di mandare il tutto alla textview aggiusto i parametri in modo da essere uniformi a gg/mm/aaaa
+                                    //dd/mm/yyyy pattern
                                     String Toset = "";
                                     if (dayOfMonth < 10)
                                         Toset = "0";
@@ -283,13 +288,14 @@ public class SettingsFragment extends Fragment {
 
                             Date date;
                             if (activity.birth != null) date = (new SimpleDateFormat("dd mm yyyy")).parse(activity.birth.replace("/", " "));
-                            else date = new Date();
+                            else date = new Date(); //parse error, should not happen
 
                             Calendar cal = Calendar.getInstance();
                             cal.setTime(date);
                             int year = cal.get(Calendar.YEAR), month = cal.get(Calendar.MONTH), day = cal.get(Calendar.DAY_OF_MONTH);
                             DatePickerDialog dpDialog = new DatePickerDialog(getActivity(), R.style.DialogTheme, listener, year, month, day);
-                            dpDialog.show();//mostra la dialog
+                            dpDialog.show();
+                            //Set the DatePicker to previously set date
 
                             getActivity().findViewById(R.id.setting_layout).requestFocus();
                         }
@@ -375,8 +381,7 @@ public class SettingsFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Uri uri);
     }
 
 }

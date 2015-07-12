@@ -32,12 +32,13 @@ public class ConfirmationWatcher implements TextWatcher {
     public void afterTextChanged(Editable s) {
 
         boolean bool = ((EditText)((Activity) context).findViewById(R.id.et_reg_password)).getText().toString().equals(s.toString());
+        //check if password and confirmation
 
         if (bool)
             ((Activity) context).findViewById(R.id.iv_confirm).setBackground(context.getDrawable(R.mipmap.check));
         else
             ((Activity) context).findViewById(R.id.iv_confirm).setBackground(context.getDrawable(R.mipmap.close));
 
-        ((MainActivity)context).setOkConf(bool);
+        ((MainActivity)context).setOkConf(bool); //boolean lock
     }
 }

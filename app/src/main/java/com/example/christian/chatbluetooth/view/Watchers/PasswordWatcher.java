@@ -41,6 +41,8 @@ public class PasswordWatcher implements TextWatcher {
             ((Activity)context).findViewById(R.id.et_confirm).setAlpha(1);
         }
 
-        ((MainActivity)context).setOkPass(bool);
+        //Enable confirmation only if password contains at least 4 characters
+
+        ((MainActivity)context).setOkPass(bool); //boolean lock
     }
 }
