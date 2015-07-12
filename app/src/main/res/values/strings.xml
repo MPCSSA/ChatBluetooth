@@ -75,6 +75,12 @@
     <string name="on_">On&#160;</string>
     <string name="yesterday">Yesterday</string>
     <string name="unknown">Unknown</string>
+    <string name="login">Login</string>
+    <string name="must_register">You must first sign up!</string>
+    <string name="wrong">Wrong username or password!</string>
+    <string name="confirm_pass">Confirm password!</string>
+    <string name="check_fields">Check username and password!</string>
+    <string name="already_registered">You are already registered!</string>
 
 
 </resources>

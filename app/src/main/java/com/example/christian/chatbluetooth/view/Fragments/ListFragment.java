@@ -32,12 +32,11 @@ import com.example.christian.chatbluetooth.view.Watchers.RecyclerItemClickListen
  * create an instance of this fragment.
  */
 public class ListFragment extends Fragment implements ChatFragment.OnFragmentInteractionListener{
-    // TODO: Rename parameter arguments, choose names that match
+
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -51,7 +50,7 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
      * @param param2 Parameter 2.
      * @return A new instance of fragment ListFragment.
      */
-    // TODO: Rename and change types and number of parameters
+
     public static ListFragment newInstance(String param1, String param2) {
         ListFragment fragment = new ListFragment();
         Bundle args = new Bundle();
@@ -82,7 +81,6 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
 
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -121,7 +119,7 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        ((ChatActivity) getActivity()).state = false;
+        ((ChatActivity) getActivity()).state = false; //Boolean state for ActionBar HomeButton behaviour management
 
         Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
 
@@ -129,6 +127,7 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
 
         actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
         actionBar.setDisplayHomeAsUpEnabled(true);
+        //ActionBar set up
 
 
         final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
@@ -137,46 +136,49 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recList.setLayoutManager(llm);
         recList.setItemAnimator(new DefaultItemAnimator());
+        //Set up RecyclerView for Card displaying
 
         SpannableString title;
         if (getTag().equals("FAVORITES")) {
-
+            //There are 2 kinds of ListFragment: the one that displays all visible users and the one showing only favorites
+            //set Favorites
             title = new SpannableString(getString(R.string.favorites));
             title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.favList);
+            BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.favList); //favorites list
         } else {
 
             title = new SpannableString(getString(R.string.list_frag));
             title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             actionBar.setTitle(title);
-            BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.userList);
+            BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.userList); //public list
         }
 
         actionBar.setTitle(title);
 
-        recList.setAdapter(BlueCtrl.userAdapt);
+        recList.setAdapter(BlueCtrl.userAdapt); //set Adapter after user list binding
         recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
 
+                //Display ChatFragment at card touch; must cleanup ChatMessages Adapter first
                 if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
-                    BlueCtrl.msgAdapt.clear();
-                    BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
-                    BlueCtrl.fillMsgAdapter();
+                    //If a new contact is selected
+                    BlueCtrl.msgAdapt.clear(); //clear adapter
+                    BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac()); //set new address
+                    BlueCtrl.fillMsgAdapter(); //populate adapter
                 }
 
-                ((ChatActivity) getActivity()).chat = true;
+                ((ChatActivity) getActivity()).chat = true; //No longer in ListFragment
 
                 ChatFragment chatFragment = new ChatFragment();
-
-                chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
+                chatFragment.setUser(BlueCtrl.userAdapt.getItem(position)); //set ChatFragment ChatUser field
 
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
                 fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
                 fragmentTransaction.commit();
-
+                //show ChatFragment
             }
         }));
 
@@ -188,8 +190,7 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     }
 
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Uri uri);
     }
 
 }

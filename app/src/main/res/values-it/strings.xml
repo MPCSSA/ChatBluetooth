@@ -49,4 +49,10 @@
     <string name="on_">A&#160;</string>
     <string name="yesterday">Ieri</string>
     <string name="unknown">Sconosciuto</string>
+    <string name="login">Autenticazione</string>
+    <string name="must_register">Devi prima registrarti!</string>
+    <string name="wrong">Username o password sbagliati!</string>
+    <string name="confirm_pass">Conferma la password!</string>
+    <string name="check_fields">Controlla username e password!</string>
+    <string name="already_registered">Sei gi&#224; registrato!</string>
 </resources>

@@ -2,8 +2,6 @@ package com.example.christian.chatbluetooth.view.Fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -12,14 +10,11 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.example.christian.chatbluetooth.R;
@@ -27,9 +22,6 @@ import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.view.Adapters.HistoryAdapter;
 import com.melnykov.fab.FloatingActionButton;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -40,12 +32,10 @@ import java.util.HashMap;
  * create an instance of this fragment.
  */
 public class HistoryFragment extends Fragment implements TextWatcher, View.OnClickListener{
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -53,7 +43,6 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
     EditText searchBar;
     ListView historyList;
     HistoryAdapter adapter;
-    HashMap<Integer, Integer> selected = new HashMap<>();
 
     private OnFragmentInteractionListener mListener;
 
@@ -65,7 +54,7 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
      * @param param2 Parameter 2.
      * @return A new instance of fragment HistoryFragment.
      */
-    // TODO: Rename and change types and number of parameters
+
     public static HistoryFragment newInstance(String param1, String param2) {
         HistoryFragment fragment = new HistoryFragment();
         Bundle args = new Bundle();
@@ -95,7 +84,6 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
         return inflater.inflate(R.layout.fragment_history, container, false);
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -125,39 +113,44 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
 
         ActionBar actionBar = getActivity().getActionBar();
         actionBar.setTitle(getString(R.string.history_activity));
+        //ActionBar
 
-        (getActivity().findViewById(R.id.etHistory)).clearFocus();
-
-        Button searchBtn = (Button) getActivity().findViewById(R.id.btnHistory);
+        Button searchBtn = (Button) getActivity().findViewById(R.id.btnHistory); //get all messages Button
         searchBtn.setOnClickListener(this);
 
         searchBar = (EditText) getActivity().findViewById(R.id.etHistory);
         searchBar.clearFocus();
         searchBar.addTextChangedListener(this);
+        //EditText form for key research; DB queried on the fly thanks to TextWatcher
 
         final CheckBox boxAll = (CheckBox) getActivity().findViewById(R.id.cboxAll);
         boxAll.setOnClickListener(this);
+        //CheckBox for all messages selection
 
         FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fabHistory);
         fab.setOnClickListener(this);
+        //Floating Action Button for message deleting
 
         historyList = (ListView) getActivity().findViewById(R.id.listHistory);
         adapter = new HistoryAdapter(getActivity(), R.layout.item_history);
         historyList.setAdapter(adapter);
+        //List of messages
 
         historyList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
                 boxAll.setChecked(false);
+                //when selecting a message, set the All Messages CheckBox to unchecked
 
-                ChatMessage message = adapter.getItem(i);
-                message.setSentBy(!message.getSender());
+                ChatMessage message = adapter.getItem(i); //get element item
+                message.setSentBy(!message.getSender()); //set sender to its negation; ChatMessage field sentBy is used to store CheckBox value
                 adapter.notifyDataSetChanged();
             }
         });
 
         historyGroup = (RadioGroup) getActivity().findViewById(R.id.historyGroup);
+        //RadioButtons for key research options
     }
 
     @Override
@@ -168,7 +161,7 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
     @Override
     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-        adapter.clear();
+        adapter.clear(); //while writing, clear the adapter so that previous research does not appear
     }
 
 
@@ -176,29 +169,30 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
     public void afterTextChanged(Editable editable) {
 
         String str = editable.toString();
+        //String in the EditText
 
-        if (str.equals("")) return;
+        if (str.equals("")) return; //No empty research, use searchButton instead
 
-        int mode;
+        int mode; //RadioButton checked
         switch(historyGroup.getCheckedRadioButtonId()) {
 
-            case R.id.in_message:
+            case R.id.in_message: //only messages
 
                 mode = 0;
                 break;
 
-            case R.id.in_user:
+            case R.id.in_user: //search by username
 
                 mode = 1;
                 break;
 
-            default:
+            default: //both
 
                 mode = 2;
                 break;
         }
 
-        adapter.addAll(BlueCtrl.fetchHistory(str, mode));
+        adapter.addAll(BlueCtrl.fetchHistory(str, mode)); //add all messages found in DB
         adapter.notifyDataSetChanged();
     }
 
@@ -210,48 +204,54 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
         switch (view.getId()) {
 
             case R.id.btnHistory:
+                //search Button, fetch and display all messages
 
                 adapter.clear();
 
-                adapter.addAll(BlueCtrl.fetchHistory(null, 0));
+                adapter.addAll(BlueCtrl.fetchHistory(null, 0)); //null String used as guide for method
                 break;
 
             case R.id.fabHistory:
+                //FloatingActionButton listener; deletes any messages with checked internal CheckBox
 
-                int count = 0, max = historyList.getCount();
+                int count = 0, max = historyList.getCount(); //initial number of elements
 
                  while (count < max) {
 
-                     message = adapter.getItem(count);
-                     if (message == null) {
+                     message = adapter.getItem(count); //get messages sequentially
 
-                         System.out.println("NULL");
+                     if (message == null) {
+                         //should not happen
                          count++;
                          continue;
                      }
 
                      if (message.getSender()) {
 
-                         System.out.println("REMOVED");
-                         BlueCtrl.remove(message);
-                         adapter.remove(message);
-                         max--;
+                         //sentBy field of ChatMessage instance is set to true to store CheckBox value,
+                         //so it is selected for deleting
+                         BlueCtrl.remove(message); //remove from database
+                         adapter.remove(message); //remove from adapter
+                         max--; //Adapter shrinks, max length got decremented
                      }
                      else {
 
-                         System.out.println("SKIPPED");
+                         //not selected for deleting
                          count++;
                      }
                 }
 
                 ((CheckBox)getActivity().findViewById(R.id.cboxAll)).setChecked(false);
+                //set AllCheckBox to unchecked
 
                 break;
 
             case R.id.cboxAll:
+                //Select all messages shown
 
                 for (int i = 0; i < adapter.getCount(); ++i) {
 
+                    //For every message shown in the Adapter, mark sentBy field as CheckBox value
                     adapter.getItem(i).setSentBy(((CheckBox) view).isChecked());
                 }
                 break;
@@ -271,8 +271,7 @@ public class HistoryFragment extends Fragment implements TextWatcher, View.OnCli
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Uri uri);
     }
 
 }
