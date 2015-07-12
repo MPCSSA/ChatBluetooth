@@ -100,7 +100,6 @@ public class MyProfileFragment extends Fragment {
 
         Point point = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
-        int width = point.x;
 
         Bitmap bitmap;
         if (path.equals("NoPhoto")) bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
@@ -110,10 +109,24 @@ public class MyProfileFragment extends Fragment {
             bitmap = BitmapFactory.decodeFile(path, bmOptions);
         }
 
-        float ratio = width / (float)bitmap.getWidth();
+        int width = point.x, height = point.y;
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        int wcrop, hcrop;
+        float ratio;
+        wcrop = width;
+        hcrop = width;
+
+        if (w < h){
+            ratio = width / (float)w;
+
+        }
+        else {
+            ratio = height/ (float)h;
+        }
 
         bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
-        bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  width) / 2, width, width);
+        bitmap = Bitmap.createBitmap(bitmap,(bitmap.getWidth() -  wcrop) / 2 , (bitmap.getHeight() -  hcrop) / 2, wcrop, hcrop);
         bitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         ImageView imageView = (ImageView) getActivity().findViewById(R.id.my_profile_image);
         imageView.setImageDrawable(new BitmapDrawable(bitmap));

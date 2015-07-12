@@ -452,10 +452,19 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             bitmap = BitmapFactory.decodeFile(path, bmOptions);
         }
 
-        float ratio = 240 / (float)bitmap.getWidth();
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        float ratio;
+
+        if (w < h){
+            ratio = 240 / (float)w;
+        }
+        else {
+            ratio = 180 / (float)h;
+        }
 
         bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
-        bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  180) / 2, 240, 180);
+        bitmap = Bitmap.createBitmap(bitmap,(bitmap.getWidth() -  240) / 2 , (bitmap.getHeight() -  180) / 2, 240, 180);
         bitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bitmap));
         //Drawer Image
@@ -546,10 +555,19 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 bitmap = BitmapFactory.decodeFile(path, bmOptions);
             }
 
-            float ratio = 240 / (float)bitmap.getWidth();
+            int w = bitmap.getWidth();
+            int h = bitmap.getHeight();
+            float ratio;
+
+            if (w < h){
+                ratio = 240 / (float)w;
+            }
+            else {
+                ratio = 180 / (float)h;
+            }
 
             bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
-            bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  180) / 2, 240, 180);
+            bitmap = Bitmap.createBitmap(bitmap,(bitmap.getWidth() -  240) / 2 , (bitmap.getHeight() -  180) / 2, 240, 180);
             bitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
             ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bitmap));
         }

@@ -162,6 +162,10 @@ public class SettingsFragment extends Fragment {
         Point point = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
         int width = point.x;
+        int height = point.y;
+        int wcrop, hcrop;
+
+
 
         Bitmap bitmap;
         if (activity.mCurrentPhotoPath.equals("NoPhoto")) bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
@@ -171,11 +175,22 @@ public class SettingsFragment extends Fragment {
             bitmap = BitmapFactory.decodeFile(activity.mCurrentPhotoPath, bmOptions);
         }
 
-        float ratio = width / (float)bitmap.getWidth();
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        float ratio;
+        wcrop = width;
+        hcrop = (width * 9) / 16;
+
+        if (w < h){
+            ratio = width / (float)w;
+        }
+        else {
+            ratio = height/ (float)h;
+        }
+
 
         bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
-        int height = (width * 9) / 16;
-        bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  height) / 2, width, height);
+        bitmap = Bitmap.createBitmap(bitmap,(bitmap.getWidth() -  wcrop) / 2 , (bitmap.getHeight() -  hcrop) / 2, wcrop, hcrop);
         bitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         ImageView imageView = (ImageView) getActivity().findViewById(R.id.setting_image);
         imageView.setImageDrawable(new BitmapDrawable(bitmap));
@@ -385,12 +400,25 @@ public class SettingsFragment extends Fragment {
 
             Point point = new Point();
             getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
-            int width = point.x;
-            float ratio = width / (float)bitmap.getWidth();
+
+            int width = point.x, height = point.y;
+            int w = bitmap.getWidth();
+            int h = bitmap.getHeight();
+            int wcrop, hcrop;
+            float ratio;
+
+            wcrop = width;
+            hcrop = (width * 9) / 16;
+
+            if (w < h){
+                ratio = width / (float)w;
+            }
+            else {
+                ratio = height / (float)h;
+            }
 
             bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
-            int height = (width * 9) / 16;
-            bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  height) / 2, width, height);
+            bitmap = Bitmap.createBitmap(bitmap,(bitmap.getWidth() -  wcrop) / 2 , (bitmap.getHeight() -  hcrop) / 2, wcrop, hcrop);
             ImageView imageView = (ImageView) getActivity().findViewById(R.id.setting_image);
             imageView.setImageBitmap(bitmap);
         }
