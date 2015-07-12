@@ -3,6 +3,7 @@ package com.example.christian.chatbluetooth.view.Activities;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ public class SettingActivity extends Activity implements SettingsFragment.OnFrag
     public boolean[] checked = new boolean[3]; //CheckBoxes status before entering
     public int gender, country, flag = 0;
     public String usr, birth;
+    public String mCurrentPhotoPath;
     //User information before changes
 
     @Override
@@ -63,6 +65,8 @@ public class SettingActivity extends Activity implements SettingsFragment.OnFrag
             //Check for changes and update User Information; user information can be skipped at registration
             //and inserted here
 
+            Intent intent = new Intent();
+            boolean bool = false;
             SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
 
             if (!usr.equals(sh.getString("username", "Unknown")) ||
@@ -102,11 +106,19 @@ public class SettingActivity extends Activity implements SettingsFragment.OnFrag
                 int gender = (checked[2]) ? this.gender : 0;
                 BlueCtrl.updateProfile(timestamp, usr, country, gender, age);
                 //DB contains public user information, therefore if some are hidden change to default value
+                bool = true;
 
                 Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show();
             }
 
-            super.onBackPressed();
+            if (!mCurrentPhotoPath.equals(sh.getString("PROFILE_PIC", "NoPhoto"))) {
+
+                sh.edit().putString("PROFILE_PIC", mCurrentPhotoPath).apply();
+                bool = true;
+            }
+
+            if (bool) setResult(RESULT_OK, intent);
+            finish();
             //get back
         }
 

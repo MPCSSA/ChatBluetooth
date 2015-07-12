@@ -55,8 +55,8 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         int gender = chatUser.getGender();
         if (gender > 0) {
 
-            if (gender == 1) userViewHolder.thumb.setBackground(context.getDrawable(R.drawable.favorite));
-            else userViewHolder.thumb.setBackground(context.getDrawable(R.drawable.favorite));
+            if (gender == 1) userViewHolder.thumb.setBackground(context.getDrawable(R.drawable.unknown_male));
+            else userViewHolder.thumb.setBackground(context.getDrawable(R.drawable.unknown_fem));
         }
         //display gender if public
 

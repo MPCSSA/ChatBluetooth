@@ -61,8 +61,8 @@ public class SettingsFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    SettingActivity activity;
     static final int REQUEST_TAKE_PHOTO = 1;
-    private String mCurrentPhotoPath;
     private String imageNameFile;
 
     private OnFragmentInteractionListener mListener;
@@ -138,7 +138,7 @@ public class SettingsFragment extends Fragment {
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         actionBar.setTitle(title);
 
-        final SettingActivity activity = (SettingActivity) getActivity(); //SettingActivity instance
+        activity = (SettingActivity) getActivity(); //SettingActivity instance
 
         SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
         //User profile information storage
@@ -154,6 +154,8 @@ public class SettingsFragment extends Fragment {
         activity.birth = sh.getString("birth", null); //old birth date
         activity.gender = sh.getInt("gender", 0); //old gender
 
+        activity.mCurrentPhotoPath = sh.getString("PROFILE_PIC", "NoPhoto");
+
         final ListView settingList = (ListView) getActivity().findViewById(R.id.setting_list);
         //field list
 
@@ -161,11 +163,22 @@ public class SettingsFragment extends Fragment {
         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
         int width = point.x;
 
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-        bmp = Bitmap.createScaledBitmap(bmp, width, (9 * width) / 16, false); //16:9 ratio
-        bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+        Bitmap bitmap;
+        if (activity.mCurrentPhotoPath.equals("NoPhoto")) bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
+        else {
+
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bitmap = BitmapFactory.decodeFile(activity.mCurrentPhotoPath, bmOptions);
+        }
+
+        float ratio = width / (float)bitmap.getWidth();
+
+        bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
+        int height = (width * 9) / 16;
+        bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  height) / 2, width, height);
+        bitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         ImageView imageView = (ImageView) getActivity().findViewById(R.id.setting_image);
-        imageView.setImageDrawable(new BitmapDrawable(bmp));
+        imageView.setImageDrawable(new BitmapDrawable(bitmap));
         //show profile image
 
         final SettingAdapter adapt = new SettingAdapter(getActivity(), R.layout.setting_item);
@@ -346,7 +359,7 @@ public class SettingsFragment extends Fragment {
         // Create an image file name
 
         imageNameFile = "PROFILE_IMG";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
+        File storageDir = getActivity().getExternalFilesDir(
                 Environment.DIRECTORY_PICTURES);
 
         File image = File.createTempFile(
@@ -355,8 +368,8 @@ public class SettingsFragment extends Fragment {
                 storageDir      /* directory */
         );
         // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        System.out.println("Path: " + mCurrentPhotoPath);
+        activity.mCurrentPhotoPath = image.getAbsolutePath();
+        System.out.println("Path: " + activity.mCurrentPhotoPath);
         return image;
     }
 
@@ -364,18 +377,20 @@ public class SettingsFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        System.out.println("RESULT OK: " + getActivity().RESULT_OK);
-        System.out.println("RESULT CODE: " + resultCode);
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == getActivity().RESULT_OK) {
 
             BitmapFactory.Options bmOptions = new BitmapFactory.Options();
 
-            Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+            Bitmap bitmap = BitmapFactory.decodeFile(activity.mCurrentPhotoPath, bmOptions);
 
             Point point = new Point();
             getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
             int width = point.x;
-            bitmap = Bitmap.createScaledBitmap(bitmap, width, (width*9)/16, false);
+            float ratio = width / (float)bitmap.getWidth();
+
+            bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
+            int height = (width * 9) / 16;
+            bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  height) / 2, width, height);
             ImageView imageView = (ImageView) getActivity().findViewById(R.id.setting_image);
             imageView.setImageBitmap(bitmap);
         }

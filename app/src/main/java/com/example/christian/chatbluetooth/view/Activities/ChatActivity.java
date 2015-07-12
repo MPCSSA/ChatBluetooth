@@ -13,6 +13,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -380,7 +381,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         container.addView(child);
         decor.addView(drawerLayout);
 
-        ((TextView) findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
+        ((TextView) findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "Unknown"));
 
         ListView listViewMenu = (ListView) findViewById(R.id.list_menu);
         MenuAdapter adapter = new MenuAdapter(this, R.layout.menu_item_layout);
@@ -405,7 +406,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         intent = new Intent(
                                 getApplicationContext(),
                                 SettingActivity.class);
-                        startActivity(intent);
+                        startActivityForResult(intent, 42);
                         //Start SettingActivity
                         break;
 
@@ -442,10 +443,21 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         drawerLayout.setDrawerListener(drawerToggle);
 
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-        bmp = Bitmap.createScaledBitmap(bmp, 240, 180, false);
-        bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
-        ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bmp));
+        String path = getSharedPreferences("preferences", Context.MODE_PRIVATE).getString("PROFILE_PIC", "NoPhoto");
+        Bitmap bitmap;
+        if (path.equals("NoPhoto")) bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
+        else {
+
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bitmap = BitmapFactory.decodeFile(path, bmOptions);
+        }
+
+        float ratio = 240 / (float)bitmap.getWidth();
+
+        bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
+        bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  180) / 2, 240, 180);
+        bitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+        ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bitmap));
         //Drawer Image
 
         switchVisibility = (Switch) findViewById(R.id.switch_state); //visibility switch
@@ -515,6 +527,33 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         BluetoothAdapter.getDefaultAdapter().startDiscovery(); //Begin discovery
     }
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 42 && resultCode == RESULT_OK) {
+
+            SharedPreferences sh = getSharedPreferences("preferences", Context.MODE_PRIVATE);
+            ((TextView) findViewById(R.id.username_drawer)).setText(sh.getString("username", "Unknown"));
+
+            String path = sh.getString("PROFILE_PIC", "NoPhoto");
+            Bitmap bitmap;
+            if (path.equals("NoPhoto")) bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
+            else {
+
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                bitmap = BitmapFactory.decodeFile(path, bmOptions);
+            }
+
+            float ratio = 240 / (float)bitmap.getWidth();
+
+            bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
+            bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  180) / 2, 240, 180);
+            bitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+            ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bitmap));
+        }
+    }
 
     @Override
     public void onBackPressed() {

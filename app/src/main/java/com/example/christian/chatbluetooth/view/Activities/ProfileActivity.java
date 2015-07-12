@@ -28,6 +28,12 @@ public class ProfileActivity extends Activity implements MyProfileFragment.OnFra
         fragmentTransaction.commit();
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        finish();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

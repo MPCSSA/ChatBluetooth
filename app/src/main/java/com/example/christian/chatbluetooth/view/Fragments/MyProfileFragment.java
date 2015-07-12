@@ -95,21 +95,30 @@ public class MyProfileFragment extends Fragment {
         ListView fieldList = (ListView) getActivity().findViewById(R.id.my_info_list);
         //List of user information
 
+        SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
+        String path = sh.getString("PROFILE_PIC", "NoPhoto");
+
         Point point = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
-
         int width = point.x;
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-        bmp = Bitmap.createScaledBitmap(bmp, width, width, false); //1:1 ratio
-        bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+        Bitmap bitmap;
+        if (path.equals("NoPhoto")) bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
+        else {
+
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bitmap = BitmapFactory.decodeFile(path, bmOptions);
+        }
+
+        float ratio = width / (float)bitmap.getWidth();
+
+        bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
+        bitmap = Bitmap.createBitmap(bitmap, 0, (bitmap.getHeight() -  width) / 2, width, width);
+        bitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         ImageView imageView = (ImageView) getActivity().findViewById(R.id.my_profile_image);
-        imageView.setImageDrawable(new BitmapDrawable(bmp));
+        imageView.setImageDrawable(new BitmapDrawable(bitmap));
         //Displaying Profile Picture in a 1:1 ratio
 
-        SharedPreferences sh = getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE);
         MyProfileAdapter adapter = new MyProfileAdapter(getActivity(), R.layout.my_profile_item);
         fieldList.setAdapter(adapter);
         //set Adapter
