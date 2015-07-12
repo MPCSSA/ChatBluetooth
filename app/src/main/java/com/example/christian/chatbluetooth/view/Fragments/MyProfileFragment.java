@@ -92,7 +92,6 @@ public class MyProfileFragment extends Fragment {
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         actionBar.setTitle(title);
 
-
         ListView fieldList = (ListView) getActivity().findViewById(R.id.my_info_list);
         //List of user information
 
