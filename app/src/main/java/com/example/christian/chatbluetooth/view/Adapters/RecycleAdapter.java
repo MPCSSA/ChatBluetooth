@@ -1,6 +1,5 @@
 package com.example.christian.chatbluetooth.view.Adapters;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -17,16 +16,14 @@ import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.model.Country;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 
 public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserViewHolder> {
 
-    private Context context;
-    private List<ChatUser> userList;
+    private Context context; //Activity
+    private List<ChatUser> userList; //user list (either BlueCtrl.userList or BlueCtrl.favList)
 
     public RecycleAdapter(Context context, List<ChatUser> userList){
 
@@ -45,7 +42,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         ChatUser chatUser = userList.get(i);
 
         String username = chatUser.getName();
-        if (username == null) username = "Unknown";
+        if (username == null) username = context.getString(R.string.unknown); //No user information yet
         userViewHolder.name.setText(username);
 
         long age = chatUser.getAge();
@@ -53,6 +50,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
 
             userViewHolder.age.setText(String.valueOf((new Date()).getTime() - age));
         }
+        //display age if public
 
         int gender = chatUser.getGender();
         if (gender > 0) {
@@ -60,6 +58,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
             if (gender == 1) userViewHolder.thumb.setBackground(context.getDrawable(R.drawable.unknown_male));
             else userViewHolder.thumb.setBackground(context.getDrawable(R.drawable.unknown_fem));
         }
+        //display gender if public
 
         int c = chatUser.getCountry();
         Country country =  BlueCtrl.fetchFlag(c);
@@ -70,6 +69,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
 
             userViewHolder.flag.setBackground(new BitmapDrawable(Bitmap.createBitmap(bitmap, (pos / 12) * w, (pos % 12) * h, w, h)));
         }
+        //display country flag if public
     }
 
     @Override
@@ -80,21 +80,6 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
                     inflate(R.layout.card_layout, viewGroup, false);
 
         return new UserViewHolder(itemView);
-    }
-
-    public void remove(String mac) {
-
-        int position = 0;
-
-        for (ChatUser u : userList) {
-
-            if (u.getMac().equals(mac)) {
-                userList.remove(u);
-                notifyItemRemoved(position);
-                return;
-            }
-            ++position;
-        }
     }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
@@ -110,37 +95,22 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
             age = (TextView) v.findViewById(R.id.tv_age);
             thumb = (ImageView) v.findViewById(R.id.profilePict);
             flag = (ImageView) v.findViewById(R.id.user_flag);
-
         }
     }
 
-    public boolean add(ChatUser user) {
+    //public boolean add(ChatUser user) {
 
-        boolean result;
+        //TODO: SHOULD BE DEPRECATED
+
+    /*    boolean result;
 
         result = userList.add(user);
         notifyDataSetChanged();
 
         return result;
-    }
+    }*/
 
     public ChatUser getItem(int position){
         return userList.get(position);
-    }
-
-    public Collection dropUsers(String address) {
-
-        ArrayList<ChatUser> lostDvcs = new ArrayList<>();
-
-        for (ChatUser u : userList) {
-
-            if (u.getNextNode() != null && u.getNextNode().getAddress().equals(address)) {
-
-                lostDvcs.add(u);
-                userList.remove(u);
-            }
-        }
-
-        return lostDvcs;
     }
 }

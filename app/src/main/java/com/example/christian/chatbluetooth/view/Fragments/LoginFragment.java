@@ -87,13 +87,7 @@ public class LoginFragment extends Fragment {
         int layout;
         if ((getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("logged in", false)))
             layout = R.layout.logo_layout;
-    /*
-    DEBUG ONLY
-    */
-        else layout = (BlueCtrl.version) ? R.layout.fragment_login : R.layout.fragment_login_nomat;
-    /*
-    DEBUG ONLY
-    */
+        else layout = R.layout.fragment_login;
         // Inflate the layout for this fragment
         return inflater.inflate(layout, container, false);
     }
@@ -138,7 +132,7 @@ public class LoginFragment extends Fragment {
         super.onActivityCreated(savedIstanceState);
 
 
-        if (!BlueCtrl.version || getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("logged in", false)) {
+        if (getActivity().getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("logged in", false)) {
             Intent discoverable = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverable.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
             startActivityForResult(discoverable, 1);
@@ -172,9 +166,7 @@ public class LoginFragment extends Fragment {
                     RegistrationFragment registrationFragment = new RegistrationFragment();
                     FragmentManager fragmentManager = getFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                /*DEBUG ONLY*/
-                    if (BlueCtrl.version)
-                        fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                    fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
                     fragmentTransaction.replace(R.id.container, registrationFragment);
                     fragmentTransaction.commit();
                 }

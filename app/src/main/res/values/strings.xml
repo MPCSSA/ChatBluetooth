@@ -63,5 +63,18 @@
     <string name="from">From&#160;</string>
     <string name="age">Age&#160;</string>
 
+    <string name="profile">Profile</string>
+    <string name="settings">Settings</string>
+    <string name="history">History</string>
+    <string name="contact_list">Contact List</string>
+    <string name="menu" translatable="false">Menu</string>
+    <string name="today_at">Today at&#160;</string>
+    <string name="yesterday_at">Yesterday at&#160;</string>
+    <string name="this_">This&#160;</string>
+    <string name="at">at&#160;</string>
+    <string name="on_">On&#160;</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="unknown">Unknown</string>
+
 
 </resources>

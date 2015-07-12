@@ -12,9 +12,6 @@ public class ServerThread extends Thread {
     private BluetoothServerSocket server;
     private Handler handler;
 
-    public BluetoothServerSocket getServer() {
-        return server;
-    }
     public void setServer(BluetoothServerSocket server) {
         this.server = server;
     }
@@ -27,7 +24,6 @@ public class ServerThread extends Thread {
 
         setServer(server);
         setHandler(handler);
-
     }
 
     public void run() {

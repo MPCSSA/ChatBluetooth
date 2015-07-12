@@ -12,7 +12,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.Handler;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.util.DisplayMetrics;
@@ -23,7 +22,6 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -35,7 +33,6 @@ import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
-import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
 import com.melnykov.fab.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -51,12 +48,10 @@ import java.util.Date;
  * create an instance of this fragment.
  */
 public class ChatFragment extends Fragment implements View.OnClickListener{
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -78,7 +73,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
      * @param param2 Parameter 2.
      * @return A new instance of fragment ChatFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static ChatFragment newInstance(String param1, String param2) {
         ChatFragment fragment = new ChatFragment();
         Bundle args = new Bundle();
@@ -108,13 +102,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         return inflater.inflate(R.layout.fragment_chat, container, false);
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -136,13 +123,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-
-        int drawable;
-        if (user.getGender() == 0) drawable = R.drawable.unknown_nogender;
-        else if (user.getGender() == 1) drawable = R.drawable.unknown_male;
-        else drawable = R.drawable.unknown_fem;
-
-        menu.findItem(R.id.action_fav).setIcon(drawable);
     }
 
     @Override
@@ -157,18 +137,23 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         actionBar.setTitle(title);
         actionBar.setHomeAsUpIndicator(null);
+        //ActionBar initialized
 
-        msgText = (EditText) getActivity().findViewById(R.id.etMsg);
+        msgText = (EditText) getActivity().findViewById(R.id.etMsg); //Text Message form
 
-        final ListView listView = (ListView) getActivity().findViewById(R.id.msgList);
-        listView.setAdapter(BlueCtrl.msgAdapt);
+        final ListView listView = (ListView) getActivity().findViewById(R.id.msgList); //Messages list
+        listView.setAdapter(BlueCtrl.msgAdapt); //MessageAdapter
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                //The only clickable item is the top item of the list, which loads older messages into the adapter
+
                 if (i == 0 && adapterView.getAdapter().getItem(0) == null) {
+                    //special null item is always on top
 
                     Cursor cursor = BlueCtrl.fetchMsgHistory(user.getMac(), ((ChatMessage) adapterView.getAdapter().getItem(1)).getDate().getTime());
                     int pos = 0;
+                    //fetch old messages
 
                     if (cursor.getCount() > 0) {
 
@@ -178,9 +163,11 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
                             adapt.add(BlueCtrl.msgAdapt.getItem(_));
                         }
-                        BlueCtrl.msgAdapt.clear();
+                        //newer messages have to stay in the bottom, therefore they will be popped and re-added
 
-                        BlueCtrl.msgAdapt.add(null);
+                        BlueCtrl.msgAdapt.clear(); //delete messages
+
+                        BlueCtrl.msgAdapt.add(null); //insert special item on top
 
                         if (cursor.getCount() > 0) {
                             cursor.moveToLast();
@@ -189,29 +176,38 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                                 ++pos;
                             } while (cursor.moveToPrevious());
                         }
+                        //Add older messages
 
-                        BlueCtrl.msgAdapt.addAll(adapt);
+                        BlueCtrl.msgAdapt.addAll(adapt); //add newer messages
                     }
-                    else BlueCtrl.msgAdapt.remove(null);
+                    else BlueCtrl.msgAdapt.remove(null); //No more messages to show, delete special item
 
-                        listView.setStackFromBottom(false);
-                        listView.setSelection(pos);
+                    listView.setStackFromBottom(false);
+                    listView.setSelection(pos);
+                    /*
+                    new messages always make the list scroll down; but when the user is searching for older messages,
+                    it is implied he wants to keep reading from where it left. StackFromBottom option has to be
+                    suspended until repositioning
+                     */
 
-                        BlueCtrl.msgAdapt.notifyDataSetChanged();
+                    BlueCtrl.msgAdapt.notifyDataSetChanged();
 
-                        listView.setStackFromBottom(true);
+                    listView.setStackFromBottom(true);
                 }
             }
         });
 
         ImageButton sendBtn = (ImageButton) getActivity().findViewById(R.id.sendBtn);
         sendBtn.setOnClickListener(this);
+        //Send Message Button
 
-        (getActivity().findViewById(R.id.emoBtn)).setOnClickListener(this);
+        (getActivity().findViewById(R.id.emoBtn)).setOnClickListener(this); //Emoticon button
+
         FloatingActionButton favFab = (FloatingActionButton) getActivity().findViewById(R.id.fabFav);
         int heart = (user.isFav()) ? R.drawable.fav : R.drawable.unfav;
         favFab.setImageDrawable(getResources().getDrawable(heart));
         favFab.setOnClickListener(this);
+        //Favorites Floating Action Button; initialized with DB information
     }
 
     @Override
@@ -220,28 +216,37 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         switch (v.getId()) {
 
             case R.id.sendBtn:
+                //wrap up and send a Text Message
 
-                String tmp = msgText.getText().toString();
-                if (!tmp.equals("")) {
-                    Date time = new Date();
+                String tmp = msgText.getText().toString(); //temporary message
+                if (!tmp.equals("")) { //empty text is blocked
+
+                    Date time = new Date(); //when it is sent
+
                     byte[] msg = (BlueCtrl.SPY == (byte)0) ? tmp.getBytes() : BlueCtrl.encrypt(tmp.getBytes());
+                    //Spy Mode activated forces encrypting
+
                     BlueCtrl.sendMsg(user.getNextNode(),
                             BlueCtrl.buildMsg(user.getMacInBytes(),
                                     BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
                                     msg),
                             ((ChatActivity)getActivity()).getHandler());
+                    //send the message
 
                     BlueCtrl.insertMsgTable(tmp, user.getMac(), time, 0, 0);
                     BlueCtrl.msgAdapt.add(new ChatMessage(tmp, false, time.getTime(), false));
                     BlueCtrl.msgAdapt.notifyDataSetChanged();
+                    //Add the message to DB and MessageAdapter
+
                     msgText.setText(null);
                     msgText.requestFocus();
-
-
+                    //clear message form
                 }
+
                 break;
 
             case R.id.emoBtn:
+                //show emoticons
 
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 View view = inflater.inflate(R.layout.emoticon_popup, (ViewGroup) getActivity().findViewById(R.id.emoticons));
@@ -249,6 +254,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 GridView grid = (GridView) view.findViewById(R.id.emo_grid);
                 grid.setAdapter(BlueCtrl.emoticons);
                 BlueCtrl.emoticons.clear();
+                //initialize emoticon GridList
 
                 Bitmap emoBitmap = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.red_emoticons);
                 emoBitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
@@ -259,9 +265,9 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
                         Bitmap single = Bitmap.createScaledBitmap(Bitmap.createBitmap(emoBitmap, x * w, y * h, w, h), w / 2, h / 2, false);
                         BlueCtrl.emoticons.add(single);
-
                     }
                 }
+                //populate GridList
 
                 grid.setHorizontalSpacing(0);
                 grid.setVerticalSpacing(0);
@@ -272,45 +278,50 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 popupWindow.setBackgroundDrawable(new BitmapDrawable());
                 popupWindow.setAnimationStyle(R.style.EmoticonAnim);
                 popupWindow.setElevation(8f);
+                //Emoticon PopupWindow; showed on top of message form
 
                 popupWindow.showAtLocation(view, Gravity.BOTTOM | Gravity.END, 36, msgText.getHeight() + 32);
 
                 grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        //On selecting one emoticon, it is automatically sent
 
-                        Date time = new Date();
+                        Date time = new Date(); //when it was sent
                         BlueCtrl.sendMsg(user.getNextNode(),
                                 BlueCtrl.buildEmoticon(user.getMacInBytes(),
                                         BlueCtrl.macToBytes(BluetoothAdapter.getDefaultAdapter().getAddress()),
                                         (byte) i), ((ChatActivity)getActivity()).getHandler());
+                        //send Emoticon
 
                         BlueCtrl.insertMsgTable(String.valueOf(i), user.getMac(), time, 0, 1);
                         BlueCtrl.msgAdapt.add(new ChatMessage(String.valueOf(i), false, time.getTime(), true));
                         BlueCtrl.msgAdapt.notifyDataSetChanged();
+                        //insert Emoticon message into DB and MessageAdapter
 
                         popupWindow.dismiss();
+                        //close window
                     }
                 });
 
                 break;
 
             case R.id.fabFav:
+                //FAV/UNFAV
 
                 user.setFav(!user.isFav());
                 int value = (user.isFav()) ? 1 : 0;
                 BlueCtrl.setFavorite(user.getMac(), value);
+                //set Favorites value in DB
 
-                if (user.isFav()){
-                    BlueCtrl.favList.add(user);
-                }
-
-                else{
-                    BlueCtrl.favList.remove(user);
-                }
+                if (user.isFav()) BlueCtrl.favList.add(user);
+                //new favorite
+                else BlueCtrl.favList.remove(user);
+                //un-faved
 
                 int heart = (user.isFav()) ? R.drawable.fav : R.drawable.unfav;
                 ((FloatingActionButton)v).setImageDrawable(getResources().getDrawable(heart));
+                //Update Floating Action Button image
         }
     }
 
@@ -328,8 +339,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
 
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Uri uri);
     }
 
 }

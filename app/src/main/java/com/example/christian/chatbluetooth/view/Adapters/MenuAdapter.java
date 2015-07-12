@@ -11,17 +11,18 @@ import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
 
-import java.util.zip.Inflater;
-
 public class MenuAdapter extends ArrayAdapter<String>{
+    //Navigation Drawer adapter for action listing
 
     private int layout;
     private int[] icons = {R.mipmap.profile, R.mipmap.setting, R.mipmap.history};
-    private String[] titles = {"Profilo", "Impostazioni", "Cronologia"};
+    private String[] titles;
 
     public MenuAdapter(Context context, int resource) {
         super(context, resource);
         layout = resource;
+        titles = new String[]{getContext().getString(R.string.profile), getContext().getString(R.string.settings),
+                              getContext().getString(R.string.history)};
     }
 
     @Override

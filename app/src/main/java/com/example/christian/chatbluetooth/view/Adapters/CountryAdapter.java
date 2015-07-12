@@ -29,16 +29,17 @@ public class CountryAdapter extends ArrayAdapter<Country> {
             view = inflater.inflate(R.layout.item_countries, parent, false);
         }
 
-        Country country = getItem(position);
+        Country country = getItem(position); //Country item
 
-        TextView country_name = (TextView) view.findViewById(R.id.tv_country);
-        country_name.setText(country.getCountry());
+        TextView country_name = (TextView) view.findViewById(R.id.tv_country); //country name
+        country_name.setText(country.getCountry()); //flag position
 
         ImageView flag = (ImageView) view.findViewById(R.id.country_flag);
         Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.flags);
         int w = bitmap.getWidth() / 17, h = bitmap.getHeight() / 12;
         flag.setBackground(new BitmapDrawable(Bitmap.createBitmap(bitmap, w * (country.getPosition() / 12),
                                                                   h * (country.getPosition() % 12), w, h)));
+        //Draw flag
 
         return view;
     }

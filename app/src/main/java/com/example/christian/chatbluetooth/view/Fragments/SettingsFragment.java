@@ -143,7 +143,6 @@ public class SettingsFragment extends Fragment {
         activity.checked[0] = sh.getBoolean("COUNTRY_VISIBLE", true);
         activity.checked[1] = sh.getBoolean("AGE_VISIBLE", true);
         activity.checked[2] = sh.getBoolean("GENDER_VISIBLE", true);
-        activity.newChecked = activity.checked;
 
         activity.usr = sh.getString("username", "Unknown");
         if ((activity.country = sh.getInt("country", 0)) != 0) activity.flag = BlueCtrl.fetchFlag(activity.country).getPosition();

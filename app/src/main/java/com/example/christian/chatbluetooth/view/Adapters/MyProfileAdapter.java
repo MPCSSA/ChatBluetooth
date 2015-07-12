@@ -9,16 +9,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.example.christian.chatbluetooth.R;
 
-import java.util.zip.Inflater;
-
 public class MyProfileAdapter extends ArrayAdapter<String[]>{
 
-    private int layout;
+    private int layout; //layout resource
 
     public MyProfileAdapter(Context context, int resource) {
         super(context, resource);
@@ -43,12 +40,15 @@ public class MyProfileAdapter extends ArrayAdapter<String[]>{
 
             return view;
         }
-        else view.findViewById(R.id.gender).setBackground(null);
+        //Gender field, drawable only
+        else view.findViewById(R.id.gender).setBackground(null); //set empty image
 
         ((TextView) view.findViewById(R.id.field)).setText(getItem(position)[0]);
         ((TextView) view.findViewById(R.id.value)).setText(getItem(position)[1]);
+        //Text Fields
 
         if (getItem(position)[0].equals(getContext().getString(R.string.from))) {
+            //Country field
 
             int p = Integer.parseInt(getItem(position)[2]);
 
@@ -56,8 +56,9 @@ public class MyProfileAdapter extends ArrayAdapter<String[]>{
             int w = bmp.getWidth() / 17, h = bmp.getHeight() / 12;
             view.findViewById(R.id.flag).setBackground(new BitmapDrawable(
                     Bitmap.createBitmap(bmp, w * (p / 12), h * (p % 12), w, h)));
+            //Show flag
         }
-        else view.findViewById(R.id.flag).setBackground(null);
+        else view.findViewById(R.id.flag).setBackground(null); //set empty image
 
         return view;
     }

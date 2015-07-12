@@ -38,4 +38,15 @@
     <string name="country">Vengo da&#8230;</string>
     <string name="from">Origine:&#160;</string>
     <string name="age">Et&#224;&#160;</string>
+    <string name="profile">Profilo</string>
+    <string name="settings">Impostazioni</string>
+    <string name="history">Cronologia</string>
+    <string name="contact_list">Lista Contatti</string>
+    <string name="today_at">Oggi alle&#160;</string>
+    <string name="yesterday_at">Ieri alle&#160;</string>
+    <string name="this_">Questo&#160;</string>
+    <string name="at">alle&#160;</string>
+    <string name="on_">A&#160;</string>
+    <string name="yesterday">Ieri</string>
+    <string name="unknown">Sconosciuto</string>
 </resources>

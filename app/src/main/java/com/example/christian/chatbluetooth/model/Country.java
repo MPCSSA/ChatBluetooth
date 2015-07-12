@@ -3,8 +3,8 @@ package com.example.christian.chatbluetooth.model;
 
 public class Country {
 
-    private String country;
-    private int position;
+    private String country; //Country name
+    private int position; //Flag position in flag drawable
 
     public String getCountry() {
         return country;
@@ -21,7 +21,9 @@ public class Country {
         this.position = position;
     }
 
+    //Constructor
     public Country(String country, int position) {
+
         setCountry(country);
         setPosition(position);
     }

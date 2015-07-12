@@ -19,6 +19,7 @@ public class ProfileActivity extends Activity implements MyProfileFragment.OnFra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        //Set up MyProfile fragment
         MyProfileFragment profileFragment = new MyProfileFragment();
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

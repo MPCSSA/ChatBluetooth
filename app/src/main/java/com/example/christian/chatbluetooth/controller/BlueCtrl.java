@@ -3,11 +3,7 @@ package com.example.christian.chatbluetooth.controller;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.util.Base64;
 
@@ -15,14 +11,10 @@ import com.example.christian.chatbluetooth.model.BlueDBManager;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.model.Country;
-import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 import com.example.christian.chatbluetooth.view.Adapters.EmoticonAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
-import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -48,23 +40,16 @@ public class BlueCtrl {
     public static final byte MSG_HEADER = (byte) 4; //header for Chat Message
     public static final byte DRP_HEADER = (byte) 5; //header for Drop Request
     public static final byte        ACK = (byte) 6; //ACKnowledge Message for communication synchronization
-    public static final byte  INVISIBLE = (byte) 7;
-    public static final byte        NAK = (byte) -1;
+    public static final byte        NAK = (byte)-1; //Not AcKnowledge Message for Token update
+    public static final byte  INVISIBLE = (byte) 7; //Filter Users
+    public static final byte        LST = (byte)-2; //Lost devices found
     public static final int         TKN = 20;       //Tokens assigned to an alive device
     public static final String     UUID = "7235630e-9499-45b8-a8f6-d76c41d684dd"; //custom UUID, randomly generated
 
     public static byte STS = 1; //User status: visible 1 invisible 0
     public static byte SPY = 0; //Spy mode: enabled 1 disable 0
 
-    private static byte[] key = {'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y', 'K', 'E', 'Y','K', 'E', 'Y', 'E', 'Y'};
-
-    /*
-    DEBUG ONLY
-     */
-    public static boolean version;
-    /*
-    DEBUG ONLY
-    */
+    private static byte[] key = {'K', 'E', 'Y', 'K', 'E', 'Y', 'E', 'Y', 'K', 'E', 'Y', 'K', 'E', 'Y', 'E', 'Y'};
 
     //BUFFERS
     public static ArrayList<ChatUser> userQueue = new ArrayList<>(); //ChatUser Buffer to store users to show in ListFragment
@@ -81,23 +66,14 @@ public class BlueCtrl {
     public static int DISCOVERY_LOCK = 0;
 
     /*
-    DEBUG ONLY
-     */
-    public static NoMaterialRecyclerAdapter userNomat;
-    /*
-    DEBUG ONLY
-     */
-
-    /*
     STATIC ADAPTERS
     To enhance and simplify thread communication, these data structures are shared between interfaces and
     controllers; update notification is managed via Handler, because only main threads are allowed to
     manipulate views
     */
-    public final static ArrayList<ChatUser> userList = new ArrayList<>();
-    public final static ArrayList<ChatUser> favList = new ArrayList<>();
-    public static RecycleAdapter userAdapt;
-    //ChatUser RecyclerAdapter; it is only used by ListFragent, therefore it can be initialized as final
+    public final static ArrayList<ChatUser> userList = new ArrayList<>(); //A collection of all visible users
+    public final static ArrayList<ChatUser> favList = new ArrayList<>(); //A collection of all visible users previously set as Favorites
+    public static RecycleAdapter userAdapt; //ChatUser RecyclerAdapter for User Cards
     public static EmoticonAdapter emoticons; //ArrayAdapter used to implement the Emoticons Tab in ChatFragment
     public static MessageAdapter msgAdapt; //ArrayAdapter used to show and manage message history in ChatFragment
 
@@ -122,33 +98,27 @@ public class BlueCtrl {
     public static void dispatchNews(byte[] msg, BluetoothDevice filter, Handler handler) {
         //Use this method to dispatch Route information to all your neighbours; it spreads UP and DRP messages
 
-        for(BluetoothDevice dvc : BlueCtrl.closeDvc.values()) {
+        for (BluetoothDevice dvc : BlueCtrl.closeDvc.values()) {
 
-            if (!dvc.equals(filter)) sendMsg(dvc, msg, handler); //A filter can be specified to avoid redundancy
+            if (!dvc.equals(filter))
+                sendMsg(dvc, msg, handler); //A filter can be specified to avoid redundancy
         }
     }
 
     public static byte[] manageDropRequest(String address, BluetoothDevice dvc) {
+        /*
+        Call this method every time a new lost device MAC is read from a Drop Request. A remote user
+        is lost if and only if the requesting device is the next node on its known route; if this is not true,
+        the requesting device needs to know there is an alternative route to the lost device
+         */
 
-        final String mac = address;
-        ChatUser user = BlueCtrl.scanUsers(address);
+        final ChatUser user = BlueCtrl.scanUsers(address);
 
         if (user != null && !user.getNextNode().equals(dvc)) {
 
-            return BlueCtrl.buildUpdMsg(user);
+            return BlueCtrl.buildUpdMsg(user); //Instant Reply Update Msg
         }
-        else {
-
-            (new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    userAdapt.remove(mac);
-                    userAdapt.notifyDataSetChanged();
-                }
-            })).start();
-
-            return null;
-        }
+        else return null;
     }
 
 
@@ -302,11 +272,11 @@ public class BlueCtrl {
         //fetched info
 
         String mac = info.getString(0), username = info.getString(1);
-        long timestamp  = info.getLong(2), age = info.getInt(7);
+        long timestamp = info.getLong(2), age = info.getInt(7);
         int country = info.getInt(5), gender = info.getInt(6);
 
         byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
-               agestamp = longToBytes(age), card = new byte[26 + user.length];
+                agestamp = longToBytes(age), card = new byte[26 + user.length];
         /*
         Actual size of a CRD header varies depending on the Username field.
          - 1 byte for the header
@@ -382,12 +352,12 @@ public class BlueCtrl {
 
         insertMsgTable(msg, from, time, 1, 0); //DB transition routine
 
-        if (from.equals(msgAdapt.getAddress())){
+        if (from.equals(msgAdapt.getAddress())) {
             msgBuffer.add(new ChatMessage(msg, true, time, false));
         }
     }
 
-    public static void showReceivedEmo(String from, int code, Date time){
+    public static void showReceivedEmo(String from, int code, Date time) {
 
         /*
         This method is called from a ReceiverThread upon successfully receiving an Emoticon Message from a remote
@@ -399,7 +369,7 @@ public class BlueCtrl {
 
         insertMsgTable(String.valueOf(code), from, time, 1, 1); //DB transition routine
 
-        if (from.equals(msgAdapt.getAddress())){
+        if (from.equals(msgAdapt.getAddress())) {
             msgBuffer.add(new ChatMessage(String.valueOf(code), true, time, true));
         }
     }
@@ -410,14 +380,14 @@ public class BlueCtrl {
          */
 
         Cursor cursor = fetchMsgHistory(msgAdapt.getAddress(), (new Date()).getTime());
-        if (cursor.getCount() > 0){
+        if (cursor.getCount() > 0) {
 
             msgAdapt.add(null);
 
             cursor.moveToLast();
             do {
                 msgAdapt.add(new ChatMessage(cursor.getString(0), cursor.getInt(2) == 1, cursor.getLong(1), cursor.getInt(3) == 1));
-            } while(cursor.moveToPrevious());
+            } while (cursor.moveToPrevious());
         }
     }
 
@@ -436,9 +406,8 @@ public class BlueCtrl {
     }
 
 
-
     //DB OPERATIONS
-        //INITIALIZATION
+    //INITIALIZATION
 
     public static void openDatabase(Context context) {
         /*
@@ -450,7 +419,7 @@ public class BlueCtrl {
         dbManager = new BlueDBManager(context, dbname);
     }
 
-        //RECORD MANAGEMENT
+    //RECORD MANAGEMENT
 
     public static void insertUserTable(String mac, long timestamp, String username, long age, int gender, int country) {
         //This method performs record creation or record replacing of persistent user information
@@ -470,7 +439,25 @@ public class BlueCtrl {
         dbManager.removeMessage(message.getId());
     }
 
-        //FETCH INFORMATION
+    public static void updateProfile(long timestamp, String usr, int country, int gender, long age) {
+        /*
+        After successful user profile update, this method saves changes in the DB; note that real profile
+        values are saved in SharedPreferences, while in the DB are saved public profile values
+         */
+
+        dbManager.updateProfile(timestamp, usr, country, gender, age);
+    }
+
+    public static void setFavorite(String mac, int value) {
+        /*
+        Call this method to set the is_fav field of a user table record
+         */
+
+        dbManager.updateFavorites(mac, value);
+    }
+
+
+    //FETCH INFORMATION
 
     public static Cursor fetchPersistentInfo(String address) {
         //Interface method for fetching persistent user information routine
@@ -514,13 +501,50 @@ public class BlueCtrl {
                 msgList.add(new ChatMessage(cursor.getString(0), cursor.getString(1),
                         cursor.getInt(4), false, new Date(cursor.getLong(2)), cursor.getInt(3) == 1));
                 //Records unpacking
-            } while(cursor.moveToNext());
+            } while (cursor.moveToNext());
         }
 
         return msgList;
     }
 
-        //UTILITY
+    public static Country fetchFlag(int position) {
+        /*
+        Returns a Country instance wrapping up country name and flag position in flag drawable
+         */
+
+        Cursor cursor = dbManager.fetchCountry(position);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            if (Locale.getDefault().getDisplayCountry().equals("ITALY")) //translation
+                return (new Country(cursor.getString(0), cursor.getInt(2)));
+            else return (new Country(cursor.getString(1), cursor.getInt(2)));
+        }
+
+        return null;
+    }
+
+    public static ArrayList<Country> fetchFlags() {
+        /*
+        Utility method; this fetch allows for CountryAdapter population
+         */
+
+        Cursor cursor = dbManager.fetchCountries(); //cursor
+        ArrayList<Country> countries= new ArrayList<>(); //empty ArrayList
+
+        if (cursor != null && cursor.moveToFirst()) {
+
+            do {
+                if (Locale.getDefault().getDisplayCountry().equals("ITALY")) //translation
+                    countries.add(new Country(cursor.getString(0), cursor.getInt(2)));
+                else countries.add(new Country(cursor.getString(1), cursor.getInt(2)));
+            }
+            while (cursor.moveToNext());
+        }
+
+        return countries;
+    }
+
+    //UTILITY
 
     public static boolean validateUser(String address, long timestamp) {
         /*
@@ -531,6 +555,15 @@ public class BlueCtrl {
         Cursor cursor = dbManager.fetchTimestamp(address);
 
         return !(cursor == null || cursor.getCount() != 1) && (cursor.moveToFirst() && cursor.getLong(0) == timestamp);
+    }
+
+    public static void closeDB() {
+        /*
+        This method is called only one time, during first registration; it is needed to unbind the database
+        to the MainActivity
+         */
+
+        dbManager.getDb().close();
     }
 
 
@@ -549,7 +582,7 @@ public class BlueCtrl {
         String[] digits = address.toLowerCase().split(":"); //Isolate hexadecimal values
         byte b, counter = 0;
 
-        for(String d : digits) {
+        for (String d : digits) {
 
             b = (byte) Integer.parseInt(d, 16); //parsing
             mac[counter] = b;
@@ -562,31 +595,26 @@ public class BlueCtrl {
     public static String bytesToMAC(byte[] mac) {
         /*
         Utility method for byte array translation in MAC address; this is method is needed in order to
-        properly use MAC addresses Strings. It is only used in controlled environment, but some checks
-        are still performed
+        properly use MAC addresses Strings. It is only used in controlled environment
          */
 
-        if (mac.length == 6) {
 
-            String address = "";
-            int i;
-            boolean bool = false;
+        String address = "";
+        int i;
+        boolean bool = false;
 
-            for(byte b : mac) {
+        for (byte b : mac) {
 
-                i = (b < 0) ? (b + 256) : (int) b; //value
+            i = (b < 0) ? (b + 256) : (int) b; //value
 
-                if (bool) address += ':'; //do not insert ':' at the beginning
-                else bool = true; //boolean lock
+            if (bool) address += ':'; //do not insert ':' at the beginning
+            else bool = true; //boolean lock
 
-                if (i < 16) address += "0"; //every field has a minimum of teo digits
-                address += Integer.toHexString(i).toUpperCase(); //reconstruction
-            }
-
-            return address;
+            if (i < 16) address += "0"; //every field has a minimum of teo digits
+            address += Integer.toHexString(i).toUpperCase(); //reconstruction
         }
 
-        return null;
+        return address;
     }
 
     public static byte[] longToBytes(long l) {
@@ -596,7 +624,7 @@ public class BlueCtrl {
 
         byte[] bytes = new byte[8]; //Java representation of a long int is made up of 64 bits
 
-        for(int i = 7; i >= 0; --i) {
+        for (int i = 7; i >= 0; --i) {
 
             bytes[i] = (byte) (l % 256);
             l /= 256;
@@ -651,27 +679,44 @@ public class BlueCtrl {
 
             if (!BluetoothAdapter.getDefaultAdapter().isDiscovering())
                 BluetoothAdapter.getDefaultAdapter().startDiscovery(); //And closes the door
-        }
-        else System.out.println("OPEN DOOR " + DISCOVERY_LOCK);
+        } else System.out.println("OPEN DOOR " + DISCOVERY_LOCK);
     }
 
-    public static Collection dropUsers(String address) {
-
-        return userAdapt.dropUsers(address);
-    }
-
-    public static Cursor fetchMsgHistory(String address, long timestamp){
+    public static Cursor fetchMsgHistory(String address, long timestamp) {
         return dbManager.fetchMsgHistory(address, timestamp);
     }
 
     public static BluetoothDevice scanUsersForDvc(String address) {
+        //As ScanUsers, but it conveniently return a BluetoothDevice instance
 
         ChatUser user = scanUsers(address);
         if (user != null) return user.getNextNode();
         else return null;
     }
 
-    public static byte[] encrypt(byte encrypt[]){
+    public static Collection dropUsers(String address) {
+        //Returns a list of ChatUsers routed by a device with MAC == address
+
+        ArrayList<ChatUser> lostDvcs = new ArrayList<>();
+
+        for (ChatUser u : userList) {
+
+            if (u.getNextNode() != null && u.getNextNode().getAddress().equals(address)) {
+
+                lostDvcs.add(u);
+                userList.remove(u);
+                favList.remove(u);
+                //Remove lost user from lists
+            }
+        }
+
+        return lostDvcs;
+    }
+
+    public static byte[] encrypt(byte encrypt[]) {
+        /*
+        Call this method every time you send a Text Message with Spy Mode on; AES key is shared between applications
+         */
 
         try {
 
@@ -679,11 +724,9 @@ public class BlueCtrl {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
             String encrypted = Base64.encodeToString(cipher.doFinal(encrypt), Base64.DEFAULT);
-            System.out.println("ENCRYPTED: " + encrypted);
 
             return encrypted.getBytes();
-        }
-        catch (NoSuchAlgorithmException | IllegalBlockSizeException | NoSuchPaddingException |
+        } catch (NoSuchAlgorithmException | IllegalBlockSizeException | NoSuchPaddingException |
                 BadPaddingException | InvalidKeyException e) {
 
             e.printStackTrace();
@@ -692,78 +735,24 @@ public class BlueCtrl {
         return null;
     }
 
-    public static byte[] decrypt(byte[] encrypted){
+    public static byte[] decrypt(byte[] encrypted) {
+        /*
+        Call this method before saving and/or showing a crypted message
+         */
+
         try {
+
             Key k = new SecretKeySpec(key, "AES");
             Cipher c = Cipher.getInstance("AES");
             c.init(Cipher.DECRYPT_MODE, k);
             byte[] ciao = Base64.decode(encrypted, Base64.DEFAULT);
-            byte[] decValue = c.doFinal(ciao);
-            String decryptedValue = new String(decValue);
 
-            System.out.println("Decrypted: " + decryptedValue);
-
-            return decValue;
-        }
-
-        catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
+            return c.doFinal(ciao);
+        } catch (NoSuchAlgorithmException | IllegalBlockSizeException | BadPaddingException |
+                InvalidKeyException | NoSuchPaddingException e) {
             e.printStackTrace();
         }
 
         return null;
-    }
-
-    public static void setFavorite(String mac, int value) {
-
-        dbManager.updateFavorites(mac, value);
-    }
-
-    public static Country fetchFlag(int position) {
-
-        Cursor cursor = dbManager.fetchCountry(position);
-
-        if (cursor != null && cursor.moveToFirst()) {
-            if (Locale.getDefault().getDisplayCountry().equals("ITALY"))
-                return (new Country(cursor.getString(0), cursor.getInt(2)));
-            else return (new Country(cursor.getString(1), cursor.getInt(2)));
-        }
-
-        return null;
-    }
-
-    public static ArrayList<Country> fetchFlags() {
-
-        Cursor cursor = dbManager.fetchCountries();
-        ArrayList<Country> countries= new ArrayList<>();
-
-        if (cursor != null && cursor.moveToFirst()) {
-
-            do {
-                if (Locale.getDefault().getDisplayCountry().equals("ITALY"))
-                    countries.add(new Country(cursor.getString(0), cursor.getInt(2)));
-                else countries.add(new Country(cursor.getString(1), cursor.getInt(2)));
-            }
-            while (cursor.moveToNext());
-        }
-
-        return countries;
-    }
-
-    public static void closeDB() {
-
-        dbManager.getDb().close();
-    }
-
-    public static void updateProfile(long timestamp, String usr, int country, int gender, long age) {
-
-        dbManager.updateProfile(timestamp, usr, country, gender, age);
     }
 }

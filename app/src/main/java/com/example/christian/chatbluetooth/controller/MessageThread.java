@@ -5,23 +5,10 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Base64;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.util.logging.Logger;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 public class MessageThread extends Thread {
 
@@ -79,7 +66,6 @@ public class MessageThread extends Thread {
         }
         catch (Exception e) {
             e.printStackTrace();
-            System.out.println("OOOOOOHHHHNNNNOOOOOOOOOOOO, this was unexpected");
         }
 
         setSckt(sckt);
@@ -244,10 +230,7 @@ public class MessageThread extends Thread {
                         New route to address target
                         */
                         }
-                        else {
-                            System.out.println("Misunderstanding");
-                            //TODO: Misunderstanding management
-                        }
+                        else throw new IOException(); //Misunderstanding
                         /*
                         This is controlled environment; if an UPD msg is received, it has to refer to
                         a ChatUser this remote device dropped, therefore no RQS if needed because this device
@@ -256,20 +239,18 @@ public class MessageThread extends Thread {
 
                         break;
 
-                    default:
-                        System.out.println("Misunderstanding");
-                        //TODO: Misunderstanding management
+                    default: throw new IOException(); //Misunderstanding
                 }
 
             }
 
-            System.out.println("ACK RECEIVED");
-
-            if (type != BlueCtrl.ACK) BlueCtrl.unlockDiscoverySuspension();
+            if (type != BlueCtrl.ACK) BlueCtrl.unlockDiscoverySuspension(); //Release lock
 
             if (type == BlueCtrl.GRT_HEADER) {
+
                 BlueCtrl.closeDvc.put(rmtDvc.getAddress(), rmtDvc);
                 BlueCtrl.tokenMap.put(rmtDvc.getAddress(), BlueCtrl.TKN);
+                //It is quite difficult to pass BluetoothDevices to ChatActivity, so they are added to data structures right here
             }
 
             Message mail = new Message();
@@ -277,17 +258,16 @@ public class MessageThread extends Thread {
             bundle.putString("MAC", rmtDvc.getAddress());
             mail.setData(bundle);
             mail.what = BlueCtrl.ACK;
-            handler.sendMessage(mail); //ACK values are 8 digits shifted
+            handler.sendMessage(mail);
+            //send ACK
 
             out.close();
             in.close();
-
-
+            //End Connection
         }
         catch(Exception e) {
 
             e.printStackTrace();
-            System.out.println("COMMUNICATION FAILED: " + rmtDvc.getAddress());
 
             if (type != BlueCtrl.ACK) BlueCtrl.unlockDiscoverySuspension();
 
@@ -297,7 +277,8 @@ public class MessageThread extends Thread {
             bundle.putString("MAC", rmtDvc.getAddress());
             mail.setData(bundle);mail.what = BlueCtrl.NAK;
             mail.getData().putByteArray("MSG", getMsg());
-            mail.getData().putInt("ERRORCODE", type);
+            mail.getData().putInt("ERRORCODE", type); //deprecated
+            //Error Message
 
             handler.sendMessage(mail);
 
@@ -311,11 +292,11 @@ public class MessageThread extends Thread {
     }
 
     public void cancel() {
+        //Close Connection
 
         try {
 
             sckt.close();
-
         }
         catch(IOException ignore) {}
     }

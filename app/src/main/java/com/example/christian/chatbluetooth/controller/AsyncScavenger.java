@@ -1,11 +1,9 @@
 package com.example.christian.chatbluetooth.controller;
 
-import android.bluetooth.BluetoothDevice;
 import android.os.AsyncTask;
 import android.os.Handler;
 
 import com.example.christian.chatbluetooth.model.ChatUser;
-import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 
 import java.util.ArrayList;
 

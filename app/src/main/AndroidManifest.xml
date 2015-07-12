@@ -27,11 +27,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.Activities.UserActivity"
-            android:label="@string/title_activity_user"
-            android:screenOrientation="portrait" >
-        </activity>
-        <activity
             android:name=".view.Activities.ChatActivity"
             android:screenOrientation="portrait" >
 

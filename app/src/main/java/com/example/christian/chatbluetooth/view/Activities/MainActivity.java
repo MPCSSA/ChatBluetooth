@@ -6,11 +6,8 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -21,12 +18,10 @@ import com.example.christian.chatbluetooth.view.Fragments.RegistrationFragment;
 
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener,
-        RegistrationFragment.OnFragmentInteractionListener {
-
-    //TODO: encapsulate ChatFragment and UsersFragment
+                                                      RegistrationFragment.OnFragmentInteractionListener {
 
     private LoginFragment loginFragment;
-    private boolean okPass = false, okConf = false, registered = false;
+    private boolean okPass = false, okConf = false, registered = false; //boolean tags for registration/login check
 
 
     public boolean getOkPass() {
@@ -50,16 +45,11 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    /*
-    DEBUG ONLY
-    */
-        BlueCtrl.version = Build.VERSION.SDK_INT >= 21;
-    /*
-    DEBUG ONLY
-    */
 
         if (getSharedPreferences("preferences", Context.MODE_PRIVATE).getBoolean("1stRun", true)) BlueCtrl.openDatabase(this);
+        //On first run, DB has not been set yet but flags position are needed for RegistrationFragment routine
 
+        //Main fragment
         loginFragment = new LoginFragment();
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

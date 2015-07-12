@@ -17,7 +17,6 @@ import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.model.ChatMessage;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
@@ -29,22 +28,26 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        ChatMessage msg = getItem(position);
+        ChatMessage msg = getItem(position); //ChatMessage item
         int layout = (msg.isEmo()) ? R.layout.item_history_emo : R.layout.item_history;
-        //Resources initialization
+        //Different layout for Text and Emoticons
 
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(layout, parent, false);
+        //inflate layout
 
         ((CheckBox)view.findViewById(R.id.cboxSelect)).setChecked(msg.getSender());
-        int imageResource = R.drawable.white_emoticons;
+        //sentBy attribute has no use in this context; therefore, here it is used as a persistent way of checking CheckBoxes
+
+        int imageResource = R.drawable.red_emoticons;
 
         if (msg.isEmo()) {
+            //display emoticon
 
             ImageView emoticon = (ImageView) view.findViewById(R.id.emoticon);
 
             Bitmap emoBitmap = BitmapFactory.decodeResource(getContext().getResources(), imageResource);
-            //This device balloons are red, therefore a white emoticon is picked from the right drawable resource
+            //white cards red emoticons
             emoBitmap.setDensity(DisplayMetrics.DENSITY_HIGH);
             int w = emoBitmap.getWidth() / 5, h = emoBitmap.getHeight() / 5, code = Integer.parseInt(msg.getMsg());
 
@@ -52,12 +55,13 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
             //Crop the right emoticon
         }
         else {
+            //display text message
 
             TextView quote = (TextView) view.findViewById(R.id.tv_quote);
             quote.setText("\"" + msg.getMsg() + "\"");
         }
 
-        TextView from = (TextView) view.findViewById(R.id.tv_from);
+        TextView from = (TextView) view.findViewById(R.id.tv_from); //
 
         Date date = msg.getDate();
         String when;
@@ -66,23 +70,26 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
 
         if (ago < 86400000) {
             //this day
-            when = "Today at " + (new SimpleDateFormat("HH:mm")).format(date);
+            when = getContext().getString(R.string.today_at) + (new SimpleDateFormat("HH:mm")).format(date);
 
         } else if (ago < 172800000) {
             //yesterday
-            when = "Yesterday at " + (new SimpleDateFormat("HH:mm")).format(date);
+            when = getContext().getString(R.string.yesterday_at) + (new SimpleDateFormat("HH:mm")).format(date);
         } else if (ago < 604800000) {
             //this week
-            when = "this " + (new SimpleDateFormat("EEE 'at' HH:mm")).format(date);
+            when = getContext().getString(R.string.this_) + (new SimpleDateFormat("EEE")).format(date) + " " +
+                    getContext().getString(R.string.at) + (new SimpleDateFormat("HH:mm")).format(date);
         } else if (ago < 2629743830l) {
             //this month
-            when = "On " + (new SimpleDateFormat("EEE dd 'at' HH:mm")).format(date);
+            when = getContext().getString(R.string.on_) + (new SimpleDateFormat("EEE dd")).format(date) + " " + getContext().getString(R.string.at) +
+                    (new SimpleDateFormat("HH:mm")).format(date);
         } else {
             //later on
-            when = "On " + (new SimpleDateFormat("yy MM dd 'at' HH:mm")).format(date);
+            when = getContext().getString(R.string.on_) + (new SimpleDateFormat("yy MM dd")).format(date) + " " +
+                    getContext().getString(R.string.at) +  (new SimpleDateFormat("HH:mm")).format(date);
         }
 
-        from.setText(msg.getUsername() + ", " + when);
+        from.setText(msg.getUsername() + ", " + when); //from who and when
 
         return view;
     }

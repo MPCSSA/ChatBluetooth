@@ -442,12 +442,13 @@ public class ReceiverThread extends Thread {
                         switch(in.read()) {
 
                             case 0:
+                                //Text Message
 
-                                int crypted, length = 0;;
+                                int crypted, length;
                                 if ((crypted = in.read()) == -1) throw new  IOException(); //is the message crypted?
                                 System.out.println("CRYPTED: " + crypted);
 
-                                if ((length = in.read()) < 0) throw new IOException();
+                                if ((length = in.read()) <= 0) throw new IOException();
                                 //you cannot send empty messages, so message length is between 1 and 255
 
                                 byte[] tmpBuffer;
@@ -460,10 +461,11 @@ public class ReceiverThread extends Thread {
                                 } while (i < length);
 
                                 if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
+                                    //Show if this is target
 
-                                    if (crypted == 1) msgBuffer = BlueCtrl.decrypt(tmpBuffer);
+                                    if (crypted == 1) msgBuffer = BlueCtrl.decrypt(tmpBuffer); //decrypt if crypted
                                     else msgBuffer = tmpBuffer;
-                                    BlueCtrl.showReceivedMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date());
+                                    if (msgBuffer != null) BlueCtrl.showReceivedMsg(BlueCtrl.bytesToMAC(sender), new String(msgBuffer), new Date());
 
                                     Message mail = new Message();
                                     mail.what = BlueCtrl.MSG_HEADER;
@@ -482,25 +484,29 @@ public class ReceiverThread extends Thread {
                                     glued[14] = (byte) crypted;
                                     glued[15] = (byte) length;
                                     System.arraycopy(tmpBuffer, 0, glued, 16, length);
-                                    //Glue together the message to resend without errors
+                                    //Glue together the message to resend it without errors
 
-                                    BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
+                                    BlueCtrl.sendMsg(BlueCtrl.scanUsersForDvc(BlueCtrl.bytesToMAC(buffer)),
                                                      glued, handler);
                                     /*
-                                    if this device is not the target device, message has to be forwarded to the next node
+                                    if this device is not the target device, message has to be routed to the next node
                                     on the route leading to the target; it is wrapped again in a packet and sent as a
+                                    Text Message
                                     */
                                 }
 
                                 break;
 
                             case 1:
+                                //Emoticon Message
 
-                                int code = in.read();
+                                int code = in.read(); //Emoticon position
 
                                 if (BlueCtrl.bytesToMAC(buffer).equals(BluetoothAdapter.getDefaultAdapter().getAddress())) {
+                                    //Show if this is target
 
-                                    BlueCtrl.showReceivedEmo(BlueCtrl.bytesToMAC(sender), code, new Date());
+                                    BlueCtrl.showReceivedEmo(BlueCtrl.bytesToMAC(sender), code, new Date()); //Emoticons are never crypted
+
                                     Message mail = new Message();
                                     mail.what = BlueCtrl.MSG_HEADER;
                                     Bundle bundle = new Bundle();
@@ -510,8 +516,9 @@ public class ReceiverThread extends Thread {
                                 }
                                 else {
 
-                                    BlueCtrl.sendMsg(BlueCtrl.scanUsers(BlueCtrl.bytesToMAC(buffer)).getNextNode(),
+                                    BlueCtrl.sendMsg(BlueCtrl.scanUsersForDvc(BlueCtrl.bytesToMAC(buffer)),
                                             BlueCtrl.buildEmoticon(buffer, sender, (byte) code), handler);
+                                    //route Emoticon
                                 }
                         }
 
@@ -531,7 +538,7 @@ public class ReceiverThread extends Thread {
                     the message length.
                     [6][number][MAC][MAC]...
                     */
-                        byte[] buffer = new byte[6];
+                        byte[] buffer = new byte[6], tmp, lst = new byte[0];
                         int number = in.read();
 
                         for (int _ = 0; _ < number; ++_) {
@@ -539,24 +546,44 @@ public class ReceiverThread extends Thread {
                             i = 0;
                             do {
                                 j = in.read(buffer, i, 6 - i);
-                                if (j < 0) throw new IOException();
+                                if (j < 0) throw new IOException(); //misunderstanding
                                 i += j;
                             } while (i < 6);
 
                             byte[] instantreply = BlueCtrl.manageDropRequest(rmtDvc.getAddress(), rmtDvc);
+                            //instantreply != null only if alternative route exists
                             if (instantreply != null) {
-                                out.write(instantreply);
+
+                                out.write(instantreply); //Instant Reply Update Msg
                             }
                             else {
 
                                 Message mail = new Message();
                                 mail.what = BlueCtrl.DRP_HEADER;
                                 Bundle bundle = new Bundle();
-                                bundle.putString("MAC", BlueCtrl.bytesToMAC(buffer));
+                                bundle.putString("MAC", rmtDvc.getAddress());
+                                bundle.putString("LST", BlueCtrl.bytesToMAC(buffer));
                                 mail.setData(bundle);
                                 handler.sendMessage(mail);
+                                //Sending lost device MAC to ChatActivity for user list update
+
+                                tmp = lst;
+                                int index = tmp.length;
+                                lst = new byte[index + 6];
+                                System.arraycopy(tmp, 0, lst, 0, index);
+                                System.arraycopy(buffer, 0, lst, index, 6);
+                                //Keeping track of lost devices
                             }
                         }
+
+                        Message mail = new Message();
+                        mail.what = BlueCtrl.LST;
+                        Bundle bundle = new Bundle();
+                        bundle.putString("MAC", rmtDvc.getAddress());
+                        bundle.putByteArray("LST", lst);
+                        mail.setData(bundle);
+                        handler.sendMessage(mail);
+                        //all dropped devices
 
                         out.write(BlueCtrl.ACK); //ACKed
 

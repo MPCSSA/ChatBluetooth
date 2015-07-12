@@ -29,20 +29,20 @@ public class ChatUser {
     public byte[] getSegment() { return this.updSegment; }
     public void setSegment(byte[] updSegment) { this.updSegment = updSegment; }
     private void setSegment() {
+        //Create a segment on instantiation to get it faster when needed
 
         byte[] segment = new byte[16];
 
-        for (int _ = 0; _ < 6; ++_) segment[_] = bMAC[_];
+        System.arraycopy(bMAC, 0, segment, 0, 6);
 
         byte[] timestamp = BlueCtrl.longToBytes(lastUpd.getTime());
-        for (int _ = 0; _ < 8; ++_) segment[_ + 6] = timestamp[_];
+        System.arraycopy(timestamp, 0, segment, 6, 8);
 
         segment[14] = (byte) bounces;
         segment[15] = (byte) status;
 
         setSegment(segment);
     }
-
 
     //volatile information
     private BluetoothDevice nextNode; //next device on the route to the actual device
@@ -64,7 +64,6 @@ public class ChatUser {
     private boolean favorite; //whether or not the user is into Favorites category
     private long age;
     private int gender, country;
-    private String profilePic;
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -80,9 +79,6 @@ public class ChatUser {
 
     public long getAge() { return age; }
     public void setAge(long age) { this.age = age; }
-
-    public String getProfilePic() { return this.profilePic; }
-    public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
 
     public ChatUser(String mac, BluetoothDevice nextNode, int bounces, int status, long timestamp, Cursor cursor) {
 
@@ -113,6 +109,7 @@ public class ChatUser {
     }
 
     public boolean updateUser(BluetoothDevice dvc, int bnc, int sts) {
+        //This method checks for any changes in ChatUser fields and updates the instance
 
         boolean bool0, bool1;
         bool0 = bool1 = false;

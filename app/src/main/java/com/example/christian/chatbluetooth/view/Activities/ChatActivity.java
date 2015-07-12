@@ -8,7 +8,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -17,10 +16,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-//import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.DisplayMetrics;
@@ -31,17 +28,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
-//import com.example.christian.chatbluetooth.controller.AsyncScavenger;
 import com.example.christian.chatbluetooth.controller.AsyncScavenger;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.controller.ServerThread;
@@ -52,29 +45,20 @@ import com.example.christian.chatbluetooth.view.Fragments.ListFragment;
 import com.example.christian.chatbluetooth.view.Adapters.MenuAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.MessageAdapter;
 
-
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.UUID;
 
-public class ChatActivity extends FragmentActivity implements ListFragment.OnFragmentInteractionListener,
-                                                      ChatFragment.OnFragmentInteractionListener
-    /*DEBUG ONLY*/                                     {
+public class ChatActivity extends Activity implements ListFragment.OnFragmentInteractionListener,
+                                                      ChatFragment.OnFragmentInteractionListener {
 
     private DrawerLayout drawerLayout;
     private Switch switchVisibility;
     private static Handler handler;
-    public boolean state = false;
-    public boolean state2 = false;
-    public boolean chat = false;
+    public boolean state = false, state2 = false, chat = false;
 
     public Handler getHandler() { return ChatActivity.handler; }
+    public void setState(boolean val) { state = val; }
 
     private final BroadcastReceiver blueReceiver = new BroadcastReceiver() {
         @Override
@@ -87,42 +71,47 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                     BluetoothDevice dvc = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                     if (!BlueCtrl.closeDvc.containsValue(dvc)) {
-                        System.out.println("greetings");
+                        //Unrecognised user, trying to greet it
                         BlueCtrl.sendMsg(dvc, BlueCtrl.buildGrtMsg(), handler);
                     }
                     else {
-
+                        //Known user, make sure it's not dead
                         BlueCtrl.sendMsg(dvc, new byte[] {BlueCtrl.ACK}, handler);
                     }
 
                     break;
 
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
-                    if (!BlueCtrl.DISCOVERY_SUSPENDED) {
-                        BlueCtrl.dispatchNews(new byte[] {BlueCtrl.ACK}, null, handler);
-                        //Search for disconnected devices
-                        while (!BluetoothAdapter.getDefaultAdapter().startDiscovery()) { }
-                        System.out.println("Discovering");
+
+                    if (!BlueCtrl.DISCOVERY_SUSPENDED) { //natural end of discovery
+
+                        BlueCtrl.dispatchNews(new byte[] {BlueCtrl.ACK}, null, handler); //Search for disconnected devices
+
+                        boolean isDiscovering;
+                        do {
+                            isDiscovering = BluetoothAdapter.getDefaultAdapter().startDiscovery();
+                        }
+                        while (!isDiscovering);
                     }
-                    else System.out.println("Suspended");
+
                     break;
 
                 case BluetoothAdapter.ACTION_STATE_CHANGED:
-
-                    System.out.println("TURNING OFF");
+                    //Manage Bluetooth state changes
 
                     switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
                         case BluetoothAdapter.STATE_ON:
-                            BluetoothAdapter.getDefaultAdapter().startDiscovery();
+                            BluetoothAdapter.getDefaultAdapter().startDiscovery(); //start discovering
                             break;
                         case BluetoothAdapter.STATE_TURNING_OFF:
-                            startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+                            startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)); //request for Bluetooth enabling
                             break;
                         case BluetoothAdapter.STATE_OFF:
                             unregisterReceiver(this);
                             Intent close = new Intent(Intent.ACTION_MAIN);
                             intent.addCategory(Intent.CATEGORY_HOME);
                             startActivity(close);
+                            //User decided to quit Bluetooth, and therefore the app has to be closed
                     }
 
                     break;
@@ -136,8 +125,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        /* NEW PART */
-
+        //HANDLER IMPLEMENTATION
         handler = new Handler() {
             /*
             This is the brains behind the app; everytime a connection Thread ends, be it naturally or
@@ -253,8 +241,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                         System.out.println("TOKEN " + BlueCtrl.TKN);
                         //Restore Token
 
-                        mac = msg.getData().getString("MAC");
-                        user = BlueCtrl.scanUsers(mac);
+                        user = BlueCtrl.scanUsers(msg.getData().getString("LST"));
                         BlueCtrl.userList.remove(user);
                         BlueCtrl.favList.remove(user);
                         //Remove user from the RecyclerView
@@ -305,9 +292,9 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                             BlueCtrl.tokenMap.remove(mac);
                             BlueCtrl.closeDvc.remove(mac);
 
-                            ArrayList<ChatUser> lstDvcs = (ArrayList) BlueCtrl.userAdapt.dropUsers(mac);
+                            ArrayList<ChatUser> lstDvcs = (ArrayList<ChatUser>) BlueCtrl.dropUsers(mac);
 
-                                    (new AsyncScavenger(handler)).execute((Runnable) lstDvcs.iterator()); //DROP routine
+                            new AsyncScavenger(handler).execute((Runnable) lstDvcs.iterator()); //DROP routine
 
                             for (ChatUser u : lstDvcs) {
                                 BlueCtrl.favList.remove(u); //Remove from GUI
@@ -333,6 +320,23 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                             //if no user was found it probabily is no longer reachable, and
                             //there's no point in forwarding the message again
                             //END OF RESEND CHAIN
+                        }
+
+                        break;
+
+                    case BlueCtrl.LST:
+                        //Receive list of dropped devices
+
+                        byte[] tmp = msg.getData().getByteArray("LST");
+                        if (tmp.length > 0) {
+
+                            byte[] drp = new byte[tmp.length + 2];
+                            drp[0] = BlueCtrl.DRP_HEADER;
+                            drp[1] = (byte) (tmp.length / 6); //LST packages have always multiple of 6 length because they are all MACs
+
+                            System.arraycopy(tmp, 0, drp, 2, tmp.length);
+
+                            BlueCtrl.dispatchNews(drp, BlueCtrl.closeDvc.get(msg.getData().getString("MAC")), handler);
                         }
 
                         break;
@@ -379,37 +383,42 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
         ((TextView) findViewById(R.id.username_drawer)).setText(getSharedPreferences("preferences", MODE_PRIVATE).getString("username", "None"));
 
         ListView listViewMenu = (ListView) findViewById(R.id.list_menu);
-        listViewMenu.setAdapter(new MenuAdapter(this, R.layout.menu_item_layout));
-        ((ArrayAdapter) listViewMenu.getAdapter()).add("Profilo");
-        ((ArrayAdapter) listViewMenu.getAdapter()).add("Impostazioni");
-        ((ArrayAdapter) listViewMenu.getAdapter()).add("Cronologia");
+        MenuAdapter adapter = new MenuAdapter(this, R.layout.menu_item_layout);
+        listViewMenu.setAdapter(adapter);
+        adapter.add(getString(R.string.profile));
+        adapter.add(getString(R.string.settings));
+        adapter.add(getString(R.string.history));
         listViewMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    switch (position) {
-                        case 0:
-                            Intent intent = new Intent(
-                                            getApplicationContext(),
-                                            ProfileActivity.class);
-                            startActivity(intent);
-                            break;
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
 
-                        case 1:
-                            intent = new Intent(
-                                            getApplicationContext(),
-                                            SettingActivity.class);
-                            startActivity(intent);
-                            break;
+                    case 0:
+                        Intent intent = new Intent(
+                                getApplicationContext(),
+                                ProfileActivity.class);
+                        startActivity(intent);
+                        //start ProfileActivity
+                        break;
 
-                        case 2:
-                            intent = new Intent(
-                                            getApplicationContext(),
-                                            HistoryActivity.class);
-                            startActivity(intent);
-                            break;
-                    }
+                    case 1:
+                        intent = new Intent(
+                                getApplicationContext(),
+                                SettingActivity.class);
+                        startActivity(intent);
+                        //Start SettingActivity
+                        break;
+
+                    case 2:
+                        intent = new Intent(
+                                getApplicationContext(),
+                                HistoryActivity.class);
+                        startActivity(intent);
+                        //start HistoryActivity
+                        break;
                 }
-            });
+            }
+        });
 
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null, R.string.app_name, R.string.app_name) {
             /**
@@ -417,7 +426,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
             */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                getActionBar().setTitle("Lista Contatti");
+                getActionBar().setTitle(R.string.contact_list);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
 
@@ -426,7 +435,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
             */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                getActionBar().setTitle("Menu");
+                getActionBar().setTitle(R.string.menu);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
         };
@@ -434,14 +443,12 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
         drawerLayout.setDrawerListener(drawerToggle);
 
         Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.default_image);
-        int[] pixel = new int[2];
-        pixel[0] = (bmp.getWidth() - 240) / 2;
-        pixel[1] = (bmp.getHeight() - 180) / 2;
         bmp = Bitmap.createScaledBitmap(bmp, 240, 180, false);
         bmp.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         ((ImageView) findViewById(R.id.image_drawer)).setImageDrawable(new BitmapDrawable(bmp));
+        //Drawer Image
 
-        switchVisibility = (Switch) findViewById(R.id.switch_state);
+        switchVisibility = (Switch) findViewById(R.id.switch_state); //visibility switch
         (findViewById(R.id.image_switch)).setBackground(getDrawable(R.mipmap.visibility));
 
         switchVisibility.setOnClickListener(new View.OnClickListener() {
@@ -449,20 +456,20 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                 public void onClick(View view) {
 
                     BlueCtrl.STS = (byte) ((switchVisibility.isChecked()) ? 0 : 1);
-                    System.out.println("SWITCHED TO " + BlueCtrl.STS);
                     BlueCtrl.dispatchNews(BlueCtrl.buildGrtMsg(), null, handler);
+                    //Switch to Spy Mode
                 }
             });
 
 
-        final Switch switchSpy = (Switch) findViewById(R.id.switch_spy);
+        final Switch switchSpy = (Switch) findViewById(R.id.switch_spy); //Spy Mode switch
         switchSpy.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+            @Override
+            public void onClick(View v) {
 
                 BlueCtrl.SPY = (byte) ((switchSpy.isChecked()) ? 1 : 0);
-                }
-            });
+            }
+        });
 
         findViewById(R.id.btn_logout).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -475,29 +482,25 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
             }
         });
 
-        BlueCtrl.emoticons = new EmoticonAdapter(this, R.layout.item_emoticon_picker);
-
         SharedPreferences sh = getSharedPreferences("preferences", MODE_PRIVATE);
-
         BlueCtrl.openDatabase(this);
 
-        //SAVING USER PROFILE
-        if (getIntent().getBooleanExtra("newbie", false)) {
+        //SAVING USER PROFILE IN DATABASE
+        if (getIntent().getBooleanExtra("newbie", false)) { //First login
 
             long timestamp = sh.getLong("timestamp", 0), age = sh.getLong("birth_timestamp", 0);
 
             BlueCtrl.insertUserTable(BluetoothAdapter.getDefaultAdapter().getAddress(), timestamp, sh.getString("username", "Unknown"), age, sh.getInt("gender", 0), sh.getInt("country", 0));
         }
 
-        BlueCtrl.validateUser(BluetoothAdapter.getDefaultAdapter().getAddress(), getSharedPreferences("preferences", MODE_PRIVATE).getLong("timestamp", 0));
-
-        BlueCtrl.msgAdapt = new MessageAdapter(this, R.layout.listitem_discuss);
-        BlueCtrl.msgAdapt.setAddress(new String());
+        BlueCtrl.msgAdapt = new MessageAdapter(this, R.layout.listitem_discuss); //MessageAdapter initialized
+        BlueCtrl.msgAdapt.setAddress("");
+        BlueCtrl.emoticons = new EmoticonAdapter(this, R.layout.item_emoticon_picker); //EmoticonAdapter initialized
 
         try {
             (new ServerThread(BluetoothAdapter.getDefaultAdapter().listenUsingInsecureRfcommWithServiceRecord("com.example.christian.chatbluetooth", UUID.fromString(BlueCtrl.UUID)), handler)).start();
+            //Initiating listening routine
         }
-
         catch (IOException e){
             e.printStackTrace();
             System.out.println("LISTEN FAILED");
@@ -506,22 +509,25 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         registerReceiver(this.blueReceiver, new IntentFilter(String.valueOf(BluetoothAdapter.ACTION_STATE_CHANGED)));
-        BluetoothAdapter.getDefaultAdapter().startDiscovery();
+        //Registering intents for BroadcastService routines
+
+        BluetoothAdapter.getDefaultAdapter().startDiscovery(); //Begin discovery
     }
 
 
     @Override
     public void onBackPressed() {
 
-        Fragment fragment = getFragmentManager().findFragmentByTag("LIST_FRAGMENT");
+        Fragment fragment = getFragmentManager().findFragmentByTag("LIST_FRAGMENT"); //Main fragment
 
         if (fragment != null) {
 
-            if(fragment.isVisible()) {
+            if(fragment.isVisible()) { //Currently on ListFragment
 
                 Intent intent = new Intent(Intent.ACTION_MAIN);
                 intent.addCategory(Intent.CATEGORY_HOME);
                 startActivity(intent);
+                //Quit application
             }
             else {
 
@@ -531,6 +537,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
                 fragmentTransaction.add(R.id.containerChat, listFragment, "LIST_FRAGMENT");
                 fragmentTransaction.commit();
+                //Not in ListFragment anymore, go back there
             }
         }
 
@@ -614,38 +621,7 @@ public class ChatActivity extends FragmentActivity implements ListFragment.OnFra
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        //TODO
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        //TODO
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
     public void onFragmentInteraction(Uri uri) {
 
-    }
-
-    public void setState(boolean val){
-        state = val;
     }
 }

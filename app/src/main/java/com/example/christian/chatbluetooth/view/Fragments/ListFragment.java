@@ -16,13 +16,10 @@ import android.text.SpannableString;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
-import com.example.christian.chatbluetooth.view.Adapters.NoMaterialRecyclerAdapter;
 import com.example.christian.chatbluetooth.view.Adapters.RecycleAdapter;
 import com.example.christian.chatbluetooth.view.Watchers.RecyclerItemClickListener;
 
@@ -80,15 +77,8 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-    /*
-    DEBUG ONLY
-    */
-        int layout = (BlueCtrl.version) ? R.layout.fragment_list : R.layout.fragment_list_nomat;
-    /*
-    DEBUG ONLY
-    */
         // Inflate the layout for this fragment
-        return inflater.inflate(layout, container, false);
+        return inflater.inflate(R.layout.fragment_list, container, false);
 
     }
 
@@ -131,66 +121,64 @@ public class ListFragment extends Fragment implements ChatFragment.OnFragmentInt
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        if (BlueCtrl.version) {
-            ((ChatActivity) getActivity()).state = false;
+        ((ChatActivity) getActivity()).state = false;
 
-            Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
+        Typeface type = Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Regular.ttf");
 
-            ActionBar actionBar = getActivity().getActionBar();
+        ActionBar actionBar = getActivity().getActionBar();
 
-            actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
-            actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(getResources().getDrawable(R.mipmap.menu));
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
 
-            final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
-            recList.setHasFixedSize(true);
-            LinearLayoutManager llm = new LinearLayoutManager(getActivity());
-            llm.setOrientation(LinearLayoutManager.VERTICAL);
-            recList.setLayoutManager(llm);
-            recList.setItemAnimator(new DefaultItemAnimator());
+        final RecyclerView recList = (RecyclerView) getActivity().findViewById(R.id.cardList);
+        recList.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recList.setLayoutManager(llm);
+        recList.setItemAnimator(new DefaultItemAnimator());
 
-            SpannableString title;
-            if (getTag().equals("FAVORITES")) {
+        SpannableString title;
+        if (getTag().equals("FAVORITES")) {
 
-                title = new SpannableString(getString(R.string.favorites));
-                title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.favList);
-            } else {
+            title = new SpannableString(getString(R.string.favorites));
+            title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.favList);
+        } else {
 
-                title = new SpannableString(getString(R.string.list_frag));
-                title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                actionBar.setTitle(title);
-                BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.userList);
-            }
-
+            title = new SpannableString(getString(R.string.list_frag));
+            title.setSpan(type, 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             actionBar.setTitle(title);
-
-            recList.setAdapter(BlueCtrl.userAdapt);
-            recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-
-                    if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
-                        BlueCtrl.msgAdapt.clear();
-                        BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
-                        BlueCtrl.fillMsgAdapter();
-                    }
-
-                    ((ChatActivity) getActivity()).chat = true;
-
-                    ChatFragment chatFragment = new ChatFragment();
-
-                    chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
-
-                    FragmentManager fragmentManager = getFragmentManager();
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-                    fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
-                    fragmentTransaction.commit();
-
-                }
-            }));
+            BlueCtrl.userAdapt = new RecycleAdapter(getActivity(), BlueCtrl.userList);
         }
+
+        actionBar.setTitle(title);
+
+        recList.setAdapter(BlueCtrl.userAdapt);
+        recList.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+
+                if (!BlueCtrl.msgAdapt.getAddress().equals(BlueCtrl.userAdapt.getItem(position).getMac())) {
+                    BlueCtrl.msgAdapt.clear();
+                    BlueCtrl.msgAdapt.setAddress(BlueCtrl.userAdapt.getItem(position).getMac());
+                    BlueCtrl.fillMsgAdapter();
+                }
+
+                ((ChatActivity) getActivity()).chat = true;
+
+                ChatFragment chatFragment = new ChatFragment();
+
+                chatFragment.setUser(BlueCtrl.userAdapt.getItem(position));
+
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+                fragmentTransaction.replace(R.id.containerChat, chatFragment, "CHAT_FRAGMENT");
+                fragmentTransaction.commit();
+
+            }
+        }));
 
     }
 

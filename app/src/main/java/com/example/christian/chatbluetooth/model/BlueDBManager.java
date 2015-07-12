@@ -5,16 +5,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Base64;
-import android.widget.Toast;
 
 import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
-
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
 
 
 public class BlueDBManager {
@@ -42,42 +36,40 @@ public class BlueDBManager {
 
     public BlueDBManager(Context context, SQLiteDatabase db) {
         setContext(context); //bound to activity
+        setDb(db); //bound Database
 
         //create User and History tables if this is first opening of DB
         String query = "SELECT name FROM sqlite_master WHERE type = \'table\' AND name = \'" + tables[0] + "\'";
-        if (!db.rawQuery(query, null).moveToFirst()) {
+        if (!this.db.rawQuery(query, null).moveToFirst()) {
             query = "CREATE TABLE " + tables[0] + "(_id integer primary key autoincrement, " +
                             userTable[0]+ " text not null, "+ userTable[1] + " text not null, " + userTable[2] +  " integer not null, " +
                             userTable[3] + " boolean not null, " + userTable[4] + " text, " + userTable[5] +
                             " integer, " + userTable[6] + " integer, " + userTable[7] + " integer, UNIQUE  (mac) ON CONFLICT REPLACE)";
-            db.execSQL(query);
+            this.db.execSQL(query);
         }
 
         query = "SELECT name FROM sqlite_master WHERE type = \'table\' AND name = \'" + tables[1] + "\'";
-        if (!db.rawQuery(query, null).moveToFirst()) {
+        if (!this.db.rawQuery(query, null).moveToFirst()) {
             query = "CREATE TABLE " + tables[1] + "(_id integer primary key autoincrement, " +
                     historyTable[0] + " text not null, " + historyTable[1] + " integer not null, " +
                     historyTable[2] + " text not null, " + historyTable[3] + " integer not null, " +
                     historyTable[4] + " integer not null, " + historyTable[5] + " text)";
-            db.execSQL(query);
+            this.db.execSQL(query);
         }
 
         query = "SELECT name FROM sqlite_master WHERE type = \'table\' AND name = \'" + tables[2] + "\'";
-
-        boolean bool = !db.rawQuery(query, null).moveToFirst();
-        if (bool) {
+        if (!this.db.rawQuery(query, null).moveToFirst()) {
             query = "CREATE TABLE " + tables[2] + "(_id integer primary key autoincrement, " +
                     nationTable[0] + " text not null, " + nationTable[1] + " text not null, " +
                     nationTable[2] + " text not null, " + nationTable[3] + " integer not null)";
-            db.execSQL(query);
+            this.db.execSQL(query);
+
+            initializeFlags();
         }
-
-        setDb(db);
-
-        if (bool) initializeFlags();
     }
 
     private void initializeFlags() {
+        //Create countries records
 
         createRecord(2, new Object[] {"Albania", "Albania", 1, "ALB"});
         createRecord(2, new Object[] {"Argentina", "Argentina", 5, "ARG"});
@@ -193,7 +185,6 @@ public class BlueDBManager {
                 id = -1;
         }
 
-        System.out.println("DB error: " + id);
         return id;
     }
 
@@ -231,18 +222,6 @@ public class BlueDBManager {
 
     }
 
-    public long fetchProfilePicCode(String address) {
-
-        Cursor cursor = db.query(tables[0], new String[] {userTable[4]}, userTable[0] + " = \'" + address, null, null, null, null, "1");
-        cursor.moveToFirst();
-
-        String str = cursor.getString(0);
-        if (str == null) {
-            return 0;
-        }
-        else return Long.parseLong(cursor.getString(0));
-    }
-
     public Cursor fetchCountry(int id) {
 
         return db.query(tables[2], new String[] {nationTable[0], nationTable[1], nationTable[3]}, "_id = " + id, null, null, null, null, "1");
@@ -250,10 +229,6 @@ public class BlueDBManager {
 
     public Cursor fetchCountries() {
 
-        System.out.println("fetching");
-
-        Cursor c = db.query(tables[2], new String[] {nationTable[0], nationTable[1], nationTable[3]}, null, null, null, null, null, null);
-        System.out.println("HOW MANY? " + c.getCount());
         return db.query(tables[2], new String[]{nationTable[0], nationTable[1], nationTable[3]}, null, null, null, null, null, null);
     }
 
@@ -287,6 +262,6 @@ public class BlueDBManager {
 
         db.update(tables[0], values, userTable[0] + " = \'" + BluetoothAdapter.getDefaultAdapter().getAddress() + "\'", null);
 
-        BlueCtrl.dispatchNews(BlueCtrl.buildGrtMsg(), null, ((ChatActivity)context).getHandler());
+        BlueCtrl.dispatchNews(BlueCtrl.buildGrtMsg(), null, ((ChatActivity) context).getHandler());
     }
 }
