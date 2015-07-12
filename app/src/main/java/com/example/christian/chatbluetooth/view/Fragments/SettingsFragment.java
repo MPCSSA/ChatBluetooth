@@ -363,6 +363,8 @@ public class SettingsFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        System.out.println("RESULT OK: " + getActivity().RESULT_OK);
+        System.out.println("RESULT CODE: " + resultCode);
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == getActivity().RESULT_OK) {
 
             BitmapFactory.Options bmOptions = new BitmapFactory.Options();
