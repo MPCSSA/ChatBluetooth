@@ -473,12 +473,13 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         findViewById(R.id.btn_logout).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View view) { //LOGOUT
 
                 getSharedPreferences("preferences", Context.MODE_PRIVATE).edit().putBoolean("logged in", false).apply();
 
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
+                finish();
             }
         });
 
