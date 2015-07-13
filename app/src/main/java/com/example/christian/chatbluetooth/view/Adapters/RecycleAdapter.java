@@ -52,6 +52,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         long age = chatUser.getAge();
         if (age > 0) {
 
+            System.out.println("AGE " + age);
             userViewHolder.age.setText(String.valueOf(((new Date()).getTime() - age) / 31536000000l));
         }
         //display age if public

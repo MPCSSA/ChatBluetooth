@@ -76,10 +76,10 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //Unrecognised user, trying to greet it
                         BlueCtrl.sendMsg(dvc, BlueCtrl.buildGrtMsg(), handler);
                     }
-                    else {
+                    /*else {
                         //Known user, make sure it's not dead
                         BlueCtrl.sendMsg(dvc, new byte[] {BlueCtrl.ACK}, handler);
-                    }
+                    }*/
 
                     break;
 
@@ -194,6 +194,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(singleupd), dvc, handler);
                         //send the greeted user segment information to all reachable devices
 
+                        BlueCtrl.userAdapt.notifyDataSetChanged();
+
                         break;
 
                     case BlueCtrl.UPD_HEADER:
@@ -208,6 +210,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             BlueCtrl.userList.add(user);
                             if (user.isFav()) BlueCtrl.favList.add(user);
                         }
+                        BlueCtrl.userAdapt.notifyDataSetChanged();
                         //Pop ChatUser from Buffer
                         break;
 
@@ -220,6 +223,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                         BlueCtrl.cardUpdate(msg.getData().getString("MAC"));
                         //fetch new user information and update the list
+
+                        BlueCtrl.userAdapt.notifyDataSetChanged();
 
                         break;
 
@@ -234,6 +239,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             BlueCtrl.msgAdapt.add(BlueCtrl.msgBuffer.remove(0));
                         }
                         //New message could be from a chat currently opened, therefore it could require update
+
+                        BlueCtrl.userAdapt.notifyDataSetChanged();
                         break;
 
                     case BlueCtrl.DRP_HEADER:
@@ -248,6 +255,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         BlueCtrl.favList.remove(user);
                         //Remove user from the RecyclerView
 
+                        BlueCtrl.userAdapt.notifyDataSetChanged();
+
                         break;
 
                     case BlueCtrl.INVISIBLE:
@@ -259,6 +268,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         user = BlueCtrl.scanUsers(msg.getData().getString("MAC"));
                         BlueCtrl.userList.remove(user);
                         BlueCtrl.favList.remove(user);
+
+                        BlueCtrl.userAdapt.notifyDataSetChanged();
 
                         break;
 
@@ -296,11 +307,12 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                             ArrayList<ChatUser> lstDvcs = (ArrayList<ChatUser>) BlueCtrl.dropUsers(mac);
 
-                            new AsyncScavenger(handler).execute((Runnable) lstDvcs.iterator()); //DROP routine
+                            new AsyncScavenger(handler, lstDvcs).execute(); //DROP routine
 
                             for (ChatUser u : lstDvcs) {
                                 BlueCtrl.favList.remove(u); //Remove from GUI
                             }
+                            BlueCtrl.userAdapt.notifyDataSetChanged();
                         }
                         else {
 
@@ -311,26 +323,15 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             BlueCtrl.tokenMap.put(mac, --counter);
                             System.out.println(mac + " TOKEN " + BlueCtrl.tokenMap.get(mac));
 
-                            final BluetoothDevice same_dvc = BlueCtrl.scanUsersForDvc(msg.getData().getString("MAC"));
+                            dvc = BlueCtrl.scanUsersForDvc(msg.getData().getString("MAC"));
                             //Find the device
-                            final byte[] mail = msg.getData().getByteArray("MSG");
+                            byte[] mail = msg.getData().getByteArray("MSG");
                             //get back the unsent message
-                            if (same_dvc != null) {
+                            if (dvc != null && mail[0] != BlueCtrl.ACK) {
 
-                                /*new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            Thread.sleep((long) Math.floor(Math.random() * 50));
-                                            //collision happened, wait a little bit before resending the message
-                                        }
-                                        catch (InterruptedException e) {*/
-                                            BlueCtrl.sendMsg(same_dvc, mail, handler);
-                                            System.out.println("RE-SENDING MESSAGE NUMBER " + mail[0]);
-                                            //re-send
-                                        /*}
-                                    }
-                                }).start();*/
+                                BlueCtrl.sendMsg(dvc, mail, handler);
+                                System.out.println("RE-SENDING MESSAGE NUMBER " + mail[0]);
+
                             }
                             //if no user was found it probably is no longer reachable, and
                             //there's no point in forwarding the message again
@@ -356,8 +357,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                         break;
                 }
-
-                BlueCtrl.userAdapt.notifyDataSetChanged();
                 //notify any changes to the List Adapter
 
             }
@@ -369,10 +368,10 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         while (true) {
 
                             try {
-                                Thread.sleep(10000l);
-                            } catch (InterruptedException e) {
+                                Thread.sleep(1000l);
+                            } catch (InterruptedException ignore) { }
+                            if (!BlueCtrl.DISCOVERY_SUSPENDED)
                                 BlueCtrl.dispatchNews(new byte[]{BlueCtrl.ACK}, null, handler);
-                            }
                         }}
                 })).start();
         //ACK mechanism to catch no longer connected devices
@@ -700,21 +699,14 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         final MediaPlayer mp = MediaPlayer.create(this, R.raw.notification);
         mp.setVolume(20, 20);
-        new Thread(new Runnable() {
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
-            public void run() {
-
-                try {
-                    mp.prepare();
-                    mp.start();
-                    while (mp.isPlaying()) { } //LOOP
-                    mp.release();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.out.println("OPS");
-                }
+            public void onCompletion(MediaPlayer mp) {
+                mp.stop();
+                mp.release();
             }
-        }); //play notification
+        });
+        mp.start();
     }
 
     @Override

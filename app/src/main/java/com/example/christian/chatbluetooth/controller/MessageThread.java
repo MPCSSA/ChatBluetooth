@@ -168,6 +168,8 @@ public class MessageThread extends Thread {
                         This message does not contain any more bits than the header itself.
                          */
 
+                        System.out.println("ECCHECCAZZO)");
+
                         out.write(BlueCtrl.buildGrtMsg()); //greetings routine
                         out.write(msg);
                         break;

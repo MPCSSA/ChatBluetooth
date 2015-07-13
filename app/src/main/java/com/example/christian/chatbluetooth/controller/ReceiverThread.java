@@ -79,6 +79,8 @@ public class ReceiverThread extends Thread {
                     before this device can accept messages the remote device must send a Greetings
                     message and restore this device route.
                     */
+
+                    System.out.println("NON CE STO PIU");
                     out.write(BlueCtrl.GRT_HEADER);
 
                     int skip, k, l;
@@ -388,6 +390,7 @@ public class ReceiverThread extends Thread {
                         (new Thread(new Runnable() {
                             @Override
                             public void run() {
+                                System.out.println(BlueCtrl.rebuildTimestamp(age));
                                 String address = BlueCtrl.bytesToMAC(buffer);
                                 BlueCtrl.insertUserTable(address, BlueCtrl.rebuildTimestamp(lastUpd),
                                         new String(username), BlueCtrl.rebuildTimestamp(age), gender, country);
@@ -651,7 +654,6 @@ public class ReceiverThread extends Thread {
 
             e.printStackTrace();
             BlueCtrl.unlockDiscoverySuspension();
-            cancel();
         }
 
         cancel();

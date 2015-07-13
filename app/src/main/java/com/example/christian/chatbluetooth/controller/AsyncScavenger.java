@@ -7,13 +7,15 @@ import com.example.christian.chatbluetooth.model.ChatUser;
 
 import java.util.ArrayList;
 
-public class AsyncScavenger extends AsyncTask<ChatUser, Void, Void> {
+public class AsyncScavenger extends AsyncTask<Void, Void, Void> {
 
     private ArrayList<byte[]> macs= new ArrayList<>();
+    private ArrayList<ChatUser> users;
     private Handler handler;
 
-    public AsyncScavenger(Handler handler) {
+    public AsyncScavenger(Handler handler, ArrayList<ChatUser> users) {
 
+        this.users = users;
         this.handler = handler;
     }
 
@@ -34,9 +36,9 @@ public class AsyncScavenger extends AsyncTask<ChatUser, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(ChatUser... params) {
+    protected Void doInBackground(Void... params) {
 
-        for(ChatUser user : params) {
+        for(ChatUser user : users) {
 
             macs.add(user.getMacInBytes());
             //Insert macs of lost devices in a temporary buffer
