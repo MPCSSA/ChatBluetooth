@@ -48,6 +48,7 @@ public class ChatUser {
     private BluetoothDevice nextNode; //next device on the route to the actual device
     private int bounces; //number of chained devices before actual user
     private int status; //user status
+    private boolean notification; //for RecyclerAdapter usage
 
     public BluetoothDevice getNextNode() { return nextNode; }
     public void setNextNode(BluetoothDevice nextNode) { this.nextNode = nextNode; }
@@ -57,6 +58,10 @@ public class ChatUser {
 
     public int getStatus(){ return status; }
     public void setStatus(int status) { this.status = status; }
+
+    public void notifyMessage() { this.notification = true; }
+    public void notificationRead() { this.notification = false; }
+    public boolean getNotification() { return this.notification; }
 
 
     //persistent information
@@ -89,6 +94,9 @@ public class ChatUser {
         setBounces(bounces);
         setStatus(status);
         //initialize fundamental user information
+
+        notificationRead();
+        //no new notification
 
         setSegment();
         //build segment for update requests

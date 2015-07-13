@@ -13,7 +13,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -630,6 +629,8 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
             if (state) {
 
+                BlueCtrl.msgAdapt.setAddress(""); //TODO: TEST
+
                 ListFragment listFragment = new ListFragment();
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -654,9 +655,14 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
         if (id == R.id.action_fav){
             if(!state2) {
+                //switch to Favorites
+
+                if (state) { //TODO: TEST
+                    BlueCtrl.msgAdapt.setAddress("");
+                    state = false;
+                }
 
                 item.setIcon(R.drawable.contacts);
-                System.out.println("PIPPO BAUDO");
                 ListFragment listFragment = new ListFragment();
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -666,10 +672,15 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 state2 = true;
             }
 
-            else{
+            else {
+                //switch to contact list
+
+                if (state) { //TODO: TEST
+                    BlueCtrl.msgAdapt.setAddress("");
+                    state = false;
+                }
 
                 item.setIcon(R.drawable.favorite);
-                System.out.println("PIPPO BAUDO");
                 ListFragment listFragment = new ListFragment();
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

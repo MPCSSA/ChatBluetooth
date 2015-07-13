@@ -355,6 +355,13 @@ public class BlueCtrl {
         if (from.equals(msgAdapt.getAddress())) {
             msgBuffer.add(new ChatMessage(msg, true, time, false));
         }
+        else {
+            //TODO TEST
+            ChatUser user = scanUsers(from);
+            if (user != null) user.notifyMessage();
+            user = scanFavorites(from);
+            if (user != null) user.notifyMessage();
+        }
     }
 
     public static void showReceivedEmo(String from, int code, Date time) {
@@ -371,6 +378,13 @@ public class BlueCtrl {
 
         if (from.equals(msgAdapt.getAddress())) {
             msgBuffer.add(new ChatMessage(String.valueOf(code), true, time, true));
+        }
+        else {
+            //TODO TEST
+            ChatUser user = scanUsers(from);
+            if (user != null) user.notifyMessage();
+            user = scanFavorites(from);
+            if (user != null) user.notifyMessage();
         }
     }
 
@@ -693,6 +707,20 @@ public class BlueCtrl {
         ChatUser user = scanUsers(address);
         if (user != null) return user.getNextNode();
         else return null;
+    }
+
+    public static ChatUser scanFavorites(String address) {
+         /*
+        Utility method for favList scanning. Returns a ChatUser instance that matches the MAC address
+        passed as argument or null if none was found. Used for notifications only
+         */
+
+        for (ChatUser user : favList) {
+
+            if (user.getMac().equals(address)) return user;
+        }
+
+        return null;
     }
 
     public static Collection dropUsers(String address) {

@@ -70,6 +70,8 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
             userViewHolder.flag.setBackground(new BitmapDrawable(Bitmap.createBitmap(bitmap, (pos / 12) * w, (pos % 12) * h, w, h)));
         }
         //display country flag if public
+
+        if (chatUser.getNotification()) userViewHolder.notification.setBackground(context.getDrawable(R.drawable.notification));
     }
 
     @Override
@@ -87,6 +89,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         protected TextView age;
         protected ImageView thumb;
         protected ImageView flag;
+        protected ImageView notification;
 
         public UserViewHolder(View v){
             super(v);
@@ -95,20 +98,9 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
             age = (TextView) v.findViewById(R.id.tv_age);
             thumb = (ImageView) v.findViewById(R.id.profilePict);
             flag = (ImageView) v.findViewById(R.id.user_flag);
+            notification = (ImageView) v.findViewById(R.id.notification);
         }
     }
-
-    //public boolean add(ChatUser user) {
-
-        //TODO: SHOULD BE DEPRECATED
-
-    /*    boolean result;
-
-        result = userList.add(user);
-        notifyDataSetChanged();
-
-        return result;
-    }*/
 
     public ChatUser getItem(int position){
         return userList.get(position);

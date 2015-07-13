@@ -139,6 +139,8 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         actionBar.setHomeAsUpIndicator(null);
         //ActionBar initialized
 
+        user.notificationRead(); //all new messages displayed
+
         msgText = (EditText) getActivity().findViewById(R.id.etMsg); //Text Message form
 
         final ListView listView = (ListView) getActivity().findViewById(R.id.msgList); //Messages list
