@@ -18,6 +18,7 @@ import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.model.Country;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -79,12 +80,15 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
                 @Override
                 public void run() {
 
-                    MediaPlayer mp = new MediaPlayer();
-                    AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 20, 0);
-                    mp.create(context, R.raw.notification).start(); //TODO TEST
-                    while (mp.isPlaying()) { } //LOOP
-                    mp.release();
+                    MediaPlayer mp = MediaPlayer.create(context, R.raw.notification); //TODO TEST
+                    mp.setVolume(20, 20);
+                    try {
+                        mp.prepare();
+                        while (mp.isPlaying()) { } //LOOP
+                        mp.release();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }); //play notification
         }
