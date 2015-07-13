@@ -320,7 +320,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                                     @Override
                                     public void run() {
                                         try {
-                                            Thread.sleep((long) Math.floor(Math.random() * 500));
+                                            Thread.sleep((long) Math.floor(Math.random() * 50));
                                             //collision happened, wait a little bit before resending the message
                                         }
                                         catch (InterruptedException e) {
