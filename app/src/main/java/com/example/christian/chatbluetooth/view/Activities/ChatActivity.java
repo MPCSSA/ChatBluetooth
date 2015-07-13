@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.DisplayMetrics;
@@ -693,6 +694,27 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void notification() {
+
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.notification);
+        mp.setVolume(20, 20);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    mp.prepare();
+                    mp.start();
+                    while (mp.isPlaying()) { } //LOOP
+                    mp.release();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println("OPS");
+                }
+            }
+        }); //play notification
     }
 
     @Override

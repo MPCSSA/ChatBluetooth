@@ -17,6 +17,7 @@ import com.example.christian.chatbluetooth.R;
 import com.example.christian.chatbluetooth.controller.BlueCtrl;
 import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.model.Country;
+import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 
 import java.io.IOException;
 import java.util.Date;
@@ -76,21 +77,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
 
         if (chatUser.getNotification()) {
             userViewHolder.notification.setBackground(context.getDrawable(R.drawable.notification));
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-
-                    MediaPlayer mp = MediaPlayer.create(context, R.raw.notification); //TODO TEST
-                    mp.setVolume(20, 20);
-                    try {
-                        mp.prepare();
-                        while (mp.isPlaying()) { } //LOOP
-                        mp.release();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }); //play notification
+            ((ChatActivity)context).notification();
         }
     }
 
