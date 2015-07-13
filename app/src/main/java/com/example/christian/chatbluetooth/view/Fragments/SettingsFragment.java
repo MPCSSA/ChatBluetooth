@@ -393,22 +393,26 @@ public class SettingsFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == getActivity().RESULT_OK) {
+            //User took a good picture
 
             BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-
             Bitmap bitmap = BitmapFactory.decodeFile(activity.mCurrentPhotoPath, bmOptions);
+            //fetch photo from external memory
 
             Point point = new Point();
             getActivity().getWindowManager().getDefaultDisplay().getRealSize(point);
 
             int width = point.x, height = point.y;
+            //screen size
             int w = bitmap.getWidth();
             int h = bitmap.getHeight();
+            //Image size
             int wcrop, hcrop;
             float ratio;
 
             wcrop = width;
             hcrop = (width * 9) / 16;
+            //crop values, settings contain a 16:9 scaled image
 
             if (w < h){
                 ratio = width / (float)w;
@@ -416,6 +420,7 @@ public class SettingsFragment extends Fragment {
             else {
                 ratio = height / (float)h;
             }
+            //Shrink image to fit into screen; portrait photos have height smaller than width and a different scale is needed
 
             bitmap = Bitmap.createScaledBitmap(bitmap, (int) Math.floor(bitmap.getWidth() * ratio), (int) Math.floor(bitmap.getHeight() * ratio),false);
             bitmap = Bitmap.createBitmap(bitmap,(bitmap.getWidth() -  wcrop) / 2 , (bitmap.getHeight() -  hcrop) / 2, wcrop, hcrop);

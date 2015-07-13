@@ -303,22 +303,35 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         }
                         else {
 
+                            //TODO: TEST
                             //Connection failed, but the remote device could be simply busy;
                             //a Token is taken from him, and this device tries to contact it again
 
                             BlueCtrl.tokenMap.put(mac, --counter);
                             System.out.println(mac + " TOKEN " + BlueCtrl.tokenMap.get(mac));
 
-                            dvc = BlueCtrl.scanUsersForDvc(msg.getData().getString("MAC"));
+                            final BluetoothDevice same_dvc = BlueCtrl.scanUsersForDvc(msg.getData().getString("MAC"));
                             //Find the device
-                            byte[] mail = msg.getData().getByteArray("MSG");
+                            final byte[] mail = msg.getData().getByteArray("MSG");
                             //get back the unsent message
-                            if (dvc != null) {
-                                BlueCtrl.sendMsg(dvc, mail, handler);
-                                System.out.println("RE-SENDING MESSAGE NUMBER " + mail[0]);
-                                //re-send
+                            if (same_dvc != null) {
+
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Thread.sleep((long) Math.floor(Math.random() * 500));
+                                            //collision happened, wait a little bit before resending the message
+                                        }
+                                        catch (InterruptedException e) {
+                                            BlueCtrl.sendMsg(same_dvc, mail, handler);
+                                            System.out.println("RE-SENDING MESSAGE NUMBER " + mail[0]);
+                                            //re-send
+                                        }
+                                    }
+                                }).start();
                             }
-                            //if no user was found it probabily is no longer reachable, and
+                            //if no user was found it probably is no longer reachable, and
                             //there's no point in forwarding the message again
                             //END OF RESEND CHAIN
                         }

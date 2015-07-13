@@ -27,17 +27,6 @@
             android:layout_alignParentLeft="true"
             android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/etMsg"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentRight="true"
-                android:ems="10" android:inputType="text"
-                android:layout_marginRight="40dp"
-                android:layout_marginLeft="8dp"
-                android:maxLength="256"/>
-
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -48,6 +37,17 @@
                 android:layout_toLeftOf="@+id/sendBtn"
                 android:src="@mipmap/emoticon_24dp"
                 android:background="@color/background" />
+
+            <EditText
+                android:id="@+id/etMsg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true"
+                android:ems="10" android:inputType="text"
+                android:layout_marginRight="40dp"
+                android:layout_marginLeft="8dp"
+                android:maxLength="100"/>
 
             <ImageButton
                 android:layout_width="wrap_content"
