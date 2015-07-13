@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaPlayer;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -71,7 +72,19 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         }
         //display country flag if public
 
-        if (chatUser.getNotification()) userViewHolder.notification.setBackground(context.getDrawable(R.drawable.notification));
+        if (chatUser.getNotification()) {
+            userViewHolder.notification.setBackground(context.getDrawable(R.drawable.notification));
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    MediaPlayer mp = new MediaPlayer();
+                    mp.create(context, R.raw.notification).start(); //TODO TEST
+                    while (mp.isPlaying()) { } //LOOP
+                    mp.release();
+                }
+            }); //play notification
+        }
     }
 
     @Override
