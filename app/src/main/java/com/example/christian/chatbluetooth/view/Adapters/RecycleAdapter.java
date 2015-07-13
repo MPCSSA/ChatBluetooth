@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -79,6 +80,8 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
                 public void run() {
 
                     MediaPlayer mp = new MediaPlayer();
+                    AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 20, 0);
                     mp.create(context, R.raw.notification).start(); //TODO TEST
                     while (mp.isPlaying()) { } //LOOP
                     mp.release();

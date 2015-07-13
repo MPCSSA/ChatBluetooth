@@ -316,20 +316,20 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             //get back the unsent message
                             if (same_dvc != null) {
 
-                                new Thread(new Runnable() {
+                                /*new Thread(new Runnable() {
                                     @Override
                                     public void run() {
                                         try {
                                             Thread.sleep((long) Math.floor(Math.random() * 50));
                                             //collision happened, wait a little bit before resending the message
                                         }
-                                        catch (InterruptedException e) {
+                                        catch (InterruptedException e) {*/
                                             BlueCtrl.sendMsg(same_dvc, mail, handler);
                                             System.out.println("RE-SENDING MESSAGE NUMBER " + mail[0]);
                                             //re-send
-                                        }
+                                        /*}
                                     }
-                                }).start();
+                                }).start();*/
                             }
                             //if no user was found it probably is no longer reachable, and
                             //there's no point in forwarding the message again
