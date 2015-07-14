@@ -81,6 +81,9 @@
     <string name="confirm_pass">Confirm password!</string>
     <string name="check_fields">Check username and password!</string>
     <string name="already_registered">You are already registered!</string>
+    <string name="updated">Profile updated</string>
+    <string name="received">Received&#160;</string>
+    <string name="sent">Sent&#160;</string>
 
 
 </resources>

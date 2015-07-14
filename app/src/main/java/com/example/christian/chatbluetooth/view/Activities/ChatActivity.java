@@ -19,7 +19,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.MediaStore;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.DisplayMetrics;
@@ -76,10 +75,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //Unrecognised user, trying to greet it
                         BlueCtrl.sendMsg(dvc, BlueCtrl.buildGrtMsg(), handler);
                     }
-                    /*else {
-                        //Known user, make sure it's not dead
-                        BlueCtrl.sendMsg(dvc, new byte[] {BlueCtrl.ACK}, handler);
-                    }*/
 
                     break;
 
@@ -154,11 +149,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //take ChatUser object from Buffer
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
-                        System.out.println("TOKEN ASSIGNED TO " + msg.getData().getString("MAC"));
                         //Every time a message is successfully received restore Token
 
                         BlueCtrl.sendMsg(user.getNextNode(), BlueCtrl.buildGrtMsg(), handler);
-                        System.out.println("GREET BACK ROUTINE");
                         //Greet Back: instead of waiting for the discovery, this device takes
                         //a BluetoothDevice object from this ChatUser and greets it
 
@@ -182,11 +175,9 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             }
                         }
 
-                        if (updCascade.size() > 0) {
+                        if (updCascade.size() > 0)
                             BlueCtrl.sendMsg(dvc, BlueCtrl.buildUpdMsg(updCascade), handler);
-                            System.out.println("UPDATE CASCADE");
-                        }
-                        //Send an Update Cascade to the newly found device, in order to connect it to the network
+                            //Send an Update Cascade to the newly found device, in order to connect it to the network
 
                         ArrayList<byte[]> singleupd = new ArrayList<>();
                         singleupd.add(user.getSegment());
@@ -202,7 +193,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //Some device has successfully notified the existence of other devices to this device
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
-                        System.out.println("TOKEN ASSIGNED TO " + msg.getData().getString("MAC"));
                         //Restore Token
 
                         if (BlueCtrl.userQueue.size() > 0) {
@@ -218,7 +208,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //some device has successfully sent up to date information on a certain user
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
-                        System.out.println("TOKEN " + BlueCtrl.TKN);
                         //Restore Token
 
                         BlueCtrl.cardUpdate(msg.getData().getString("MAC"));
@@ -232,7 +221,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //Some device successfully sent a chat message to this device
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
-                        System.out.println("TOKEN " + BlueCtrl.TKN);
                         //Restore Token
 
                         if (!BlueCtrl.msgBuffer.isEmpty()) {
@@ -247,7 +235,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         //Some device successfully sent the MAC address of a lost device
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
-                        System.out.println("TOKEN " + BlueCtrl.TKN);
                         //Restore Token
 
                         user = BlueCtrl.scanUsers(msg.getData().getString("LST"));
@@ -262,7 +249,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                     case BlueCtrl.INVISIBLE:
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
-                        System.out.println("TOKEN " + BlueCtrl.TKN);
                         //Restore Token
 
                         user = BlueCtrl.scanUsers(msg.getData().getString("MAC"));
@@ -276,7 +262,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                     case BlueCtrl.ACK:
 
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
-                        System.out.println("TOKEN " + BlueCtrl.TKN);
                         //Restore Token
 
                         break;
@@ -289,13 +274,10 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                         counter = BlueCtrl.tokenMap.get(mac);
                         //Tokens left
-                        if (counter == null) {
-
-                            System.out.println("NO TOKEN");
+                        if (counter == null)
                             //The remote user has not been registered yet; Handler usually goes here when a greetings fails.
                             //No further action is required
                             break;
-                        }
 
                         if (counter < 1) {
 
@@ -316,23 +298,20 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                         }
                         else {
 
-                            //TODO: TEST
                             //Connection failed, but the remote device could be simply busy;
                             //a Token is taken from him, and this device tries to contact it again
 
                             BlueCtrl.tokenMap.put(mac, --counter);
-                            System.out.println(mac + " TOKEN " + BlueCtrl.tokenMap.get(mac));
 
                             dvc = BlueCtrl.scanUsersForDvc(msg.getData().getString("MAC"));
                             //Find the device
                             byte[] mail = msg.getData().getByteArray("MSG");
                             //get back the unsent message
-                            if (dvc != null && mail[0] != BlueCtrl.ACK) {
+                            if (dvc != null && mail[0] != BlueCtrl.ACK)
 
+                                //ACKs just saturate the network
                                 BlueCtrl.sendMsg(dvc, mail, handler);
-                                System.out.println("RE-SENDING MESSAGE NUMBER " + mail[0]);
 
-                            }
                             //if no user was found it probably is no longer reachable, and
                             //there's no point in forwarding the message again
                             //END OF RESEND CHAIN
@@ -538,7 +517,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
         }
         catch (IOException e){
             e.printStackTrace();
-            System.out.println("LISTEN FAILED");
         }
 
         registerReceiver(this.blueReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
@@ -630,7 +608,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
             if (state) {
 
-                BlueCtrl.msgAdapt.setAddress(""); //TODO: TEST
+                BlueCtrl.msgAdapt.setAddress("");
 
                 ListFragment listFragment = new ListFragment();
                 FragmentManager fragmentManager = getFragmentManager();
@@ -658,7 +636,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             if(!state2) {
                 //switch to Favorites
 
-                if (state) { //TODO: TEST
+                if (state) {
                     BlueCtrl.msgAdapt.setAddress("");
                     state = false;
                 }
@@ -676,7 +654,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
             else {
                 //switch to contact list
 
-                if (state) { //TODO: TEST
+                if (state) {
                     BlueCtrl.msgAdapt.setAddress("");
                     state = false;
                 }
@@ -696,6 +674,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
     }
 
     public void notification() {
+        //play jingle every time a new message arrives
 
         final MediaPlayer mp = MediaPlayer.create(this, R.raw.notification);
         mp.setVolume(20, 20);

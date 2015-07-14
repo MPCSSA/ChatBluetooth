@@ -356,11 +356,9 @@ public class SettingsFragment extends Fragment {
                         photoFile = createImageFile();
                     } catch (IOException ex) {
                         // Error occurred while creating the File
-                        System.out.println("Create failed!");
                     }
                     // Continue only if the File was successfully created
                     if (photoFile != null) {
-                        System.out.println("REQUEST TAKING PICTURE");
                         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                                 Uri.fromFile(photoFile));
                         startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
@@ -384,7 +382,6 @@ public class SettingsFragment extends Fragment {
         );
         // Save a file: path for use with ACTION_VIEW intents
         activity.mCurrentPhotoPath = image.getAbsolutePath();
-        System.out.println("Path: " + activity.mCurrentPhotoPath);
         return image;
     }
 

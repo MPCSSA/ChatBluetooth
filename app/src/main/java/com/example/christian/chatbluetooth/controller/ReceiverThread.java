@@ -48,7 +48,6 @@ public class ReceiverThread extends Thread {
 
     public void run() {
 
-        System.out.println("RECEIVING");
         try {
 
             int i, j; //counters
@@ -59,9 +58,7 @@ public class ReceiverThread extends Thread {
 
             do {
 
-                System.out.println("READING");
                 byte flag = (byte) in.read();
-                System.out.println("READ " + flag + " TYPE MESSAGE");
             /*
             incoming message flag;
             0: Greetings Message; a newly connected device is sending information about itself.
@@ -80,7 +77,6 @@ public class ReceiverThread extends Thread {
                     message and restore this device route.
                     */
 
-                    System.out.println("NON CE STO PIU");
                     out.write(BlueCtrl.GRT_HEADER);
 
                     int skip, k, l;
@@ -134,16 +130,12 @@ public class ReceiverThread extends Thread {
                     */
 
                         byte status = (byte) in.read(); //read Status
-                        System.out.println(status);
                         byte[] bytes = new byte[8];
                         i = 0;
 
                         do {
                             j = in.read(bytes, i, 8 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
+                            if (j < 0) throw new IOException(); //Misunderstanding
                             i += j;
                         } while (i < 8);
                         //read last profile update timestamp
@@ -155,18 +147,13 @@ public class ReceiverThread extends Thread {
                         bundle.putString("MAC", rmtDvc.getAddress());
                         mail.setData(bundle);
 
-                        if (status == (byte)0) {
-
-                            System.out.println("USER INVISIBLE");
+                        if (status == (byte)0)
                             mail.what = BlueCtrl.INVISIBLE;
                             //Invisible user, but nonetheless a reachable user
-                        }
 
-                        else if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0, lastUpd)) {
-                            System.out.println(rmtDvc.getAddress() + " SUMMONED");
+                        else if (BlueCtrl.awakeUser(rmtDvc.getAddress(), rmtDvc, status, 0, lastUpd))
                             mail.what = BlueCtrl.GRT_HEADER;
 
-                        }
                         else mail.what = BlueCtrl.ACK;
 
                         handler.sendMessage(mail);
@@ -176,18 +163,16 @@ public class ReceiverThread extends Thread {
                         */
 
                         if (BlueCtrl.validateUser(rmtDvc.getAddress(), lastUpd)) {
-                            out.write(BlueCtrl.ACK); //ACKed
-                            System.out.println("MESSAGE ACKED");
 
+                            out.write(BlueCtrl.ACK); //ACKed
                             connected = false;
-                        } else {
+                        }
+                        else {
                             /*
                             User information are not up to date, an Info Request is forwarded as Instant Reply
                             */
-                            System.out.println("requesting information");
                             out.write(BlueCtrl.RQS_HEADER);
                             out.write(BlueCtrl.macToBytes(rmtDvc.getAddress()));
-                            out.write(0);
                         }
 
                         /*
@@ -225,10 +210,7 @@ public class ReceiverThread extends Thread {
                             i = 0;
                             do {
                                 j = in.read(segment, i, 16 - i);
-                                if (j < 0) {
-                                    System.out.println("Premature EOF, message misunderstanding");
-                                    throw new IOException();
-                                }
+                                if (j < 0) throw new IOException(); //Misunderstanding
                                 i += j;
                             } while (i < 16);
                             //read a whole segment
@@ -300,7 +282,6 @@ public class ReceiverThread extends Thread {
 
                                 out.write(BlueCtrl.RQS_HEADER); //Info Request
                                 out.write(buffer);
-                                out.write(0);
                             }
                         }
 
@@ -312,8 +293,7 @@ public class ReceiverThread extends Thread {
                     case BlueCtrl.RQS_HEADER: {
                         //You should not be able to send these as actual messages
 
-                        System.out.println("This message should not be captured here");
-                        throw new IOException();
+                        throw new IOException(); //Misunderstanding
                     }
 
                     case BlueCtrl.CRD_HEADER: {
@@ -339,10 +319,7 @@ public class ReceiverThread extends Thread {
                         i = 0;
                         do {
                             j = in.read(buffer, i, 6 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
+                            if (j < 0) throw new IOException(); //Misunderstanding
                             i += j;
                         } while (i < 6);
                         //read MAC address
@@ -350,10 +327,7 @@ public class ReceiverThread extends Thread {
                         i = 0;
                         do {
                             j = in.read(lastUpd, i, 8 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
+                            if (j < 0) throw new IOException(); //Misunderstanding
                             i += j;
                         } while (i < 8);
                         //read LastUpd field
@@ -361,10 +335,7 @@ public class ReceiverThread extends Thread {
                         i = 0;
                         do {
                             j = in.read(age, i, 8 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
+                            if (j < 0) throw new IOException(); //Misunderstanding
                             i += j;
                         } while (i < 8);
                         //read age field
@@ -379,10 +350,7 @@ public class ReceiverThread extends Thread {
                         i = 0;
                         do {
                             j = in.read(username, i, length - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
+                            if (j < 0) throw new IOException(); //Misunderstanding
                             i += j;
                         } while (i < length);
                         //read username
@@ -390,7 +358,7 @@ public class ReceiverThread extends Thread {
                         (new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                System.out.println(BlueCtrl.rebuildTimestamp(age));
+
                                 String address = BlueCtrl.bytesToMAC(buffer);
                                 BlueCtrl.insertUserTable(address, BlueCtrl.rebuildTimestamp(lastUpd),
                                         new String(username), BlueCtrl.rebuildTimestamp(age), gender, country);
@@ -460,7 +428,6 @@ public class ReceiverThread extends Thread {
 
                                 int crypted, length;
                                 if ((crypted = in.read()) == -1) throw new  IOException(); //is the message crypted?
-                                System.out.println("CRYPTED: " + crypted);
 
                                 if ((length = in.read()) <= 0) throw new IOException();
                                 //you cannot send empty messages, so message length is between 1 and 255
@@ -642,14 +609,11 @@ public class ReceiverThread extends Thread {
             if (filteredUpdCascade != null && filteredUpdCascade.size() > 0) {
                 BlueCtrl.dispatchNews(BlueCtrl.buildUpdMsg(filteredUpdCascade), rmtDvc, handler);
             }
+            //UPDATE CASCADE
             in.close();
             out.close();
         }
-        catch (IOException e) {
 
-            e.printStackTrace();
-            BlueCtrl.unlockDiscoverySuspension();
-        }
         catch (Exception e) {
 
             e.printStackTrace();

@@ -108,7 +108,7 @@ public class SettingActivity extends Activity implements SettingsFragment.OnFrag
                 //DB contains public user information, therefore if some are hidden change to default value
                 bool = true;
 
-                Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.updated, Toast.LENGTH_SHORT).show();
             }
 
             if (!mCurrentPhotoPath.equals(sh.getString("PROFILE_PIC", "NoPhoto"))) {

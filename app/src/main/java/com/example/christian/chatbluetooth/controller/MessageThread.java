@@ -96,13 +96,8 @@ public class MessageThread extends Thread {
             if (type != BlueCtrl.ACK) BlueCtrl.lockDiscoverySuspension();
             //ACK messages are only 1 byte long, no need to put down discovery. Right?
 
-
-            System.out.println("TRYING TO CONNECT TO " + rmtDvc.getAddress());
             sckt.connect();
-            System.out.println("CONNECTED TO " + rmtDvc.getAddress());
-
             out.write(msg);
-            System.out.println("TYPE " + type + " MESSAGE SENT");
 
             /*
             Instant Reply
@@ -119,8 +114,6 @@ public class MessageThread extends Thread {
 
             while ((ack = in.read()) != BlueCtrl.ACK) {
 
-                System.out.println("TYPE " + ack + " RESPONSE RECEIVED");
-
                 switch(ack) {
 
                     case BlueCtrl.RQS_HEADER:
@@ -135,14 +128,10 @@ public class MessageThread extends Thread {
                     [2][MAC][ID]
                      */
 
-                        System.out.println("INFORMATION REQUESTED");
                         i = 0;
                         do {
                             j = in.read(buffer, i, 6 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
+                            if (j < 0) throw new IOException(); //Misunderstanding
                             i += j;
                         } while (i < 6);
                         //MAC address of unknown user
@@ -153,9 +142,6 @@ public class MessageThread extends Thread {
                         //Building response message
 
                         out.write(card);
-                        System.out.println(address + " CARD SENT TO " + rmtDvc.getAddress());
-
-
                         break;
 
                     case BlueCtrl.GRT_HEADER:
@@ -167,8 +153,6 @@ public class MessageThread extends Thread {
                         accepted.
                         This message does not contain any more bits than the header itself.
                          */
-
-                        System.out.println("ECCHECCAZZO)");
 
                         out.write(BlueCtrl.buildGrtMsg()); //greetings routine
                         out.write(msg);
@@ -192,10 +176,7 @@ public class MessageThread extends Thread {
                         i = 0;
                         do {
                             j = in.read(buffer, i, 6 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
+                            if (j < 0) throw new IOException(); //Misunderstanding
                             i += j;
                         } while (i < 6);
                         //MAC address
@@ -206,10 +187,7 @@ public class MessageThread extends Thread {
                         i = 0;
                         do {
                             j = in.read(lastUpd, i, 8 - i);
-                            if (j < 0) {
-                                System.out.println("Premature EOF, message misunderstanding");
-                                throw new IOException();
-                            }
+                            if (j < 0) throw new IOException(); //Misunderstanding
                             i += j;
                         } while (i < 8);
                         //Last Profile Update timestamp

@@ -479,6 +479,12 @@ public class BlueCtrl {
         return dbManager.fetchUserInfo(address);
     }
 
+    public static Cursor fetchMsgHistory(String address, long timestamp) {
+        //Interface method for querying DB about certain messages
+        
+        return dbManager.fetchMsgHistory(address, timestamp);
+    }
+
     public static List<ChatMessage> fetchHistory(String quote, int mode) {
         /*
         Interface method for message history fetching, given a keyword and a where clause; it returns
@@ -675,7 +681,6 @@ public class BlueCtrl {
          */
 
         ++DISCOVERY_LOCK; //thread enters the room
-        System.out.println("LOCK " + DISCOVERY_LOCK);
         if (DISCOVERY_SUSPENDED) return; //The door was already opened
 
         DISCOVERY_SUSPENDED = true; //Thread opened the door
@@ -694,11 +699,7 @@ public class BlueCtrl {
 
             if (!BluetoothAdapter.getDefaultAdapter().isDiscovering())
                 BluetoothAdapter.getDefaultAdapter().startDiscovery(); //And closes the door
-        } else System.out.println("OPEN DOOR " + DISCOVERY_LOCK);
-    }
-
-    public static Cursor fetchMsgHistory(String address, long timestamp) {
-        return dbManager.fetchMsgHistory(address, timestamp);
+        }
     }
 
     public static BluetoothDevice scanUsersForDvc(String address) {

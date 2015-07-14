@@ -55,4 +55,7 @@
     <string name="confirm_pass">Conferma la password!</string>
     <string name="check_fields">Controlla username e password!</string>
     <string name="already_registered">Sei gi&#224; registrato!</string>
+    <string name="updated">Profilo aggiornato</string>
+    <string name="received">Ricevuto&#160;</string>
+    <string name="sent">Inviato&#160;</string>
 </resources>

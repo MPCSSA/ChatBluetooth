@@ -33,7 +33,8 @@
             android:textSize="@dimen/abc_text_size_small_material"
             android:layout_toRightOf="@+id/title"
             android:textColor="@color/secondary_text"
-            android:layout_marginStart="8dp" />
+            android:layout_marginStart="16dp"
+            android:layout_alignBottom="@+id/title"/>
 
         <ImageView
             android:layout_width="48dp"

@@ -39,7 +39,7 @@ public class HistoryAdapter extends ArrayAdapter<ChatMessage> {
         ((CheckBox)view.findViewById(R.id.cboxSelect)).setChecked(msg.getSender());
         //sentBy attribute has no use in this context; therefore, here it is used as a persistent way of checking CheckBoxes
 
-        int imageResource = R.drawable.red_emoticons;
+        int imageResource = R.drawable.white_emoticons;
 
         if (msg.isEmo()) {
             //display emoticon

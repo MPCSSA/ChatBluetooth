@@ -4,8 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,7 +17,6 @@ import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.model.Country;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -50,12 +47,9 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
         userViewHolder.name.setText(username);
 
         long age = chatUser.getAge();
-        if (age > 0) {
-
-            System.out.println("AGE " + age);
+        if (age > 0)
             userViewHolder.age.setText(String.valueOf(((new Date()).getTime() - age) / 31536000000l));
-        }
-        //display age if public
+            //display age if public
 
         int gender = chatUser.getGender();
         if (gender > 0) {

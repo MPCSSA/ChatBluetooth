@@ -153,7 +153,7 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage>{
             //write message into balloon
         }
 
-        String str = (message.getSender()) ? "received " : "sent ";
+        String str = (message.getSender()) ? getContext().getString(R.string.received) : getContext().getString(R.string.sent);
         //building up message timestamp
 
         Date date1 = getItem(position).getDate();
