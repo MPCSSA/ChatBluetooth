@@ -1,6 +1,5 @@
 package com.example.christian.chatbluetooth.model;
 
-
 public class Country {
 
     private String country; //Country name

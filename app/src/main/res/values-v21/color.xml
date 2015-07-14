@@ -11,27 +11,3 @@
     <color name="background">#212F3A</color>
     <color name="calendar">#CF334B</color>
 </resources>
-
-<!-- ORANGE
-    <color name="primary">#CF334B</color>
-    <color name="primary_dark">#8B2D3F</color>
-    <color name="accent">#FFFFFF</color>
-    <color name="light_primary">#F0314E</color>
-    <color name="primary_text">#FFFFFF</color>
-    <color name="secondary_text">#727272</color>
-    <color name="divider">#B6B6B6</color>
-    <color name="text">#FFFFFF</color>
-    <color name="background">#212F3A</color>
-    <color name="calendar">#CF334B</color> <-->
-
-<!-- RED
-    <color name="primary">#FB8C00</color>
-    <color name="primary_dark">#EF6C00</color>
-    <color name="accent">#FFFFFF</color>
-    <color name="light_primary">#FFA726</color>
-    <color name="primary_text">#FFFFFF</color>
-    <color name="secondary_text">#727272</color>
-    <color name="divider">#B6B6B6</color>
-    <color name="text">#FFFFFF</color>
-    <color name="background">#212F3A</color>
-    <color name="calendar">#FB8C00</color> <-->

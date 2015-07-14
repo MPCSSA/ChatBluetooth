@@ -120,12 +120,9 @@ public class MessageThread extends Thread {
                     /*
                     An Info Request is a special request sent by a node which received a reachable MAC
                     address through a Greetings or Update Msg, but no results were found in the Users table. It
-                    contains MAC address of unknown device and a RQS identifier (0). A Card Msg follows,
-                    containing persistent user information about it.
-                    A second check is performed to establish if a picture update is also needed. The remote
-                    device will send another request, this time with the identifier set to 1.
-                    No divider is needed, because every MAC address is made up of exactly 6 bytes.
-                    [2][MAC][ID]
+                    contains MAC address of unknown device. A Card Msg follows, containing persistent user
+                    information about it.
+                    [2][MAC]
                      */
 
                         i = 0;
