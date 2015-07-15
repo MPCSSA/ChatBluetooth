@@ -99,6 +99,8 @@ public class MessageThread extends Thread {
             sckt.connect();
             out.write(msg);
 
+            System.out.println("SENDING MESSAGE TYPE " + type);
+
             /*
             Instant Reply
             After sending the message, this device maintains connection, listening to the remote device
@@ -241,6 +243,7 @@ public class MessageThread extends Thread {
             out.close();
             in.close();
             //End Connection
+            System.out.println("TERMINATED MESSAGE TYPE " + type);
         }
         catch(Exception e) {
 
