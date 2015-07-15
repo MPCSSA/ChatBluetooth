@@ -90,7 +90,6 @@ public class BlueCtrl {
         type but is not concerned with its content. The Handler is required to ensure Thread communication
          */
 
-        System.out.println("sending " + dvc.getAddress());
         (new MessageThread(dvc, msg, handler)).start();
         //Interface method, you are not allowed to instantiate a MessageThread object
     }
@@ -272,7 +271,7 @@ public class BlueCtrl {
         //fetched info
 
         String mac = info.getString(0), username = info.getString(1);
-        long timestamp = info.getLong(2), age = info.getInt(7);
+        long timestamp = info.getLong(2), age = info.getLong(7);
         int country = info.getInt(5), gender = info.getInt(6);
 
         byte[] address = macToBytes(mac), user = username.getBytes(), lastUpd = longToBytes(timestamp),
@@ -722,25 +721,6 @@ public class BlueCtrl {
         }
 
         return null;
-    }
-
-    public static Collection dropUsers(String address) {
-        //Returns a list of ChatUsers routed by a device with MAC == address
-
-        ArrayList<ChatUser> lostDvcs = new ArrayList<>();
-
-        for (ChatUser u : userList) {
-
-            if (u.getNextNode() != null && u.getNextNode().getAddress().equals(address)) {
-
-                lostDvcs.add(u);
-                userList.remove(u);
-                favList.remove(u);
-                //Remove lost user from lists
-            }
-        }
-
-        return lostDvcs;
     }
 
     public static byte[] encrypt(byte encrypt[]) {

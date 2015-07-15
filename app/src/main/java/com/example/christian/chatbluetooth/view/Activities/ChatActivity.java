@@ -70,7 +70,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                 case BluetoothDevice.ACTION_FOUND:
 
                     BluetoothDevice dvc = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
+                    dvc.setPairingConfirmation(false);
                     if (!BlueCtrl.closeDvc.containsValue(dvc)) {
                         //Unrecognised user, trying to greet it
                         BlueCtrl.sendMsg(dvc, BlueCtrl.buildGrtMsg(), handler);
@@ -144,7 +144,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                     case BlueCtrl.GRT_HEADER:
                         //Some device successfully submitted himself to this device
-
                         user = BlueCtrl.userQueue.remove(0);
                         //take ChatUser object from Buffer
 
@@ -191,7 +190,6 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                     case BlueCtrl.UPD_HEADER:
                         //Some device has successfully notified the existence of other devices to this device
-
                         BlueCtrl.tokenMap.put(msg.getData().getString("MAC"), BlueCtrl.TKN);
                         //Restore Token
 
@@ -287,7 +285,7 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
                             BlueCtrl.tokenMap.remove(mac);
                             BlueCtrl.closeDvc.remove(mac);
 
-                            ArrayList<ChatUser> lstDvcs = (ArrayList<ChatUser>) BlueCtrl.dropUsers(mac);
+                            ArrayList<ChatUser> lstDvcs = (ArrayList<ChatUser>) BlueCtrl.userAdapt.dropUsers(mac);
 
                             new AsyncScavenger(handler, lstDvcs).execute(); //DROP routine
 
@@ -303,14 +301,26 @@ public class ChatActivity extends Activity implements ListFragment.OnFragmentInt
 
                             BlueCtrl.tokenMap.put(mac, --counter);
 
-                            dvc = BlueCtrl.scanUsersForDvc(msg.getData().getString("MAC"));
+                            final BluetoothDevice dvc1 = BlueCtrl.scanUsersForDvc(msg.getData().getString("MAC"));
                             //Find the device
-                            byte[] mail = msg.getData().getByteArray("MSG");
+                            final byte[] mail = msg.getData().getByteArray("MSG");
                             //get back the unsent message
-                            if (dvc != null && mail[0] != BlueCtrl.ACK)
+                            if (dvc1 != null && mail[0] != BlueCtrl.ACK)
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Thread.sleep((long) (Math.floor(Math.random() * 100)));
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                        BlueCtrl.sendMsg(dvc1, mail, handler);
+
+                                    }
+                                }).start();
 
                                 //ACKs just saturate the network
-                                BlueCtrl.sendMsg(dvc, mail, handler);
+
 
                             //if no user was found it probably is no longer reachable, and
                             //there's no point in forwarding the message again

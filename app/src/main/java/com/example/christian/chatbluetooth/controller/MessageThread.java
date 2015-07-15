@@ -93,13 +93,11 @@ public class MessageThread extends Thread {
 
         try {
 
-            if (type != BlueCtrl.ACK) BlueCtrl.lockDiscoverySuspension();
+            /*if (type != BlueCtrl.ACK) */BlueCtrl.lockDiscoverySuspension();
             //ACK messages are only 1 byte long, no need to put down discovery. Right?
 
             sckt.connect();
             out.write(msg);
-
-            System.out.println("SENDING MESSAGE TYPE " + type);
 
             /*
             Instant Reply
@@ -220,10 +218,9 @@ public class MessageThread extends Thread {
 
                     default: throw new IOException(); //Misunderstanding
                 }
-
             }
 
-            if (type != BlueCtrl.ACK) BlueCtrl.unlockDiscoverySuspension(); //Release lock
+            /*if (type != BlueCtrl.ACK) */BlueCtrl.unlockDiscoverySuspension(); //Release lock
 
             if (type == BlueCtrl.GRT_HEADER) {
 
@@ -243,13 +240,12 @@ public class MessageThread extends Thread {
             out.close();
             in.close();
             //End Connection
-            System.out.println("TERMINATED MESSAGE TYPE " + type);
         }
         catch(Exception e) {
 
             e.printStackTrace();
 
-            if (type != BlueCtrl.ACK) BlueCtrl.unlockDiscoverySuspension();
+            /*if (type != BlueCtrl.ACK) */BlueCtrl.unlockDiscoverySuspension();
 
 
             Message mail = new Message();

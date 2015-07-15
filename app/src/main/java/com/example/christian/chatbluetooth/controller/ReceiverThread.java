@@ -54,6 +54,7 @@ public class ReceiverThread extends Thread {
             boolean connected = true; //connection still on, i.e. rmtDvc did not shut its OutputStream yet
             ArrayList<byte[]> filteredUpdCascade = null; //ArrayList containing Update Message segments of an Update Cascade
 
+
             BlueCtrl.lockDiscoverySuspension();
 
             do {
@@ -401,6 +402,7 @@ public class ReceiverThread extends Thread {
                     [5][Target MAC][Sender MAC][1][Emoticon]
                        | 6 bytes  |  6 bytes  |  | 1 byte |
                      */
+
                         byte[] buffer = new byte[6], sender = new byte[6],
                                msgBuffer;
 
@@ -519,6 +521,7 @@ public class ReceiverThread extends Thread {
                     the message length.
                     [6][number][MAC][MAC]...
                     */
+
                         byte[] buffer = new byte[6], tmp, lst = new byte[0];
                         int number = in.read();
 

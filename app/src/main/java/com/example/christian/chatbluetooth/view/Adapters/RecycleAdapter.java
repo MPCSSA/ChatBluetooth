@@ -17,6 +17,8 @@ import com.example.christian.chatbluetooth.model.ChatUser;
 import com.example.christian.chatbluetooth.model.Country;
 import com.example.christian.chatbluetooth.view.Activities.ChatActivity;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -106,5 +108,30 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.UserView
 
     public ChatUser getItem(int position){
         return userList.get(position);
+    }
+
+    public Collection dropUsers(String address) {
+        //Returns a list of ChatUsers routed by a device with MAC == address
+
+        ArrayList<ChatUser> lostDvcs = new ArrayList<>();
+
+        int counter = userList.size();
+        int i = 0;
+        while (i < counter) {
+
+            ChatUser u = userList.get(i);
+            if (u == null) break;
+            if (u.getNextNode() != null && u.getNextNode().getAddress().equals(address)) {
+
+                lostDvcs.add(u);
+                userList.remove(u);
+                //BlueCtrl.favList.remove(u);
+                //Remove lost user from lists
+                --counter;
+            }
+            else ++i;
+        }
+
+        return lostDvcs;
     }
 }
