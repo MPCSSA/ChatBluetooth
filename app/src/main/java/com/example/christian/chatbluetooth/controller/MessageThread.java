@@ -220,7 +220,7 @@ public class MessageThread extends Thread {
                 }
             }
 
-            /*if (type != BlueCtrl.ACK) */BlueCtrl.unlockDiscoverySuspension(); //Release lock
+            BlueCtrl.unlockDiscoverySuspension(); //Release lock
 
             if (type == BlueCtrl.GRT_HEADER) {
 
@@ -245,7 +245,7 @@ public class MessageThread extends Thread {
 
             e.printStackTrace();
 
-            /*if (type != BlueCtrl.ACK) */BlueCtrl.unlockDiscoverySuspension();
+            BlueCtrl.unlockDiscoverySuspension();
 
 
             Message mail = new Message();
